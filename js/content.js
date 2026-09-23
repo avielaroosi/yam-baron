@@ -74,7 +74,7 @@ window.SITE = {
 
   // type: "placeholder" (מסגרת עד שיגיע סרטון) | "file" (src = assets/video/x.mp4) | "youtube" (src = קישור Shorts/וידאו) | "instagram" (src = קישור לפוסט/ריל)
   videos: [
-    { type: "placeholder", poster: "assets/img/video-01.jpg", title: "החלקה: לפני ואחרי" },
+    { type: "file", src: "assets/video/yam-01.mp4", poster: "assets/img/video-yam-01.jpg", title: "רגעים מהסטודיו" },
     { type: "placeholder", poster: "assets/img/video-02.jpg", title: "תסרוקת כלה" },
     { type: "placeholder", poster: "assets/img/video-03.jpg", title: "מאחורי הקלעים בסטודיו" },
   ],

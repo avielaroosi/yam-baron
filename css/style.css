@@ -7,6 +7,14 @@
   --gold: #c9a961;
   --gold-soft: rgba(201, 169, 97, .35);
   --gold-line: rgba(201, 169, 97, .18);
+  --gold-ring: rgba(201, 169, 97, .55);
+  /* Pointing at an image lifts its frame and grows the photo inside it. Both the hover
+     and the keyboard-focus rules read these, so the strength is tuned in one place —
+     and prefers-reduced-motion flattens the whole effect by zeroing the two below. */
+  --hl-lift: -6px;
+  --hl-zoom: 1.06;
+  --hl-shadow: 0 14px 30px rgba(0, 0, 0, .5);
+  --hl-ease: transform .35s cubic-bezier(.2, .7, .3, 1), box-shadow .35s ease, border-color .35s ease, opacity .35s ease;
   --grey: #a89f91;
   --wa: #25d366;
   --font-mark: "Playfair Display", Georgia, "Times New Roman", serif;
@@ -74,9 +82,8 @@ p { margin: 0; }
 
 /* ===== services ===== */
 .cards { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.card { background: var(--black-2); border: 1px solid var(--gold-line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: transform .25s ease, border-color .25s ease; }
-.card:hover { transform: translateY(-4px); border-color: var(--gold-soft); }
-.card__img { aspect-ratio: 4 / 5; width: 100%; object-fit: cover; }
+.card { background: var(--black-2); border: 1px solid var(--gold-line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: var(--hl-ease); }
+.card__img { aspect-ratio: 4 / 5; width: 100%; object-fit: cover; transition: var(--hl-ease); }
 .card__body { padding: 22px 22px 26px; display: grid; gap: 10px; flex: 1; align-content: start; }
 .card__title { font-size: 1.35rem; color: var(--gold); }
 .card__desc { color: var(--cream-2); font-size: .98rem; }
@@ -85,7 +92,7 @@ p { margin: 0; }
 
 /* ===== about ===== */
 .about { display: grid; gap: 32px; align-items: center; grid-template-columns: 1fr; }
-.about__img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); max-width: 440px; justify-self: center; border: 1px solid var(--gold-soft); }
+.about__img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); max-width: 440px; justify-self: center; border: 1px solid var(--gold-soft); transition: var(--hl-ease); }
 .about__body { display: grid; gap: 18px; text-align: center; }
 .about .section__title { margin-bottom: 0; }
 .about__text { font-size: 1.05rem; max-width: 560px; margin-inline: auto; text-align: start; }
@@ -128,9 +135,10 @@ p { margin: 0; }
 
 /* ===== gallery ===== */
 .gallery { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
-.gallery__item { padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 5; }
-.gallery__item img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
-.gallery__item:hover img { transform: scale(1.04); }
+.gallery__item { position: relative; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 5; transition: var(--hl-ease); }
+.gallery__item img { width: 100%; height: 100%; object-fit: cover; transition: var(--hl-ease); }
+/* The ring has to be a layer of its own: an inset shadow would paint under the photo. */
+.gallery__item::after { content: ""; position: absolute; inset: 0; border-radius: inherit; border: 1px solid transparent; transition: border-color .35s ease; pointer-events: none; }
 .gallery__item:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 @media (min-width: 640px) { .gallery { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
 @media (min-width: 1000px) { .gallery { grid-template-columns: repeat(4, 1fr); } }
@@ -152,12 +160,48 @@ p { margin: 0; }
 .video__media, .video__placeholder { width: 100%; aspect-ratio: 9 / 16; border-radius: var(--radius); overflow: hidden; background: var(--black-2); border: 1px solid var(--gold-line); }
 .video__media { object-fit: cover; display: block; }
 iframe.video__media { border: 0; }
-.video__placeholder { position: relative; display: grid; place-items: center; }
-.video__placeholder img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .55; }
-.video__play { position: relative; width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--gold); display: grid; place-items: center; background: rgba(11, 11, 11, .35); }
+.video__placeholder { position: relative; display: grid; place-items: center; transition: var(--hl-ease); }
+.video__placeholder img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .55; transition: var(--hl-ease); }
+.video__play { position: relative; width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--gold); display: grid; place-items: center; background: rgba(11, 11, 11, .35); transition: var(--hl-ease); }
+.video__player { position: relative; }
+.video__player .video__media { display: block; }
+.video__player .video__play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 0; cursor: pointer; font: inherit; }
+.video__player .video__play:hover { transform: translate(-50%, -50%) scale(1.08); background: rgba(11, 11, 11, .5); }
+.video__player .video__play:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.video__player.is-playing .video__play { display: none; }
 .video__play::after { content: ""; border-style: solid; border-width: 11px 0 11px 18px; border-color: transparent transparent transparent var(--gold); margin-left: 4px; }
 .video__soon { position: absolute; bottom: 16px; color: var(--cream); font-size: .9rem; letter-spacing: .05em; }
 .video__title { text-align: center; color: var(--cream-2); font-size: .95rem; }
+
+/* ===== pointing at an image =====
+   The frame lifts and the photo grows inside it, so the picture reads as pushed forward
+   behind a fixed window rather than as a box that got bigger.
+
+   Every :hover trigger is behind `hover: hover`. A touch browser applies :hover on tap and
+   leaves it there until you tap something else — without this gate a gallery tile would
+   stay lifted and zoomed after you closed the lightbox. Keyboard focus gets the same
+   treatment, declared outside the gate, because that has to work on any device. */
+@media (hover: hover) and (pointer: fine) {
+  .gallery__item:hover { transform: translateY(var(--hl-lift)); box-shadow: var(--hl-shadow); }
+  .gallery__item:hover img { transform: scale(var(--hl-zoom)); }
+  .gallery__item:hover::after { border-color: var(--gold-ring); }
+
+  .card:hover { transform: translateY(var(--hl-lift)); box-shadow: var(--hl-shadow); border-color: var(--gold-ring); }
+  .card:hover .card__img { transform: scale(var(--hl-zoom)); }
+
+  /* Not clickable, so no lift and no ring — just enough life to answer the pointer.
+     It has no clipping frame either, so the picture itself grows; keep that small. */
+  .about__img:hover { transform: scale(1.02); border-color: var(--gold-ring); }
+
+  .video__placeholder:hover { border-color: var(--gold-ring); }
+  .video__placeholder:hover img { transform: scale(var(--hl-zoom)); opacity: .72; }
+  .video__placeholder:hover .video__play { transform: scale(1.08); background: rgba(11, 11, 11, .5); }
+}
+
+/* Tab navigation lands on the gallery buttons; give them the same highlight the mouse
+   gets, on top of the outline that marks focus itself. */
+.gallery__item:focus-visible { transform: translateY(var(--hl-lift)); box-shadow: var(--hl-shadow); }
+.gallery__item:focus-visible img { transform: scale(var(--hl-zoom)); }
 
 /* ===== floating WhatsApp button ===== */
 .wa-fab { position: fixed; left: 18px; bottom: 18px; z-index: 150; width: 58px; height: 58px; border-radius: 50%; background: var(--wa); color: #062b16; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); opacity: 0; visibility: hidden; transform: translateY(16px) scale(.9); pointer-events: none; transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s; }
@@ -239,6 +283,11 @@ html.intro-running .hero__logo { visibility: hidden; }
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .btn, .card, .gallery__item img, .wa-fab { transition: none; }
+  /* One switch for the whole image highlight: the gold ring still answers the pointer,
+     the lift and the zoom go to nothing. Feedback without movement. */
+  :root { --hl-lift: 0px; --hl-zoom: 1; --hl-shadow: none; }
+  .gallery__item, .card__img, .about__img,
+  .video__placeholder, .video__placeholder img, .video__play { transition: none; }
   /* The inline gate in index.html already refuses to arm the intro here; this is the
      belt to that braces, so a stale overlay can never sit over the page. */
   .intro { display: none; }

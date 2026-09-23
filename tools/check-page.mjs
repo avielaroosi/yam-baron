@@ -191,7 +191,11 @@ try {
     need((await fx.getAttribute("#videos-grid .video:nth-child(1) iframe", "src")) === "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ", "videos: youtube branch builds nocookie embed url");
     need((await fx.getAttribute("#videos-grid .video:nth-child(1) iframe", "loading")) === "lazy", "videos: youtube iframe is lazy");
     need((await fx.getAttribute("#videos-grid .video:nth-child(2) video", "preload")) === "none", "videos: file branch preload=none");
-    need(await fx.$eval("#videos-grid .video:nth-child(2) video", (v) => v.hasAttribute("controls") && v.hasAttribute("playsinline")), "videos: file branch controls+playsinline");
+    need(await fx.$eval("#videos-grid .video:nth-child(2) video", (v) => !v.hasAttribute("controls") && v.hasAttribute("playsinline")), "videos: file branch starts without native controls (gold ring instead) and has playsinline");
+    need((await fx.$$("#videos-grid .video:nth-child(2) .video__player button.video__play")).length === 1, "videos: file branch shows the gold play ring");
+    need(await fx.$eval("#videos-grid .video:nth-child(2) button.video__play", (b) => { b.click(); const v = b.parentElement.querySelector("video"); return v.controls && b.parentElement.classList.contains("is-playing"); }), "videos: tapping the ring enables native controls and hides the ring");
+    await fx.waitForTimeout(800); // the fixture's media cannot play here → the ring must come back
+    need(await fx.$eval("#videos-grid .video:nth-child(2) .video__player", (w) => !w.classList.contains("is-playing") && !w.querySelector("video").controls), "videos: when playback fails the gold ring returns");
     need((await fx.$$("#videos-grid .video:nth-child(3) .video__placeholder .video__play")).length === 1, "videos: unrecognized youtube url falls back to placeholder");
     need((await fx.$$("#videos-grid .video:nth-child(3) iframe")).length === 0, "videos: unrecognized youtube url renders no iframe");
     need(fxProblems.length === 0, fxProblems.join("; "));
@@ -320,6 +324,81 @@ try {
     need(await skip.evaluate(() => !document.getElementById("intro") && document.documentElement.style.overflow !== "hidden"
       && getComputedStyle(document.getElementById("hero-logo")).visibility === "visible"), "intro: a key press must skip to the finished page");
     await skip.close();
+  }
+
+  // --- pointing at an image (Task 10). The regression this guards is the touch one: a
+  // touch browser applies :hover on tap and leaves it there, so an ungated rule would
+  // leave a gallery tile lifted and zoomed after the visitor closed the lightbox.
+  {
+    // Scroll instantly and let reveal-on-scroll settle — that transition shifts the
+    // section 18px, which would slide the tile out from under the cursor mid-measure.
+    const settle = async (page, id) => {
+      await page.evaluate((i) => {
+        const h = document.documentElement, prev = h.style.scrollBehavior;
+        h.style.scrollBehavior = "auto";
+        document.getElementById(i).scrollIntoView({ block: "center" });
+        h.style.scrollBehavior = prev;
+      }, id);
+      await page.waitForFunction((i) => document.getElementById(i).classList.contains("is-in"), id, { timeout: 5000 }).catch(() => {});
+      await page.waitForTimeout(900);
+    };
+    const moved = (t) => !!t && t !== "none" && t !== "matrix(1, 0, 0, 1, 0, 0)";
+    const styles = (page) => page.evaluate(() => {
+      const tile = document.querySelector(".gallery__item");
+      return {
+        held: tile.matches(":hover"),
+        tile: getComputedStyle(tile).transform,
+        img: getComputedStyle(tile.querySelector("img")).transform,
+        ring: getComputedStyle(tile, "::after").borderColor,
+      };
+    });
+
+    const mouse = await browser.newPage({ viewport: { width: 1280, height: 900 }, locale: "he-IL" });
+    await mouse.goto(base, { waitUntil: "load" });
+    await mouse.keyboard.press("Escape"); // past the opening animation
+    await mouse.waitForTimeout(400);
+    await settle(mouse, "gallery");
+    await mouse.hover(".gallery__item");
+    await mouse.waitForTimeout(600);
+    const on = await styles(mouse);
+    need(on.held, "hover: the cursor slipped off the tile, so the rest of this block proves nothing");
+    need(moved(on.tile), "hover: the gallery tile must lift");
+    need(moved(on.img), "hover: the photo must grow inside its frame");
+    need(/rgba\(201,\s*169,\s*97,\s*0?\.5/.test(on.ring), `hover: the gold ring must appear, got ${on.ring}`);
+    // keyboard gets the same highlight, and keeps the outline that marks focus itself
+    await mouse.evaluate(() => document.querySelector(".gallery__item:nth-child(3)").focus());
+    await mouse.waitForTimeout(500);
+    need(await mouse.evaluate(() => {
+      const t = document.querySelector(".gallery__item:nth-child(3)");
+      const c = getComputedStyle(t);
+      return c.transform !== "none" && c.outlineWidth !== "0px";
+    }), "hover: a keyboard-focused tile gets the same highlight, outline included");
+    await mouse.close();
+
+    const touch = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", hasTouch: true, isMobile: true });
+    await touch.goto(base, { waitUntil: "load" });
+    await touch.keyboard.press("Escape");
+    await touch.waitForTimeout(400);
+    await settle(touch, "gallery");
+    need(await touch.evaluate(() => !matchMedia("(hover: hover) and (pointer: fine)").matches), "hover: the touch fixture must actually report a coarse pointer");
+    // Headless Chromium does NOT reproduce the sticky :hover that real iOS Safari leaves
+    // behind after a tap, so tapping here would prove nothing. Test the gate itself
+    // instead: send a hover to a coarse pointer and require that nothing responds.
+    await touch.hover(".gallery__item");
+    await touch.waitForTimeout(600);
+    const stuck = await styles(touch);
+    need(!moved(stuck.tile) && !moved(stuck.img), "hover: a coarse pointer must never get the highlight — on a real phone it would stick after a tap");
+    await touch.close();
+
+    const calm = await browser.newPage({ viewport: { width: 1280, height: 900 }, locale: "he-IL", reducedMotion: "reduce" });
+    await calm.goto(base, { waitUntil: "load" });
+    await settle(calm, "gallery");
+    await calm.hover(".gallery__item");
+    await calm.waitForTimeout(400);
+    const quiet = await styles(calm);
+    need(!moved(quiet.tile) && !moved(quiet.img), "hover: reduced motion must drop the lift and the zoom");
+    need(/rgba\(201,\s*169,\s*97,\s*0?\.5/.test(quiet.ring), "hover: reduced motion must keep the gold ring as feedback");
+    await calm.close();
   }
 
   // --- screenshots (full page also forces lazy images to load)

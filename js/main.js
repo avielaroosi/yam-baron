@@ -181,7 +181,19 @@
       let media;
       const id = v.type === "youtube" ? youtubeId(v.src) : null;
       if (v.type === "file") {
-        media = el("video", { class: "video__media", src: v.src, poster: v.poster, controls: true, playsinline: true, preload: "none" });
+        // poster + the gold play ring until the visitor taps; native controls appear only while playing
+        const video = el("video", { class: "video__media", src: v.src, poster: v.poster, playsinline: true, preload: "none" });
+        const play = el("button", { class: "video__play video__play--btn", type: "button", "aria-label": "נגן: " + v.title });
+        media = el("div", { class: "video__player" }, [video, play]);
+        const showRing = () => { media.classList.remove("is-playing"); video.controls = false; };
+        play.addEventListener("click", () => {
+          media.classList.add("is-playing");
+          video.controls = true;
+          const p = video.play();
+          if (p && p.catch) p.catch(showRing);
+        });
+        video.addEventListener("ended", showRing);
+        video.addEventListener("error", showRing);
       } else if (v.type === "youtube" && !id) {
         console.warn("video: unrecognized YouTube URL", v.src);
         media = placeholderFrame(v);

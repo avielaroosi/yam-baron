@@ -120,6 +120,11 @@ try {
   await mobile.keyboard.press("Escape");
   need(await mobile.isHidden("#lightbox"), "lightbox: Escape closes");
   need(await mobile.evaluate(() => document.body.style.overflow === ""), "lightbox: scroll lock released");
+  await mobile.click("#gallery-grid .gallery__item:nth-child(2)");
+  await mobile.keyboard.press("ArrowLeft");
+  await mobile.keyboard.press("ArrowLeft");
+  await mobile.keyboard.press("Escape");
+  need(await mobile.evaluate(() => document.activeElement && document.activeElement.dataset.index === "1"), "lightbox: focus returns to the originally opened item, not the last viewed one");
 
   // --- videos (Task 4)
   need((await mobile.$$("#videos-grid .video")).length === S.videos.length, "videos: item count");

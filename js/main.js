@@ -85,6 +85,7 @@
 
   // ---- gallery + lightbox
   let lbIndex = 0;
+  let lbOpened = 0;
   function renderGallery() {
     const grid = $("gallery-grid");
     S.gallery.forEach((g, i) => {
@@ -103,6 +104,7 @@
     $("lightbox-count").textContent = `${lbIndex + 1} / ${S.gallery.length}`;
   }
   function openLightbox(i) {
+    lbOpened = i;
     showLightbox(i);
     $("lightbox").hidden = false;
     document.body.style.overflow = "hidden";
@@ -111,7 +113,7 @@
   function closeLightbox() {
     $("lightbox").hidden = true;
     document.body.style.overflow = "";
-    const item = document.querySelector(`.gallery__item[data-index="${lbIndex}"]`);
+    const item = document.querySelector(`.gallery__item[data-index="${lbOpened}"]`);
     if (item) item.focus();
   }
   function initLightbox() {

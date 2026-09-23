@@ -34,8 +34,6 @@
     $("hero-name").textContent = S.name;
     $("hero-tagline").textContent = S.tagline;
     $("hero-text").textContent = S.heroText;
-    $("hero-wa").href = waLink();
-    $("hero-ig").href = igUrl();
   }
 
   // ---- services
@@ -207,10 +205,7 @@
   function initFab() {
     const fab = $("wa-fab");
     fab.href = waLink();
-    if (!("IntersectionObserver" in window)) { fab.classList.add("is-visible"); return; }
-    new IntersectionObserver(([entry]) => {
-      fab.classList.toggle("is-visible", !entry.isIntersecting);
-    }, { threshold: 0.15 }).observe($("top"));
+    fab.classList.add("is-visible"); // the hero has no contact buttons, so the floating button shows from the start
   }
 
   // ---- reveal sections on scroll; skipped entirely when the user prefers reduced motion

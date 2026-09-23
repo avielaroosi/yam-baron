@@ -100,7 +100,7 @@ try {
 
   // --- WhatsApp links
   wa = await mobile.$$eval('a[href^="https://wa.me/"]', (as) => as.map((a) => a.href));
-  need(wa.length >= 7, `expected >= 7 wa.me links (hero, 4 services, contact, floating button), got ${wa.length}`);
+  need(wa.length >= 6, `expected >= 6 wa.me links (4 services, contact, floating button), got ${wa.length}`);
   for (const h of wa) {
     need(h.startsWith(`https://wa.me/${S.whatsapp}?text=`), `wa link has wrong number: ${h}`);
     need(/text=%[0-9A-F]{2}/.test(h), `wa link text is not URL-encoded: ${h}`);
@@ -115,7 +115,8 @@ try {
   need((await mobile.textContent("#about-title")).trim() === S.about.title, "about: title not rendered");
   need((await mobile.getAttribute("#contact-ig", "href")) === `https://instagram.com/${S.instagram}`, "contact: instagram link");
   need((await mobile.$$("#contact-hours li")).length === S.hours.length, "contact: hours rows");
-  need(await mobile.$$eval("#hero-ig, #contact-ig", (as) => as.length === 2 && as.every((a) => a.classList.contains("btn") && !!a.querySelector("svg") && a.href.startsWith("https://instagram.com/"))), "instagram: both links are styled buttons with an icon pointing at instagram");
+  need(await mobile.$$eval("#contact-ig", (as) => as.length === 1 && as.every((a) => a.classList.contains("btn") && !!a.querySelector("svg") && a.href.startsWith("https://instagram.com/"))), "instagram: contact link is a styled button with an icon pointing at instagram");
+  need((await mobile.$$("#hero-wa, #hero-ig, .hero__actions")).length === 0, "hero: no contact buttons (owner choice)");
   need(await mobile.$$eval("#contact-hours li span:last-child", (s) => s.every((x) => getComputedStyle(x).direction === "ltr" && getComputedStyle(x).unicodeBidi === "isolate")), "hours time values must be laid out LTR and bidi-isolated");
   need(await mobile.$$eval(".wordmark", (s) => s.length > 0 && s.every((x) => getComputedStyle(x).direction === "ltr" && getComputedStyle(x).unicodeBidi === "isolate")), "the English wordmark must be laid out LTR and bidi-isolated");
   need((await mobile.getAttribute("#contact-map", "src") || "").startsWith("https://www.google.com/maps?q="), "contact: map embed src");
@@ -206,11 +207,11 @@ try {
   // --- floating button + reveal (Task 5)
   await mobile.evaluate(() => window.scrollTo(0, 0)); // earlier blocks scrolled the page (gallery click)
   await mobile.waitForTimeout(400);
-  need(await mobile.evaluate(() => !document.getElementById("wa-fab").classList.contains("is-visible")), "fab: hidden while the hero is on screen");
+  need(await mobile.evaluate(() => document.getElementById("wa-fab").classList.contains("is-visible")), "fab: visible from the start (hero has no contact buttons)");
   need((await mobile.getAttribute("#wa-fab", "href") || "").startsWith(`https://wa.me/${S.whatsapp}?text=`), "fab: whatsapp href");
   await mobile.evaluate(() => document.getElementById("contact").scrollIntoView());
   await mobile.waitForTimeout(400);
-  need(await mobile.evaluate(() => document.getElementById("wa-fab").classList.contains("is-visible")), "fab: visible after scrolling past the hero");
+  need(await mobile.evaluate(() => document.getElementById("wa-fab").classList.contains("is-visible")), "fab: still visible after scrolling past the hero");
   need(await mobile.evaluate(() => [...document.querySelectorAll(".reveal")].every((n) => n.classList.contains("is-in"))), "reveal: with reduced motion every section is marked is-in");
   await mobile.evaluate(() => window.scrollTo(0, 0));
   await mobile.waitForTimeout(400);

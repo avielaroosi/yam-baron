@@ -52,7 +52,6 @@ p { margin: 0; }
 .hero__tagline { font-family: var(--font-head); font-size: clamp(1.1rem, 3.5vw, 1.5rem); }
 .hero__tagline::before, .hero__tagline::after { content: ""; display: block; width: 56px; height: 1px; background: var(--gold); margin: 14px auto; }
 .hero__text { max-width: 560px; color: var(--cream-2); font-size: 1.02rem; }
-.hero__actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 8px; }
 .hero__scroll { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 1.4rem; opacity: .8; }
 
 /* ===== sections ===== */

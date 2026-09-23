@@ -3,6 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- נתיבים כפולים: אם משנים hero/logo ב-js/content.js צריך לעדכן גם את שתי השורות האלה -->
+  <link rel="preload" as="image" href="assets/img/hero.jpg" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/brand/logo-full-light.png" fetchpriority="high">
   <title>YAM BARON | Hair Studio — עיצוב שיער, כלות והחלקות</title>
   <meta name="description" content="YAM BARON Hair Studio: סטודיו בוטיק לעיצוב שיער. עיצוב כלות, החלקות, תספורות וצבע. לתיאום תור בוואטסאפ.">
   <meta name="theme-color" content="#0b0b0b">
@@ -22,9 +25,9 @@
   <a class="skip" href="#services">דלג לתוכן</a>
 
   <header class="hero" id="top">
-    <img class="hero__bg" id="hero-img" alt="">
+    <img class="hero__bg" id="hero-img" fetchpriority="high" alt="">
     <div class="hero__inner">
-      <img class="hero__logo" id="hero-logo" alt="">
+      <img class="hero__logo" id="hero-logo" fetchpriority="high" alt="">
       <h1 class="sr-only" id="hero-name"></h1>
       <p class="sr-only" id="hero-sub"></p>
       <p class="hero__tagline" id="hero-tagline"></p>

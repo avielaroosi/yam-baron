@@ -18,9 +18,12 @@ window.SITE = {
     { days: "שבת", time: "סגור" },
   ],
 
+  // שימו לב: הנתיבים של hero.image ושל logo.hero מופיעים גם בשתי שורות
+  // <link rel="preload"> ב-index.html. אם משנים כאן נתיב — חובה לעדכן גם שם.
   hero: { image: "assets/img/hero.jpg", alt: "סטודיו YAM BARON לעיצוב שיער" },
 
   // לוגו: hero = לוגו מלא בגרסה לרקע כהה; mark = המונוגרמה בלבד (פוטר, אייקון)
+  // הנתיב של logo.hero מופיע גם בשורת <link rel="preload"> ב-index.html — לעדכן בשני המקומות.
   logo: { hero: "assets/brand/logo-full-light.png", mark: "assets/brand/logo-mark.png" },
 
   services: [

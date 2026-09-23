@@ -45,18 +45,24 @@ p { margin: 0; }
 .section--light .btn--ig { color: var(--black); background: transparent; }
 
 /* ===== hero ===== */
-.hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; text-align: center; isolation: isolate; padding: calc(var(--pad) * 2) var(--pad); }
-.hero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 42% 18%; z-index: -2; }
-.hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(11, 11, 11, .55) 0%, rgba(11, 11, 11, .35) 40%, rgba(11, 11, 11, .92) 100%); }
-.hero__inner { max-width: 720px; display: grid; gap: 18px; justify-items: center; }
+/* The studio photo is shown whole (never cropped): stacked above the logo on phones,
+   as a full-height column beside the logo on wider screens. */
+.hero { position: relative; background: var(--black); text-align: center; isolation: isolate; }
+.hero__media { position: relative; line-height: 0; }
+.hero__bg { width: 100%; height: auto; display: block; }
+.hero__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 11, 11, .25) 0%, rgba(11, 11, 11, 0) 25%, rgba(11, 11, 11, 0) 60%, var(--black) 100%); }
+.hero__inner { position: relative; max-width: 720px; margin-inline: auto; display: grid; gap: 18px; justify-items: center; padding: 0 var(--pad) 56px; margin-top: -22vw; }
 .hero__tagline { font-family: var(--font-head); font-size: clamp(1.1rem, 3.5vw, 1.5rem); }
 .hero__tagline::before, .hero__tagline::after { content: ""; display: block; width: 56px; height: 1px; background: var(--gold); margin: 14px auto; }
 .hero__text { max-width: 560px; color: var(--cream-2); font-size: 1.02rem; }
-.hero__scroll { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 1.4rem; opacity: .8; }
-
-@media (max-width: 819px) {
-  .hero { align-items: end; padding-bottom: 96px; }
-  .hero__bg { object-position: 40% 50%; }
+.hero__scroll { display: none; }
+@media (min-width: 820px) {
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; min-height: 100vh; min-height: 100svh; }
+  .hero__media { height: 100vh; height: 100svh; }
+  .hero__bg { height: 100%; width: auto; max-width: 48vw; object-fit: cover; object-position: 50% 30%; }
+  .hero__media::after { background: linear-gradient(270deg, rgba(11, 11, 11, .15) 0%, rgba(11, 11, 11, 0) 35%, rgba(11, 11, 11, 0) 70%, var(--black) 100%); }
+  .hero__inner { margin-top: 0; padding: calc(var(--pad) * 2) var(--pad); }
+  .hero__scroll { display: block; position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 1.4rem; opacity: .8; }
 }
 
 /* ===== sections ===== */
@@ -117,7 +123,7 @@ p { margin: 0; }
 
 /* ===== brand logo ===== */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-.hero__logo { width: min(66vw, 400px); height: auto; aspect-ratio: 1021 / 794; filter: drop-shadow(0 6px 24px rgba(0, 0, 0, .45)); }
+.hero__logo { width: min(66vw, 400px); height: auto; aspect-ratio: 800 / 622; filter: drop-shadow(0 6px 24px rgba(0, 0, 0, .45)); }
 .footer__logo { width: 44px; height: auto; margin: 0 auto 10px; opacity: .9; }
 
 /* ===== gallery ===== */
@@ -158,6 +164,70 @@ iframe.video__media { border: 0; }
 .wa-fab.is-visible { opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition-delay: 0s; }
 .wa-fab.is-visible:hover { transform: translateY(-2px); }
 
+/* ===== intro: the monogram assembles, then hands off to the hero logo =====
+   Timings are staggered so each letter lands before the next arrives. js/intro.js
+   adds .is-running to start them and reads --intro-total to know when to hand off,
+   so the clock lives here and the script follows it. */
+.intro {
+  --t-y: .15s; --t-b: .45s; --t-s: .75s; --t-sweep: 1.05s; --t-name: 1.2s; --t-sub: 1.35s;
+  --t-flip: 1.75s; --intro-total: 2550;
+  position: fixed; inset: 0; z-index: 300; background: var(--black);
+  display: grid; place-items: center; overscroll-behavior: contain;
+}
+.intro__stage { position: relative; width: min(78vw, 520px); will-change: transform; }
+.intro__logo { display: block; width: 100%; height: auto; aspect-ratio: 800 / 622; }
+/* Each piece starts off its seat and slides in along the axis it sits on, so the
+   three read as locking into one another rather than fading up in place. */
+.intro__logo #mg-y, .intro__logo #mg-b, .intro__logo #mg-s,
+.intro__logo #wm-name, .intro__logo #wm-sub {
+  transform-box: fill-box; transform-origin: center; opacity: 0;
+}
+.intro__logo #mg-y { transform: translateX(-46%) rotate(-5deg); }
+.intro__logo #mg-b { transform: translateX(46%) rotate(5deg); }
+.intro__logo #mg-s { transform: translateY(-62%) scaleY(1.35); }
+.intro__logo #wm-name { transform: translateY(26%); }
+.intro__logo #wm-sub { transform: scaleX(.9); }
+
+.intro.is-running .intro__logo #mg-y,
+.intro.is-running .intro__logo #mg-b,
+.intro.is-running .intro__logo #mg-s,
+.intro.is-running .intro__logo #wm-name,
+.intro.is-running .intro__logo #wm-sub {
+  opacity: 1; transform: none;
+  transition: transform .55s cubic-bezier(.2, .85, .2, 1), opacity .3s ease-out;
+}
+.intro.is-running .intro__logo #mg-y { transition-delay: var(--t-y); }
+.intro.is-running .intro__logo #mg-b { transition-delay: var(--t-b); }
+.intro.is-running .intro__logo #mg-s { transition-delay: var(--t-s); transition-duration: .5s; }
+.intro.is-running .intro__logo #wm-name { transition-delay: var(--t-name); transition-duration: .5s; }
+.intro.is-running .intro__logo #wm-sub { transition-delay: var(--t-sub); transition-duration: .5s; }
+
+/* A single pass of light across the mark once the three letters have seated.
+   Masked to the logo's own alpha so the sheen only touches the ink. */
+.intro__sweep { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+@supports (mask-image: url("../assets/brand/logo-full-light.svg")) or (-webkit-mask-image: url("../assets/brand/logo-full-light.svg")) {
+  .intro__sweep {
+    background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, .55) 50%, transparent 58%);
+    background-size: 300% 100%;
+    -webkit-mask: url("../assets/brand/logo-full-light.svg") center / 100% 100% no-repeat;
+    mask: url("../assets/brand/logo-full-light.svg") center / 100% 100% no-repeat;
+  }
+  .intro.is-running .intro__sweep { animation: intro-sweep .7s ease-out var(--t-sweep) both; }
+}
+@keyframes intro-sweep {
+  from { opacity: 1; background-position: 100% 0; }
+  to { opacity: 1; background-position: 0 0; }
+}
+
+/* Hand-off: the stage travels to the hero logo's exact rect (js sets --flip-*),
+   the black lifts, and the identical hero logo is already sitting underneath. */
+.intro.is-landing .intro__stage {
+  transform: translate(var(--flip-x), var(--flip-y)) scale(var(--flip-s));
+  transition: transform .75s cubic-bezier(.65, 0, .2, 1);
+}
+.intro.is-landing { background: transparent; transition: background .6s ease .15s; }
+.intro.is-done { opacity: 0; transition: opacity .25s ease; pointer-events: none; }
+
 /* ===== reveal on scroll ===== */
 .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
 .reveal.is-in { opacity: 1; transform: none; }
@@ -165,4 +235,7 @@ iframe.video__media { border: 0; }
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
   .btn, .card, .gallery__item img, .wa-fab { transition: none; }
+  /* The inline gate in index.html already refuses to arm the intro here; this is the
+     belt to that braces, so a stale overlay can never sit over the page. */
+  .intro { display: none; }
 }

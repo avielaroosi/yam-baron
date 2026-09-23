@@ -37,6 +37,7 @@ for (const v of S?.videos || []) {
   if (v.type === "placeholder" || v.type === "file") need(v.poster, `video "${v.title}" needs poster`);
 }
 need(S?.about?.image && S?.about?.title && S?.about?.text, "SITE.about needs {image, title, text}");
+need(S?.logo?.hero && S?.logo?.mark, "SITE.logo needs {hero, mark}");
 
 const files = [
   S?.hero?.image,
@@ -45,6 +46,7 @@ const files = [
   ...(S?.videos || []).map((v) => v.poster).filter(Boolean),
   ...(S?.videos || []).filter((v) => v.type === "file").map((v) => v.src),
   S?.about?.image,
+  S?.logo?.hero, S?.logo?.mark,
 ].filter(Boolean);
 for (const f of files) {
   need(!f.startsWith("/") && !/^https?:/.test(f), `asset path must be relative: ${f}`);

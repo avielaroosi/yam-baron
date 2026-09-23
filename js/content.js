@@ -20,6 +20,9 @@ window.SITE = {
 
   hero: { image: "assets/img/hero.jpg", alt: "סטודיו YAM BARON לעיצוב שיער" },
 
+  // לוגו: hero = לוגו מלא בגרסה לרקע כהה; mark = המונוגרמה בלבד (פוטר, אייקון)
+  logo: { hero: "assets/brand/logo-full-light.png", mark: "assets/brand/logo-mark.png" },
+
   services: [
     {
       id: "bridal",

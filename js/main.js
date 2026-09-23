@@ -24,6 +24,9 @@
   function renderHero() {
     const img = $("hero-img");
     img.src = S.hero.image; img.alt = S.hero.alt;
+    const logo = $("hero-logo");
+    logo.src = S.logo.hero;
+    logo.alt = S.name + " " + S.sub;
     $("hero-sub").textContent = S.sub;
     $("hero-name").textContent = S.name;
     $("hero-tagline").textContent = S.tagline;
@@ -72,6 +75,10 @@
 
   // ---- footer
   function renderFooter() {
+    const fl = $("footer-logo");
+    fl.src = S.logo.mark;
+    fl.alt = S.name;
+    fl.loading = "lazy";
     $("footer-name").textContent = S.name;
     $("footer-year").textContent = String(new Date().getFullYear());
   }

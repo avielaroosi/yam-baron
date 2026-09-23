@@ -74,6 +74,13 @@ try {
   need((await mobile.textContent("#hero-name")).trim() === S.name, "hero: name not rendered");
   need((await mobile.textContent("#hero-tagline")).trim() === S.tagline, "hero: tagline not rendered");
 
+  // --- brand logo (Task 8)
+  need((await mobile.getAttribute("#hero-logo", "src") || "").endsWith(S.logo.hero), "hero: logo image src");
+  need(await mobile.evaluate(() => { const r = document.getElementById("hero-logo").getBoundingClientRect(); return r.width >= 220 && r.top >= 0 && r.bottom <= window.innerHeight; }), "hero: logo visible above the fold on mobile");
+  need(await mobile.evaluate(() => { const r = document.getElementById("hero-name").getBoundingClientRect(); return r.width <= 1 && r.height <= 1; }), "hero: text wordmark must be visually hidden (sr-only) when the logo is shown");
+  need((await mobile.getAttribute("#footer-logo", "src") || "").endsWith(S.logo.mark), "footer: monogram src");
+  need((await mobile.getAttribute('link[rel="icon"]', "href")) === "assets/favicon.png", "favicon must be assets/favicon.png");
+
   // --- WhatsApp links
   wa = await mobile.$$eval('a[href^="https://wa.me/"]', (as) => as.map((a) => a.href));
   need(wa.length >= 7, `expected >= 7 wa.me links (hero, 4 services, about, contact), got ${wa.length}`);

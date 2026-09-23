@@ -86,7 +86,7 @@ try {
 
   // --- WhatsApp links
   wa = await mobile.$$eval('a[href^="https://wa.me/"]', (as) => as.map((a) => a.href));
-  need(wa.length >= 7, `expected >= 7 wa.me links (hero, 4 services, about, contact), got ${wa.length}`);
+  need(wa.length >= 7, `expected >= 7 wa.me links (hero, 4 services, contact, floating button), got ${wa.length}`);
   for (const h of wa) {
     need(h.startsWith(`https://wa.me/${S.whatsapp}?text=`), `wa link has wrong number: ${h}`);
     need(/text=%[0-9A-F]{2}/.test(h), `wa link text is not URL-encoded: ${h}`);

@@ -29,8 +29,7 @@
     const img = $("hero-img");
     img.src = S.hero.image; img.alt = S.hero.alt;
     const logo = $("hero-logo");
-    logo.src = S.logo.hero;
-    logo.alt = S.name + " " + S.sub;
+    logo.src = S.logo.hero; // alt stays "" on purpose: decorative, #hero-name carries the name
     $("hero-sub").textContent = S.sub;
     $("hero-name").textContent = S.name;
     $("hero-tagline").textContent = S.tagline;
@@ -57,7 +56,7 @@
   // ---- about
   function renderAbout() {
     const img = $("about-img");
-    img.src = S.about.image; img.alt = S.about.title;
+    img.src = S.about.image; img.alt = S.about.imageAlt;
     $("about-title").textContent = S.about.title;
     const body = $("about-text");
     body.replaceChildren();
@@ -68,7 +67,7 @@
   function renderContact() {
     $("contact-wa").href = waLink();
     $("contact-ig").href = igUrl();
-    $("contact-tel").href = "tel:+" + S.whatsapp;
+    $("contact-tel").href = "tel:+" + S.phone;
     $("contact-tel").textContent = S.phoneDisplay;
     $("contact-address").textContent = S.address;
     const hours = $("contact-hours");

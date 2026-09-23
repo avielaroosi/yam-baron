@@ -3,8 +3,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
+import { fileURLToPath } from "node:url";
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const file = path.join(root, "js/content.js");
 const src = fs.readFileSync(file, "utf8");
 const sandbox = { window: {} };
@@ -15,10 +16,11 @@ const errors = [];
 const need = (cond, msg) => { if (!cond) errors.push(msg); };
 
 need(S && typeof S === "object", "window.SITE is missing");
-for (const k of ["name", "sub", "tagline", "heroText", "whatsapp", "whatsappDefaultText", "instagram", "phoneDisplay", "address"]) {
+for (const k of ["name", "sub", "tagline", "heroText", "whatsapp", "whatsappDefaultText", "instagram", "phone", "phoneDisplay", "address"]) {
   need(typeof S?.[k] === "string" && S[k].trim().length > 0, `SITE.${k} must be a non-empty string`);
 }
 need(/^\d{11,13}$/.test(S?.whatsapp || ""), "SITE.whatsapp must be digits only, international format, no '+'");
+need(/^\d{11,13}$/.test(S?.phone || ""), "SITE.phone must be digits only, international format, no '+' (used for the tel: link)");
 need(!/^@/.test(S?.instagram || ""), "SITE.instagram must be the handle without '@'");
 need(Array.isArray(S?.hours) && S.hours.length > 0, "SITE.hours must be a non-empty array");
 for (const h of S?.hours || []) need(h.days && h.time, "each SITE.hours item needs {days, time}");
@@ -36,7 +38,7 @@ for (const v of S?.videos || []) {
   if (v.type !== "placeholder") need(v.src, `video "${v.title}" of type ${v.type} needs src`);
   if (v.type === "placeholder" || v.type === "file") need(v.poster, `video "${v.title}" needs poster`);
 }
-need(S?.about?.image && S?.about?.title, "SITE.about needs {image, title, text}");
+need(S?.about?.image && S?.about?.imageAlt && S?.about?.title, "SITE.about needs {image, imageAlt, title}");
 const aboutText = [].concat(S?.about?.text ?? []);
 need(aboutText.length > 0 && aboutText.every((t) => typeof t === "string" && t.trim()), "SITE.about.text must be a non-empty string or a list of non-empty paragraphs");
 need(S?.logo?.hero && S?.logo?.mark, "SITE.logo needs {hero, mark}");

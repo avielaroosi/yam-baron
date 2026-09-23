@@ -236,7 +236,7 @@ urlenc() { python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv
 
 fallback() { # name label width height
   local name=$1 label=$2 w=$3 h=$4
-  local html="<html><body style='margin:0;width:${w}px;height:${h}px;background:#151515;display:flex;align-items:center;justify-content:center;font:${((w/20))}px Georgia,serif;color:#c9a961'>${label}</body></html>"
+  local html="<html><body style='margin:0;width:${w}px;height:${h}px;background:#151515;display:flex;align-items:center;justify-content:center;font:$((w/20))px Georgia,serif;color:#c9a961'>${label}</body></html>"
   "$CHROME" --headless=new --disable-gpu --hide-scrollbars --window-size="${w},${h}" \
     --screenshot="assets/img/${name}.png" "data:text/html;charset=utf-8,$(urlenc "$html")" >/dev/null 2>&1
   sips -s format jpeg -s formatOptions 80 "assets/img/${name}.png" --out "assets/img/${name}.jpg" >/dev/null && rm -f "assets/img/${name}.png"
@@ -1060,6 +1060,8 @@ Insert immediately before `// --- screenshots (full page also forces lazy images
 
 ```js
 // --- floating button + reveal (Task 5)
+await mobile.evaluate(() => window.scrollTo(0, 0)); // earlier blocks scrolled the page (gallery click)
+await mobile.waitForTimeout(400);
 need(await mobile.evaluate(() => !document.getElementById("wa-fab").classList.contains("is-visible")), "fab: hidden while the hero is on screen");
 need((await mobile.getAttribute("#wa-fab", "href") || "").startsWith(`https://wa.me/${S.whatsapp}?text=`), "fab: whatsapp href");
 await mobile.evaluate(() => document.getElementById("contact").scrollIntoView());

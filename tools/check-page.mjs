@@ -26,12 +26,23 @@ const need = (cond, msg) => { if (!cond) problems.push(msg); };
 const shots = path.join(root, "tools/shots");
 fs.mkdirSync(shots, { recursive: true });
 
+// scroll through the whole page so native lazy-loading fires, then return to top
+async function scrollThrough(page) {
+  await page.evaluate(async () => {
+    const step = Math.max(300, window.innerHeight * 0.8);
+    for (let y = 0; y < document.documentElement.scrollHeight; y += step) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(300);
+}
+
 async function open(name, viewport) {
   const page = await browser.newPage({ viewport, locale: "he-IL" });
   page.on("console", (m) => { if (m.type() === "error") problems.push(`[${name}] console error: ${m.text()}`); });
   page.on("pageerror", (e) => problems.push(`[${name}] page error: ${e.message}`));
   page.on("response", (r) => { if (r.url().startsWith(base) && r.status() >= 400) problems.push(`[${name}] ${r.status()} ${r.url().slice(base.length)}`); });
   await page.goto(base, { waitUntil: "load" });
+  await scrollThrough(page);
   await page.waitForTimeout(800);
   return page;
 }

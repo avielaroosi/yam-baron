@@ -23,8 +23,8 @@ fetch() { # name query index orientation width height
   local out="assets/img/${name}.jpg"
   if [ -s "$out" ]; then echo "skip $name"; return; fi
   local url
-  url=$(curl -sf "https://unsplash.com/napi/search/photos?query=$(urlenc "$query")&per_page=$((idx+1))&orientation=${orient}" \
-        | jq -r ".results[$idx].urls.raw // empty")
+  url=$(curl -sf "https://unsplash.com/napi/search/photos?query=$(urlenc "$query")&per_page=15&orientation=${orient}" \
+        | jq -r "[.results[] | select((.premium // false) == false and (.plus // false) == false)] | .[$idx].urls.raw // empty")
   if [ -n "$url" ] && curl -sfL "${url}&w=${w}&q=80&fm=jpg&fit=max" -o "$out" && [ -s "$out" ]; then
     echo "ok $name"
   else
@@ -39,7 +39,7 @@ fetch service-cut-color     "hair color salon woman"           0 portrait  1200 
 fetch service-events        "elegant evening hairstyle woman"  2 portrait  1200 1500
 fetch gallery-01 "hairstyle woman"        0 portrait 1200 1500
 fetch gallery-02 "bride hair"             0 portrait 1200 1500
-fetch gallery-03 "long blonde hair"       0 portrait 1200 1500
+fetch gallery-03 "long blonde hair"       1 portrait 1200 1500
 fetch gallery-04 "hair stylist working"   0 portrait 1200 1500
 fetch gallery-05 "braided hairstyle"      0 portrait 1200 1500
 fetch gallery-06 "wavy hair woman"        0 portrait 1200 1500

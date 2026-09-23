@@ -151,10 +151,18 @@
     let needInstagram = false;
     for (const v of S.videos) {
       let media;
+      const id = v.type === "youtube" ? youtubeId(v.src) : null;
       if (v.type === "file") {
         media = el("video", { class: "video__media", src: v.src, poster: v.poster, controls: true, playsinline: true, preload: "none" });
+      } else if (v.type === "youtube" && !id) {
+        console.warn("video: unrecognized YouTube URL", v.src);
+        media = el("div", { class: "video__placeholder" }, [
+          v.poster ? el("img", { src: v.poster, alt: v.title, loading: "lazy" }) : null,
+          el("span", { class: "video__play", "aria-hidden": "true" }),
+          el("span", { class: "video__soon", text: "סרטון בקרוב" }),
+        ]);
       } else if (v.type === "youtube") {
-        media = el("iframe", { class: "video__media", src: `https://www.youtube-nocookie.com/embed/${youtubeId(v.src)}`, title: v.title, loading: "lazy", allow: "accelerometer; encrypted-media; picture-in-picture", allowfullscreen: true });
+        media = el("iframe", { class: "video__media", src: `https://www.youtube-nocookie.com/embed/${id}`, title: v.title, loading: "lazy", allow: "accelerometer; encrypted-media; picture-in-picture", allowfullscreen: true });
       } else if (v.type === "instagram") {
         needInstagram = true;
         media = el("blockquote", { class: "instagram-media video__media", "data-instgrm-permalink": v.src, "data-instgrm-version": "14" }, [

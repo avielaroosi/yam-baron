@@ -132,6 +132,33 @@ try {
   need((await mobile.$$("#videos-grid .video__placeholder .video__play")).length === S.videos.filter((v) => v.type === "placeholder").length, "videos: placeholder items show a play mark");
   need((await mobile.$$("#videos-grid figcaption")).length === S.videos.length, "videos: every item has a caption");
 
+  // --- videos: non-placeholder branches on a fixture page (Task 4 fix)
+  {
+    const fx = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });
+    const fxProblems = [];
+    fx.on("pageerror", (e) => fxProblems.push(`[fixture] page error: ${e.message}`));
+    await fx.route("**/js/content.js", async (route) => {
+      const body = fs.readFileSync(path.join(root, "js/content.js"), "utf8") + `
+        window.SITE.videos = [
+          { type: "youtube", src: "https://youtube.com/shorts/dQw4w9WgXcQ", title: "yt" },
+          { type: "file", src: "assets/video/none.mp4", poster: "assets/img/video-01.jpg", title: "file" },
+          { type: "youtube", src: "https://example.com/not-a-video", title: "bad" },
+          { type: "placeholder", poster: "assets/img/video-02.jpg", title: "ph" },
+        ];`;
+      await route.fulfill({ status: 200, contentType: "text/javascript", body });
+    });
+    await fx.route("**/youtube-nocookie.com/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<html></html>" }));
+    await fx.goto(base, { waitUntil: "load" });
+    need((await fx.getAttribute("#videos-grid .video:nth-child(1) iframe", "src")) === "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ", "videos: youtube branch builds nocookie embed url");
+    need((await fx.getAttribute("#videos-grid .video:nth-child(1) iframe", "loading")) === "lazy", "videos: youtube iframe is lazy");
+    need((await fx.getAttribute("#videos-grid .video:nth-child(2) video", "preload")) === "none", "videos: file branch preload=none");
+    need(await fx.$eval("#videos-grid .video:nth-child(2) video", (v) => v.hasAttribute("controls") && v.hasAttribute("playsinline")), "videos: file branch controls+playsinline");
+    need((await fx.$$("#videos-grid .video:nth-child(3) .video__placeholder .video__play")).length === 1, "videos: unrecognized youtube url falls back to placeholder");
+    need((await fx.$$("#videos-grid .video:nth-child(3) iframe")).length === 0, "videos: unrecognized youtube url renders no iframe");
+    need(fxProblems.length === 0, fxProblems.join("; "));
+    await fx.close();
+  }
+
   // --- screenshots (full page also forces lazy images to load)
   await mobile.screenshot({ path: path.join(shots, "mobile-fold.png") });
   await waitForMap(mobile);

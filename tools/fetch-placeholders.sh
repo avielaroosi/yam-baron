@@ -36,17 +36,17 @@ fetch hero                  "hair salon interior dark elegant" 0 landscape 1920 
 fetch service-bridal        "bridal hairstyle updo"            0 portrait  1200 1500
 fetch service-straightening "sleek straight hair woman"        0 portrait  1200 1500
 fetch service-cut-color     "hair color salon woman"           0 portrait  1200 1500
-fetch service-events        "elegant hairstyle evening"        0 portrait  1200 1500
+fetch service-events        "elegant evening hairstyle woman"  2 portrait  1200 1500
 fetch gallery-01 "hairstyle woman"        0 portrait 1200 1500
 fetch gallery-02 "bride hair"             0 portrait 1200 1500
 fetch gallery-03 "long blonde hair"       0 portrait 1200 1500
 fetch gallery-04 "hair stylist working"   0 portrait 1200 1500
 fetch gallery-05 "braided hairstyle"      0 portrait 1200 1500
 fetch gallery-06 "wavy hair woman"        0 portrait 1200 1500
-fetch gallery-07 "hair updo elegant"      0 portrait 1200 1500
+fetch gallery-07 "hair updo wedding"      1 portrait 1200 1500
 fetch gallery-08 "hair styling salon"     0 portrait 1200 1500
 fetch video-01 "hair salon"        0 portrait 900 1600
 fetch video-02 "bridal hair"       1 portrait 900 1600
-fetch video-03 "hairdresser"       0 portrait 900 1600
+fetch video-03 "barbershop hairdresser"  1 portrait 900 1600
 fetch about    "hairstylist portrait woman" 0 portrait 1200 1500
 echo "done: $(ls assets/img/*.jpg | wc -l | tr -d ' ') images"

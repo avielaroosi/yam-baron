@@ -155,10 +155,10 @@ iframe.video__media { border: 0; }
 .wa-fab.is-visible:hover { transform: translateY(-2px); }
 
 /* ===== reveal on scroll ===== */
-.reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
 .reveal.is-in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .reveal { opacity: 1; transform: none; transition: none; }
+  .js .reveal { opacity: 1; transform: none; transition: none; }
   .btn, .card, .gallery__item img, .wa-fab { transition: none; }
 }

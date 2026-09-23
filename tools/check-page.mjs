@@ -159,6 +159,26 @@ try {
     await fx.close();
   }
 
+  // --- a content.js that fails to parse must still leave a readable page (no .js class -> no hidden reveal)
+  {
+    // deliberately no console/pageerror listeners: this fixture is *expected* to log the failure
+    const broken = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });
+    await broken.route("**/js/content.js", (route) => route.fulfill({ status: 200, contentType: "text/javascript", body: "window.SITE = {" }));
+    await broken.goto(base, { waitUntil: "load" });
+    need(await broken.evaluate(() => !window.SITE), "broken content.js fixture did not actually break window.SITE");
+    need(await broken.evaluate(() => [...document.querySelectorAll(".reveal")].every((n) => getComputedStyle(n).opacity === "1")), "broken content.js must not hide the page");
+    need(await broken.evaluate(() => {
+      const hero = document.getElementById("top");
+      const heroOk = !!hero && getComputedStyle(hero).opacity === "1" && hero.getBoundingClientRect().height > 100;
+      const titles = [...document.querySelectorAll(".section__title")];
+      const titlesOk = titles.length >= 4
+        && titles.every((t) => getComputedStyle(t).opacity === "1" && getComputedStyle(t).visibility === "visible")
+        && titles.filter((t) => t.textContent.trim() && t.getBoundingClientRect().height > 0).length >= 4;
+      return heroOk && titlesOk;
+    }), "broken content.js must keep the hero and the section headings visible");
+    await broken.close();
+  }
+
   // --- floating button + reveal (Task 5)
   await mobile.evaluate(() => window.scrollTo(0, 0)); // earlier blocks scrolled the page (gallery click)
   await mobile.waitForTimeout(400);
@@ -170,6 +190,18 @@ try {
   need(await mobile.evaluate(() => [...document.querySelectorAll(".reveal")].every((n) => n.classList.contains("is-in"))), "reveal: with reduced motion every section is marked is-in");
   await mobile.evaluate(() => window.scrollTo(0, 0));
   await mobile.waitForTimeout(400);
+
+  // --- reveal with motion allowed: exercises the IntersectionObserver branch, not the shortcut
+  {
+    const motion = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL" });
+    motion.on("console", (m) => { if (m.type() === "error") problems.push(`[motion] console error: ${m.text()}`); });
+    motion.on("pageerror", (e) => problems.push(`[motion] page error: ${e.message}`));
+    await motion.goto(base, { waitUntil: "load" });
+    need(await motion.evaluate(() => [...document.querySelectorAll(".reveal")].some((n) => !n.classList.contains("is-in"))), "reveal: default-motion path starts hidden below the fold");
+    await scrollThrough(motion);
+    need(await motion.evaluate(() => [...document.querySelectorAll(".reveal")].every((n) => n.classList.contains("is-in"))), "reveal: default-motion path marks every section after scrolling");
+    await motion.close();
+  }
 
   // --- screenshots (full page also forces lazy images to load)
   await mobile.screenshot({ path: path.join(shots, "mobile-fold.png") });

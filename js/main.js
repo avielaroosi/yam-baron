@@ -2,6 +2,10 @@
 (function () {
   "use strict";
   const S = window.SITE;
+  // The reveal animation hides sections with `.js .reveal { opacity: 0 }`. We add that class only
+  // once we know the content file loaded, so a broken js/content.js leaves the page visible
+  // instead of black.
+  if (S) document.documentElement.classList.add("js");
   if (!S) { console.error("window.SITE is missing: js/content.js did not load"); return; }
 
   // ---- helpers (used by every render function; later tasks add functions inside this IIFE)
@@ -203,14 +207,15 @@
   }
 
   // ---- boot (later tasks add their init calls here)
-  renderHero();
-  renderServices();
-  renderGallery();
-  initLightbox();
-  renderVideos();
-  renderAbout();
-  renderContact();
-  renderFooter();
-  initFab();
-  initReveal();
+  const safe = (name, fn) => { try { fn(); } catch (e) { console.error("render failed: " + name, e); } };
+  safe("hero", renderHero);
+  safe("services", renderServices);
+  safe("gallery", renderGallery);
+  safe("lightbox", initLightbox);
+  safe("videos", renderVideos);
+  safe("about", renderAbout);
+  safe("contact", renderContact);
+  safe("footer", renderFooter);
+  safe("fab", initFab);
+  safe("reveal", initReveal);
 })();

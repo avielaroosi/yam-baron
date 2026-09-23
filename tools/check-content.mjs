@@ -36,7 +36,9 @@ for (const v of S?.videos || []) {
   if (v.type !== "placeholder") need(v.src, `video "${v.title}" of type ${v.type} needs src`);
   if (v.type === "placeholder" || v.type === "file") need(v.poster, `video "${v.title}" needs poster`);
 }
-need(S?.about?.image && S?.about?.title && S?.about?.text, "SITE.about needs {image, title, text}");
+need(S?.about?.image && S?.about?.title, "SITE.about needs {image, title, text}");
+const aboutText = [].concat(S?.about?.text ?? []);
+need(aboutText.length > 0 && aboutText.every((t) => typeof t === "string" && t.trim()), "SITE.about.text must be a non-empty string or a list of non-empty paragraphs");
 need(S?.logo?.hero && S?.logo?.mark, "SITE.logo needs {hero, mark}");
 
 const files = [

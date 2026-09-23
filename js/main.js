@@ -56,7 +56,9 @@
     const img = $("about-img");
     img.src = S.about.image; img.alt = S.about.title;
     $("about-title").textContent = S.about.title;
-    $("about-text").textContent = S.about.text;
+    const body = $("about-text");
+    body.replaceChildren();
+    for (const para of [].concat(S.about.text)) body.append(el("p", { text: para }));
     $("about-wa").href = waLink();
   }
 

@@ -118,6 +118,12 @@ try {
   need(await mobile.isHidden("#lightbox"), "lightbox: Escape closes");
   need(await mobile.evaluate(() => document.body.style.overflow === ""), "lightbox: scroll lock released");
 
+  // --- videos (Task 4)
+  need((await mobile.$$("#videos-grid .video")).length === S.videos.length, "videos: item count");
+  need((await mobile.$$eval("#videos-grid .video", (v) => v.map((x) => x.dataset.type).join(","))) === S.videos.map((v) => v.type).join(","), "videos: data-type per item");
+  need((await mobile.$$("#videos-grid .video__placeholder .video__play")).length === S.videos.filter((v) => v.type === "placeholder").length, "videos: placeholder items show a play mark");
+  need((await mobile.$$("#videos-grid figcaption")).length === S.videos.length, "videos: every item has a caption");
+
   // --- screenshots (full page also forces lazy images to load)
   await mobile.screenshot({ path: path.join(shots, "mobile-fold.png") });
   await waitForMap(mobile);

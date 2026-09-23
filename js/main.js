@@ -139,11 +139,45 @@
     });
   }
 
+  // ---- videos
+  function youtubeId(url) {
+    const m = String(url).match(/(?:shorts\/|v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/);
+    return m ? m[1] : null;
+  }
+  function renderVideos() {
+    const grid = $("videos-grid");
+    let needInstagram = false;
+    for (const v of S.videos) {
+      let media;
+      if (v.type === "file") {
+        media = el("video", { class: "video__media", src: v.src, poster: v.poster, controls: true, playsinline: true, preload: "none" });
+      } else if (v.type === "youtube") {
+        media = el("iframe", { class: "video__media", src: `https://www.youtube-nocookie.com/embed/${youtubeId(v.src)}`, title: v.title, loading: "lazy", allow: "accelerometer; encrypted-media; picture-in-picture", allowfullscreen: true });
+      } else if (v.type === "instagram") {
+        needInstagram = true;
+        media = el("blockquote", { class: "instagram-media video__media", "data-instgrm-permalink": v.src, "data-instgrm-version": "14" }, [
+          el("a", { href: v.src, target: "_blank", rel: "noopener", text: v.title }),
+        ]);
+      } else {
+        media = el("div", { class: "video__placeholder" }, [
+          el("img", { src: v.poster, alt: v.title, loading: "lazy" }),
+          el("span", { class: "video__play", "aria-hidden": "true" }),
+          el("span", { class: "video__soon", text: "סרטון בקרוב" }),
+        ]);
+      }
+      grid.append(el("figure", { class: "video", "data-type": v.type }, [media, el("figcaption", { class: "video__title", text: v.title })]));
+    }
+    if (needInstagram && !document.querySelector('script[src*="instagram.com/embed.js"]')) {
+      document.body.append(el("script", { src: "https://www.instagram.com/embed.js", async: true }));
+    }
+  }
+
   // ---- boot (later tasks add their init calls here)
   renderHero();
   renderServices();
   renderGallery();
   initLightbox();
+  renderVideos();
   renderAbout();
   renderContact();
   renderFooter();

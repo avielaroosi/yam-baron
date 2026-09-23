@@ -18,7 +18,7 @@ const server = http.createServer((req, res) => {
   fs.createReadStream(f).pipe(res);
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
-const base = `http://127.0.0.1:${server.address().port}/`;
+const base = process.env.BASE_URL || `http://127.0.0.1:${server.address().port}/`;
 
 const browser = await chromium.launch();
 const problems = [];

@@ -70,7 +70,8 @@
     $("contact-address").textContent = S.address;
     const hours = $("contact-hours");
     for (const h of S.hours) hours.append(el("li", {}, [el("span", { text: h.days }), el("span", { text: h.time })]));
-    $("contact-map").src = "https://www.google.com/maps?q=" + encodeURIComponent(S.address) + "&output=embed&hl=he";
+    $("contact-map").src = "https://embed.waze.com/iframe?zoom=16&lat=" + S.geo.lat + "&lon=" + S.geo.lon + "&pin=1";
+    $("contact-waze").href = "https://waze.com/ul?q=" + encodeURIComponent(S.address) + "&navigate=yes";
   }
 
   // ---- footer

@@ -50,10 +50,23 @@ async function waitForMap(page, maxMs = 5000) {
   await page.waitForTimeout(maxMs);
 }
 
+// Third-party embeds (the Waze live map) log their own errors inside headless Chromium
+// (visitor-id 400s, storage-access denials, GeoRSS 403s). Those are not this site's bugs.
+const THIRD_PARTY = /waze\.com|google\.com|gstatic\.com|googleapis\.com/;
+const NOISE = /Missing user and visitor id|requestStorageAccess|GeoRSS|Failed to load resource/;
+function watchErrors(page, label, sink) {
+  page.on("console", (m) => {
+    if (m.type() !== "error") return;
+    const url = (m.location && m.location().url) || "";
+    if (THIRD_PARTY.test(url) || NOISE.test(m.text())) return;
+    sink.push(`[${label}] console error: ${m.text()}`);
+  });
+  page.on("pageerror", (e) => { if (!NOISE.test(e.message)) sink.push(`[${label}] page error: ${e.message}`); });
+}
+
 async function open(name, viewport) {
   const page = await browser.newPage({ viewport, locale: "he-IL", reducedMotion: "reduce" });
-  page.on("console", (m) => { if (m.type() === "error") problems.push(`[${name}] console error: ${m.text()}`); });
-  page.on("pageerror", (e) => problems.push(`[${name}] page error: ${e.message}`));
+  watchErrors(page, name, problems);
   page.on("response", (r) => { if (r.url().startsWith(base) && r.status() >= 400) problems.push(`[${name}] ${r.status()} ${r.url().slice(base.length)}`); });
   await page.goto(base, { waitUntil: "load" });
   await scrollThrough(page);
@@ -119,7 +132,8 @@ try {
   need((await mobile.$$("#hero-wa, #hero-ig, .hero__actions")).length === 0, "hero: no contact buttons (owner choice)");
   need(await mobile.$$eval("#contact-hours li span:last-child", (s) => s.every((x) => getComputedStyle(x).direction === "ltr" && getComputedStyle(x).unicodeBidi === "isolate")), "hours time values must be laid out LTR and bidi-isolated");
   need(await mobile.$$eval(".wordmark", (s) => s.length > 0 && s.every((x) => getComputedStyle(x).direction === "ltr" && getComputedStyle(x).unicodeBidi === "isolate")), "the English wordmark must be laid out LTR and bidi-isolated");
-  need((await mobile.getAttribute("#contact-map", "src") || "").startsWith("https://www.google.com/maps?q="), "contact: map embed src");
+  need((await mobile.getAttribute("#contact-map", "src") || "").startsWith("https://embed.waze.com/iframe?"), "contact: Waze map embed src");
+  need(((await mobile.getAttribute("#contact-waze", "href")) || "").startsWith("https://waze.com/ul?q=") && (await mobile.getAttribute("#contact-waze", "href")).endsWith("&navigate=yes"), "contact: Waze navigation link");
 
   // --- gallery + lightbox (Task 3)
   need((await mobile.$$("#gallery-grid .gallery__item")).length === S.gallery.length, "gallery: item count");
@@ -161,7 +175,7 @@ try {
   {
     const fx = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });
     const fxProblems = [];
-    fx.on("pageerror", (e) => fxProblems.push(`[fixture] page error: ${e.message}`));
+    watchErrors(fx, "fixture", fxProblems);
     await fx.route("**/js/content.js", async (route) => {
       const body = fs.readFileSync(path.join(root, "js/content.js"), "utf8") + `
         window.SITE.videos = [
@@ -219,8 +233,7 @@ try {
   // --- reveal with motion allowed: exercises the IntersectionObserver branch, not the shortcut
   {
     const motion = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL" });
-    motion.on("console", (m) => { if (m.type() === "error") problems.push(`[motion] console error: ${m.text()}`); });
-    motion.on("pageerror", (e) => problems.push(`[motion] page error: ${e.message}`));
+    watchErrors(motion, "motion", problems);
     await motion.goto(base, { waitUntil: "load" });
     need(await motion.evaluate(() => [...document.querySelectorAll(".reveal")].some((n) => !n.classList.contains("is-in"))), "reveal: default-motion path starts hidden below the fold");
     await scrollThrough(motion);
@@ -236,8 +249,7 @@ try {
   need(await mobile.evaluate(() => getComputedStyle(document.getElementById("hero-logo")).visibility === "visible"), "intro: hero logo stays visible under reduced motion");
   {
     const intro = await browser.newPage({ viewport: { width: 900, height: 700 }, locale: "he-IL" });
-    intro.on("console", (m) => { if (m.type() === "error") problems.push(`[intro] console error: ${m.text()}`); });
-    intro.on("pageerror", (e) => problems.push(`[intro] page error: ${e.message}`));
+    watchErrors(intro, "intro", problems);
     await intro.goto(base, { waitUntil: "commit" });
 
     // The overlay fades out over the hero logo it just landed on. If the logo were still

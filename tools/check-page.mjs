@@ -49,7 +49,7 @@ async function waitForMap(page, maxMs = 5000) {
 }
 
 async function open(name, viewport) {
-  const page = await browser.newPage({ viewport, locale: "he-IL" });
+  const page = await browser.newPage({ viewport, locale: "he-IL", reducedMotion: "reduce" });
   page.on("console", (m) => { if (m.type() === "error") problems.push(`[${name}] console error: ${m.text()}`); });
   page.on("pageerror", (e) => problems.push(`[${name}] page error: ${e.message}`));
   page.on("response", (r) => { if (r.url().startsWith(base) && r.status() >= 400) problems.push(`[${name}] ${r.status()} ${r.url().slice(base.length)}`); });
@@ -158,6 +158,18 @@ try {
     need(fxProblems.length === 0, fxProblems.join("; "));
     await fx.close();
   }
+
+  // --- floating button + reveal (Task 5)
+  await mobile.evaluate(() => window.scrollTo(0, 0)); // earlier blocks scrolled the page (gallery click)
+  await mobile.waitForTimeout(400);
+  need(await mobile.evaluate(() => !document.getElementById("wa-fab").classList.contains("is-visible")), "fab: hidden while the hero is on screen");
+  need((await mobile.getAttribute("#wa-fab", "href") || "").startsWith(`https://wa.me/${S.whatsapp}?text=`), "fab: whatsapp href");
+  await mobile.evaluate(() => document.getElementById("contact").scrollIntoView());
+  await mobile.waitForTimeout(400);
+  need(await mobile.evaluate(() => document.getElementById("wa-fab").classList.contains("is-visible")), "fab: visible after scrolling past the hero");
+  need(await mobile.evaluate(() => [...document.querySelectorAll(".reveal")].every((n) => n.classList.contains("is-in"))), "reveal: with reduced motion every section is marked is-in");
+  await mobile.evaluate(() => window.scrollTo(0, 0));
+  await mobile.waitForTimeout(400);
 
   // --- screenshots (full page also forces lazy images to load)
   await mobile.screenshot({ path: path.join(shots, "mobile-fold.png") });

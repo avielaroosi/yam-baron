@@ -144,3 +144,17 @@ iframe.video__media { border: 0; }
 .video__play::after { content: ""; border-style: solid; border-width: 11px 0 11px 18px; border-color: transparent transparent transparent var(--gold); margin-left: 4px; }
 .video__soon { position: absolute; bottom: 16px; color: var(--cream); font-size: .9rem; letter-spacing: .05em; }
 .video__title { text-align: center; color: var(--cream-2); font-size: .95rem; }
+
+/* ===== floating WhatsApp button ===== */
+.wa-fab { position: fixed; left: 18px; bottom: 18px; z-index: 150; width: 58px; height: 58px; border-radius: 50%; background: var(--wa); color: #062b16; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); opacity: 0; transform: translateY(16px) scale(.9); pointer-events: none; transition: opacity .3s ease, transform .3s ease; }
+.wa-fab.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+.wa-fab.is-visible:hover { transform: translateY(-2px); }
+
+/* ===== reveal on scroll ===== */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.is-in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .btn, .card, .gallery__item img, .wa-fab { transition: none; }
+}

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YAM BARON | Hair Studio — עיצוב שיער, כלות והחלקות</title>
+  <meta name="description" content="YAM BARON Hair Studio: סטודיו בוטיק לעיצוב שיער. עיצוב כלות, החלקות, תספורות וצבע. לתיאום תור בוואטסאפ.">
+  <meta name="theme-color" content="#0b0b0b">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="YAM BARON | Hair Studio">
+  <meta property="og:description" content="עיצוב שיער · כלות · החלקות. לתיאום תור בוואטסאפ.">
+  <meta property="og:image" content="assets/img/hero.jpg">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#services">דלג לתוכן</a>
+
+  <header class="hero" id="top">
+    <img class="hero__bg" id="hero-img" alt="">
+    <div class="hero__inner">
+      <p class="hero__eyebrow" id="hero-sub"></p>
+      <h1 class="wordmark" id="hero-name"></h1>
+      <p class="hero__tagline" id="hero-tagline"></p>
+      <p class="hero__text" id="hero-text"></p>
+      <div class="hero__actions">
+        <a class="btn btn--wa" id="hero-wa" href="#" target="_blank" rel="noopener">לתיאום תור בוואטסאפ</a>
+        <a class="link-ig" id="hero-ig" href="#" target="_blank" rel="noopener"></a>
+      </div>
+    </div>
+    <a class="hero__scroll" href="#services" aria-label="גלילה למטה">↓</a>
+  </header>
+
+  <main>
+    <section class="section section--dark reveal" id="services">
+      <div class="container">
+        <h2 class="section__title">השירותים</h2>
+        <div class="cards" id="services-grid"></div>
+      </div>
+    </section>
+
+    <section class="section section--light reveal" id="gallery">
+      <div class="container">
+        <h2 class="section__title">עבודות</h2>
+        <div class="gallery" id="gallery-grid"></div>
+      </div>
+    </section>
+
+    <section class="section section--dark reveal" id="videos">
+      <div class="container">
+        <h2 class="section__title">סרטונים</h2>
+        <div class="videos" id="videos-grid"></div>
+      </div>
+    </section>
+
+    <section class="section section--light reveal" id="about">
+      <div class="container about">
+        <img class="about__img" id="about-img" alt="">
+        <div class="about__body">
+          <h2 class="section__title" id="about-title"></h2>
+          <p class="about__text" id="about-text"></p>
+          <a class="btn btn--outline" id="about-wa" href="#" target="_blank" rel="noopener">דברו איתי בוואטסאפ</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--dark reveal" id="contact">
+      <div class="container">
+        <h2 class="section__title">יצירת קשר</h2>
+        <div class="contact">
+          <div class="contact__info">
+            <a class="btn btn--wa btn--big" id="contact-wa" href="#" target="_blank" rel="noopener">לתיאום תור בוואטסאפ</a>
+            <ul class="contact__list">
+              <li><a id="contact-ig" href="#" target="_blank" rel="noopener"></a></li>
+              <li><a id="contact-tel" href="#"></a></li>
+              <li id="contact-address"></li>
+            </ul>
+            <h3 class="contact__sub">שעות פעילות</h3>
+            <ul class="hours" id="contact-hours"></ul>
+          </div>
+          <div class="contact__map">
+            <iframe id="contact-map" loading="lazy" title="מפה" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p><span class="wordmark wordmark--sm" id="footer-name"></span> · <span id="footer-year"></span></p>
+  </footer>
+
+  <a class="wa-fab" id="wa-fab" href="#" target="_blank" rel="noopener" aria-label="וואטסאפ">
+    <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M16 3C9.4 3 4 8.3 4 14.9c0 2.3.7 4.5 1.9 6.4L4 29l7.9-2.1c1.8 1 3.9 1.5 6.1 1.5 6.6 0 12-5.3 12-11.9S22.6 3 16 3zm0 21.7c-1.9 0-3.8-.5-5.4-1.5l-.4-.2-4.7 1.2 1.3-4.5-.3-.4A9.7 9.7 0 0 1 6.2 15c0-5.4 4.4-9.8 9.8-9.8s9.8 4.4 9.8 9.8-4.4 9.7-9.8 9.7zm5.4-7.3c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-1 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5.3-.5c.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>
+  </a>
+
+  <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="תצוגת תמונה">
+    <button class="lightbox__close" id="lightbox-close" type="button" aria-label="סגירה">×</button>
+    <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" type="button" aria-label="הקודמת">‹</button>
+    <img class="lightbox__img" id="lightbox-img" alt="">
+    <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" type="button" aria-label="הבאה">›</button>
+    <p class="lightbox__count" id="lightbox-count"></p>
+  </div>
+
+  <script src="js/content.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "yam-baron-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node check-content.mjs && node check-page.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.61.1"
+  }
+}

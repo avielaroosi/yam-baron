@@ -9,7 +9,7 @@ window.SITE = {
   // מספר וואטסאפ בפורמט בינלאומי, ספרות בלבד, בלי + (054-392-2677 → 972543922677).
   whatsapp: "972543922677",
   whatsappDefaultText: "היי ים, אשמח לשמוע פרטים ולתאם תור",
-  instagram: "yambaron.hair", // בלי @
+  instagram: "yam.baron_hair", // בלי @
   phoneDisplay: "054-392-2677",
   address: "רחוב הדוגמה 1, עיר", // כתובת דמה עד שתתקבל כתובת אמיתית
   hours: [

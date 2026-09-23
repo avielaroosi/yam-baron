@@ -45,7 +45,7 @@ p { margin: 0; }
 .section--light .btn--ig { color: var(--black); background: transparent; }
 
 /* ===== hero ===== */
-.hero { position: relative; min-height: 100svh; display: grid; place-items: center; text-align: center; isolation: isolate; padding: calc(var(--pad) * 2) var(--pad); }
+.hero { position: relative; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; text-align: center; isolation: isolate; padding: calc(var(--pad) * 2) var(--pad); }
 .hero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(11, 11, 11, .55) 0%, rgba(11, 11, 11, .35) 40%, rgba(11, 11, 11, .92) 100%); }
 .hero__inner { max-width: 720px; display: grid; gap: 18px; justify-items: center; }
@@ -126,9 +126,9 @@ p { margin: 0; }
 @media (min-width: 1000px) { .gallery { grid-template-columns: repeat(4, 1fr); } }
 
 /* ===== lightbox ===== */
-.lightbox { position: fixed; inset: 0; z-index: 200; background: rgba(11, 11, 11, .94); display: grid; place-items: center; padding: 56px 16px; }
+.lightbox { position: fixed; inset: 0; z-index: 200; overscroll-behavior: contain; background: rgba(11, 11, 11, .94); display: grid; place-items: center; padding: 56px 16px; }
 .lightbox[hidden] { display: none; }
-.lightbox__img { max-width: 100%; max-height: calc(100vh - 112px); object-fit: contain; border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, .6); }
+.lightbox__img { max-width: 100%; max-height: calc(100vh - 112px); max-height: calc(100svh - 112px); object-fit: contain; border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, .6); }
 .lightbox__close, .lightbox__nav { position: absolute; background: none; border: 1px solid var(--gold-soft); color: var(--cream); width: 44px; height: 44px; border-radius: 50%; font-size: 1.6rem; line-height: 1; cursor: pointer; display: grid; place-items: center; font-family: var(--font-body); }
 .lightbox__close { top: 14px; left: 14px; }
 .lightbox__nav { top: 50%; transform: translateY(-50%); }
@@ -150,8 +150,8 @@ iframe.video__media { border: 0; }
 .video__title { text-align: center; color: var(--cream-2); font-size: .95rem; }
 
 /* ===== floating WhatsApp button ===== */
-.wa-fab { position: fixed; left: 18px; bottom: 18px; z-index: 150; width: 58px; height: 58px; border-radius: 50%; background: var(--wa); color: #062b16; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); opacity: 0; transform: translateY(16px) scale(.9); pointer-events: none; transition: opacity .3s ease, transform .3s ease; }
-.wa-fab.is-visible { opacity: 1; transform: none; pointer-events: auto; }
+.wa-fab { position: fixed; left: 18px; bottom: 18px; z-index: 150; width: 58px; height: 58px; border-radius: 50%; background: var(--wa); color: #062b16; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); opacity: 0; visibility: hidden; transform: translateY(16px) scale(.9); pointer-events: none; transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s; }
+.wa-fab.is-visible { opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition-delay: 0s; }
 .wa-fab.is-visible:hover { transform: translateY(-2px); }
 
 /* ===== reveal on scroll ===== */

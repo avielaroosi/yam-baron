@@ -44,7 +44,7 @@
     const grid = $("services-grid");
     for (const s of S.services) {
       grid.append(el("article", { class: "card", id: "service-" + s.id }, [
-        el("img", { class: "card__img", src: s.image, alt: s.title, loading: "lazy" }),
+        el("img", { class: "card__img", loading: "lazy", src: s.image, alt: s.title }),
         el("div", { class: "card__body" }, [
           el("h3", { class: "card__title", text: s.title }),
           el("p", { class: "card__desc", text: s.desc }),
@@ -89,11 +89,13 @@
   // ---- gallery + lightbox
   let lbIndex = 0;
   let lbOpened = 0;
+  let lbScrollY = 0;
+  const lbFocusable = () => [$("lightbox-close"), $("lightbox-prev"), $("lightbox-next")];
   function renderGallery() {
     const grid = $("gallery-grid");
     S.gallery.forEach((g, i) => {
       const btn = el("button", { class: "gallery__item", type: "button", "aria-label": g.alt, "data-index": String(i) }, [
-        el("img", { src: g.src, alt: g.alt, loading: "lazy" }),
+        el("img", { loading: "lazy", src: g.src, alt: g.alt }),
       ]);
       btn.addEventListener("click", () => openLightbox(i));
       grid.append(btn);
@@ -110,19 +112,30 @@
     lbOpened = i;
     showLightbox(i);
     $("lightbox").hidden = false;
+    // iOS ignores overflow:hidden on <body>, so pin the body at the current offset instead.
+    lbScrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = -lbScrollY + "px";
+    document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
     $("lightbox-close").focus();
   }
   function closeLightbox() {
     $("lightbox").hidden = true;
+    document.body.style.position = "";
+    document.body.style.top = "";
+    document.body.style.width = "";
     document.body.style.overflow = "";
+    const html = document.documentElement;
+    const prevBehavior = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto"; // jump back, never animate the restore
+    window.scrollTo(0, lbScrollY);
+    html.style.scrollBehavior = prevBehavior;
     const item = document.querySelector(`.gallery__item[data-index="${lbOpened}"]`);
-    if (item) item.focus();
+    if (item) item.focus({ preventScroll: true });
   }
   function initLightbox() {
     const lb = $("lightbox");
-    $("lightbox-prev").textContent = "›"; // RTL: "previous" sits on the right and points right
-    $("lightbox-next").textContent = "‹";
     $("lightbox-close").addEventListener("click", closeLightbox);
     $("lightbox-prev").addEventListener("click", () => showLightbox(lbIndex - 1));
     $("lightbox-next").addEventListener("click", () => showLightbox(lbIndex + 1));
@@ -132,6 +145,13 @@
       if (e.key === "Escape") closeLightbox();
       else if (e.key === "ArrowLeft") showLightbox(lbIndex + 1);
       else if (e.key === "ArrowRight") showLightbox(lbIndex - 1);
+      else if (e.key === "Tab") { // keep focus inside the dialog, wrapping in both directions
+        const items = lbFocusable();
+        const at = items.indexOf(document.activeElement);
+        const to = e.shiftKey ? (at <= 0 ? items.length - 1 : at - 1) : (at === -1 || at === items.length - 1 ? 0 : at + 1);
+        e.preventDefault();
+        items[to].focus();
+      }
     });
     let touchX = null;
     lb.addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; }, { passive: true });
@@ -149,6 +169,13 @@
     const m = String(url).match(/(?:shorts\/|v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/);
     return m ? m[1] : null;
   }
+  function placeholderFrame(v) {
+    return el("div", { class: "video__placeholder" }, [
+      v.poster ? el("img", { loading: "lazy", src: v.poster, alt: v.title }) : null,
+      el("span", { class: "video__play", "aria-hidden": "true" }),
+      el("span", { class: "video__soon", text: "סרטון בקרוב" }),
+    ]);
+  }
   function renderVideos() {
     const grid = $("videos-grid");
     let needInstagram = false;
@@ -159,11 +186,7 @@
         media = el("video", { class: "video__media", src: v.src, poster: v.poster, controls: true, playsinline: true, preload: "none" });
       } else if (v.type === "youtube" && !id) {
         console.warn("video: unrecognized YouTube URL", v.src);
-        media = el("div", { class: "video__placeholder" }, [
-          v.poster ? el("img", { src: v.poster, alt: v.title, loading: "lazy" }) : null,
-          el("span", { class: "video__play", "aria-hidden": "true" }),
-          el("span", { class: "video__soon", text: "סרטון בקרוב" }),
-        ]);
+        media = placeholderFrame(v);
       } else if (v.type === "youtube") {
         media = el("iframe", { class: "video__media", src: `https://www.youtube-nocookie.com/embed/${id}`, title: v.title, loading: "lazy", allow: "accelerometer; encrypted-media; picture-in-picture", allowfullscreen: true });
       } else if (v.type === "instagram") {
@@ -172,11 +195,7 @@
           el("a", { href: v.src, target: "_blank", rel: "noopener", text: v.title }),
         ]);
       } else {
-        media = el("div", { class: "video__placeholder" }, [
-          el("img", { src: v.poster, alt: v.title, loading: "lazy" }),
-          el("span", { class: "video__play", "aria-hidden": "true" }),
-          el("span", { class: "video__soon", text: "סרטון בקרוב" }),
-        ]);
+        media = placeholderFrame(v);
       }
       grid.append(el("figure", { class: "video", "data-type": v.type }, [media, el("figcaption", { class: "video__title", text: v.title })]));
     }

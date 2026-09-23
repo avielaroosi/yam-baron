@@ -5,15 +5,17 @@ import { chromium } from "playwright-core";
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const MIME = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".jpg": "image/jpeg", ".png": "image/png", ".svg": "image/svg+xml", ".mp4": "video/mp4" };
 
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split("?")[0]);
   if (p.endsWith("/")) p += "index.html";
   const f = path.join(root, p);
-  if (!f.startsWith(root) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end(); return; }
+  const inRoot = f === root || f.startsWith(root + path.sep); // plain startsWith would also accept a sibling "…/yam-baron-old"
+  if (!inRoot || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" });
   fs.createReadStream(f).pipe(res);
 });
@@ -30,8 +32,8 @@ fs.mkdirSync(shots, { recursive: true });
 async function scrollThrough(page) {
   await page.evaluate(async () => {
     const step = Math.max(300, window.innerHeight * 0.8);
-    for (let y = 0; y < document.documentElement.scrollHeight; y += step) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); }
-    window.scrollTo(0, 0);
+    for (let y = 0; y < document.documentElement.scrollHeight; y += step) { window.scrollTo({ top: y, behavior: "instant" }); await new Promise((r) => setTimeout(r, 60)); }
+    window.scrollTo({ top: 0, behavior: "instant" });
   });
   await page.waitForTimeout(300);
 }
@@ -67,8 +69,20 @@ try {
 
   // --- document basics
   need(await mobile.evaluate(() => document.documentElement.dir === "rtl" && document.documentElement.lang === "he"), "html must have dir=rtl lang=he");
-  need(await mobile.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), "mobile: horizontal overflow");
+  // `body { overflow-x: hidden }` makes a scrollWidth check always pass, so measure the boxes.
+  // The deliberately off-screen bits pass on their own: .skip is offset vertically only, the
+  // hidden lightbox has width 0, and .sr-only is a 1px box inside the viewport.
+  need(await mobile.evaluate(() => [...document.querySelectorAll("body *")].every((n) => {
+    const r = n.getBoundingClientRect();
+    return r.width === 0 || r.right <= window.innerWidth + 1;
+  })), "mobile: an element extends past the right edge");
+  // RTL mirror of the same idea: overflowing content in an RTL document escapes on the left.
+  need(await mobile.evaluate(() => [...document.querySelectorAll("body *")].every((n) => {
+    const r = n.getBoundingClientRect();
+    return r.width === 0 || r.left >= -1;
+  })), "mobile: an element extends past the left edge");
   need(await mobile.evaluate(() => [...document.images].every((i) => i.getAttribute("alt") !== null)), "every <img> needs an alt attribute");
+  need((await mobile.$$('a[href="#"]')).length === 0, "no link may be left with href='#' (JS wiring)");
 
   // --- hero
   need((await mobile.textContent("#hero-name")).trim() === S.name, "hero: name not rendered");
@@ -102,16 +116,25 @@ try {
   need((await mobile.getAttribute("#contact-ig", "href")) === `https://instagram.com/${S.instagram}`, "contact: instagram link");
   need((await mobile.$$("#contact-hours li")).length === S.hours.length, "contact: hours rows");
   need(await mobile.$$eval("#hero-ig, #contact-ig", (as) => as.length === 2 && as.every((a) => a.classList.contains("btn") && !!a.querySelector("svg") && a.href.startsWith("https://instagram.com/"))), "instagram: both links are styled buttons with an icon pointing at instagram");
-  need(await mobile.$$eval("#contact-hours li span:last-child", (s) => s.every((x) => getComputedStyle(x).direction === "ltr")), "hours time values must be laid out LTR");
+  need(await mobile.$$eval("#contact-hours li span:last-child", (s) => s.every((x) => getComputedStyle(x).direction === "ltr" && getComputedStyle(x).unicodeBidi === "isolate")), "hours time values must be laid out LTR and bidi-isolated");
+  need(await mobile.$$eval(".wordmark", (s) => s.length > 0 && s.every((x) => getComputedStyle(x).direction === "ltr" && getComputedStyle(x).unicodeBidi === "isolate")), "the English wordmark must be laid out LTR and bidi-isolated");
   need((await mobile.getAttribute("#contact-map", "src") || "").startsWith("https://www.google.com/maps?q="), "contact: map embed src");
 
   // --- gallery + lightbox (Task 3)
   need((await mobile.$$("#gallery-grid .gallery__item")).length === S.gallery.length, "gallery: item count");
   need(await mobile.isHidden("#lightbox"), "lightbox: must start hidden");
+  await mobile.evaluate(() => document.getElementById("gallery").scrollIntoView());
+  await mobile.waitForTimeout(300);
+  const yBeforeLightbox = await mobile.evaluate(() => window.scrollY);
+  need(yBeforeLightbox > 0, "lightbox: the gallery must be scrolled into view so the scroll-restore check means something");
   await mobile.click("#gallery-grid .gallery__item:nth-child(2)");
   need(await mobile.isVisible("#lightbox"), "lightbox: opens on click");
   need((await mobile.getAttribute("#lightbox-img", "src") || "").endsWith(S.gallery[1].src), "lightbox: shows the clicked image");
   need(await mobile.evaluate(() => document.body.style.overflow === "hidden"), "lightbox: page scroll must be locked while open");
+  await mobile.keyboard.press("Tab");
+  await mobile.keyboard.press("Tab");
+  await mobile.keyboard.press("Tab");
+  need(await mobile.evaluate(() => !!document.activeElement && document.getElementById("lightbox").contains(document.activeElement)), "lightbox: Tab must not escape the dialog");
   await mobile.keyboard.press("ArrowLeft");
   need((await mobile.getAttribute("#lightbox-img", "src") || "").endsWith(S.gallery[2].src), "lightbox: ArrowLeft goes to next (RTL)");
   await mobile.keyboard.press("ArrowRight");
@@ -120,6 +143,7 @@ try {
   await mobile.keyboard.press("Escape");
   need(await mobile.isHidden("#lightbox"), "lightbox: Escape closes");
   need(await mobile.evaluate(() => document.body.style.overflow === ""), "lightbox: scroll lock released");
+  need(await mobile.evaluate((y) => window.scrollY === y, yBeforeLightbox), "lightbox: the page must come back to the same scroll offset after closing");
   await mobile.click("#gallery-grid .gallery__item:nth-child(2)");
   await mobile.keyboard.press("ArrowLeft");
   await mobile.keyboard.press("ArrowLeft");

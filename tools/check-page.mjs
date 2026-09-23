@@ -101,7 +101,7 @@ try {
   need((await mobile.textContent("#about-title")).trim() === S.about.title, "about: title not rendered");
   need((await mobile.getAttribute("#contact-ig", "href")) === `https://instagram.com/${S.instagram}`, "contact: instagram link");
   need((await mobile.$$("#contact-hours li")).length === S.hours.length, "contact: hours rows");
-  need(await mobile.evaluate(() => ["contact-ig", "hero-ig"].every((id) => getComputedStyle(document.getElementById(id)).direction === "ltr")), "instagram handles must be laid out LTR");
+  need(await mobile.$$eval("#hero-ig, #contact-ig", (as) => as.length === 2 && as.every((a) => a.classList.contains("btn") && !!a.querySelector("svg") && a.href.startsWith("https://instagram.com/"))), "instagram: both links are styled buttons with an icon pointing at instagram");
   need(await mobile.$$eval("#contact-hours li span:last-child", (s) => s.every((x) => getComputedStyle(x).direction === "ltr")), "hours time values must be laid out LTR");
   need((await mobile.getAttribute("#contact-map", "src") || "").startsWith("https://www.google.com/maps?q="), "contact: map embed src");
 

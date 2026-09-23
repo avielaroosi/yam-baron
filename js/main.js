@@ -33,7 +33,6 @@
     $("hero-text").textContent = S.heroText;
     $("hero-wa").href = waLink();
     $("hero-ig").href = igUrl();
-    $("hero-ig").textContent = "@" + S.instagram;
   }
 
   // ---- services
@@ -65,7 +64,6 @@
   function renderContact() {
     $("contact-wa").href = waLink();
     $("contact-ig").href = igUrl();
-    $("contact-ig").textContent = "@" + S.instagram;
     $("contact-tel").href = "tel:+" + S.whatsapp;
     $("contact-tel").textContent = S.phoneDisplay;
     $("contact-address").textContent = S.address;

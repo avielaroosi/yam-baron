@@ -39,8 +39,10 @@ p { margin: 0; }
 .btn--big { padding: 18px 40px; font-size: 1.1rem; }
 .btn--outline { border-color: var(--gold); color: inherit; }
 .btn--outline:hover { background: var(--gold); color: var(--black); }
-.link-ig { color: var(--gold); letter-spacing: .05em; direction: ltr; unicode-bidi: isolate; }
-.link-ig:hover { text-decoration: underline; }
+.btn--ig { border-color: var(--gold); color: var(--cream); background: rgba(11, 11, 11, .28); backdrop-filter: blur(4px); }
+.btn--ig:hover { background: var(--gold); color: var(--black); }
+.btn--ig svg { flex: none; }
+.section--light .btn--ig { color: var(--black); background: transparent; }
 
 /* ===== hero ===== */
 .hero { position: relative; min-height: 100svh; display: grid; place-items: center; text-align: center; isolation: isolate; padding: calc(var(--pad) * 2) var(--pad); }
@@ -50,7 +52,7 @@ p { margin: 0; }
 .hero__tagline { font-family: var(--font-head); font-size: clamp(1.1rem, 3.5vw, 1.5rem); }
 .hero__tagline::before, .hero__tagline::after { content: ""; display: block; width: 56px; height: 1px; background: var(--gold); margin: 14px auto; }
 .hero__text { max-width: 560px; color: var(--cream-2); font-size: 1.02rem; }
-.hero__actions { display: grid; gap: 14px; justify-items: center; margin-top: 8px; }
+.hero__actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 8px; }
 .hero__scroll { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 1.4rem; opacity: .8; }
 
 /* ===== sections ===== */
@@ -90,6 +92,7 @@ p { margin: 0; }
 /* ===== contact ===== */
 .contact { display: grid; gap: 36px; grid-template-columns: 1fr; }
 .contact__info { display: grid; gap: 20px; justify-items: center; text-align: center; }
+.contact__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 .contact__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 1.05rem; }
 .contact__list a { color: var(--gold); }
 .contact__list a:hover { text-decoration: underline; }
@@ -101,6 +104,7 @@ p { margin: 0; }
 @media (min-width: 820px) {
   .contact { grid-template-columns: 1fr 1fr; align-items: start; }
   .contact__info { justify-items: start; text-align: start; }
+  .contact__actions { justify-content: flex-start; }
   .contact__map iframe { height: 420px; }
 }
 

@@ -102,6 +102,22 @@ try {
   need(await mobile.$$eval("#contact-hours li span:last-child", (s) => s.every((x) => getComputedStyle(x).direction === "ltr")), "hours time values must be laid out LTR");
   need((await mobile.getAttribute("#contact-map", "src") || "").startsWith("https://www.google.com/maps?q="), "contact: map embed src");
 
+  // --- gallery + lightbox (Task 3)
+  need((await mobile.$$("#gallery-grid .gallery__item")).length === S.gallery.length, "gallery: item count");
+  need(await mobile.isHidden("#lightbox"), "lightbox: must start hidden");
+  await mobile.click("#gallery-grid .gallery__item:nth-child(2)");
+  need(await mobile.isVisible("#lightbox"), "lightbox: opens on click");
+  need((await mobile.getAttribute("#lightbox-img", "src") || "").endsWith(S.gallery[1].src), "lightbox: shows the clicked image");
+  need(await mobile.evaluate(() => document.body.style.overflow === "hidden"), "lightbox: page scroll must be locked while open");
+  await mobile.keyboard.press("ArrowLeft");
+  need((await mobile.getAttribute("#lightbox-img", "src") || "").endsWith(S.gallery[2].src), "lightbox: ArrowLeft goes to next (RTL)");
+  await mobile.keyboard.press("ArrowRight");
+  need((await mobile.getAttribute("#lightbox-img", "src") || "").endsWith(S.gallery[1].src), "lightbox: ArrowRight goes back");
+  need((await mobile.textContent("#lightbox-count")).replace(/\s/g, "") === `2/${S.gallery.length}`, "lightbox: counter text");
+  await mobile.keyboard.press("Escape");
+  need(await mobile.isHidden("#lightbox"), "lightbox: Escape closes");
+  need(await mobile.evaluate(() => document.body.style.overflow === ""), "lightbox: scroll lock released");
+
   // --- screenshots (full page also forces lazy images to load)
   await mobile.screenshot({ path: path.join(shots, "mobile-fold.png") });
   await waitForMap(mobile);

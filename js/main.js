@@ -83,9 +83,67 @@
     $("footer-year").textContent = String(new Date().getFullYear());
   }
 
+  // ---- gallery + lightbox
+  let lbIndex = 0;
+  function renderGallery() {
+    const grid = $("gallery-grid");
+    S.gallery.forEach((g, i) => {
+      const btn = el("button", { class: "gallery__item", type: "button", "aria-label": g.alt, "data-index": String(i) }, [
+        el("img", { src: g.src, alt: g.alt, loading: "lazy" }),
+      ]);
+      btn.addEventListener("click", () => openLightbox(i));
+      grid.append(btn);
+    });
+  }
+  function showLightbox(i) {
+    lbIndex = (i + S.gallery.length) % S.gallery.length;
+    const g = S.gallery[lbIndex];
+    const img = $("lightbox-img");
+    img.src = g.src; img.alt = g.alt;
+    $("lightbox-count").textContent = `${lbIndex + 1} / ${S.gallery.length}`;
+  }
+  function openLightbox(i) {
+    showLightbox(i);
+    $("lightbox").hidden = false;
+    document.body.style.overflow = "hidden";
+    $("lightbox-close").focus();
+  }
+  function closeLightbox() {
+    $("lightbox").hidden = true;
+    document.body.style.overflow = "";
+    const item = document.querySelector(`.gallery__item[data-index="${lbIndex}"]`);
+    if (item) item.focus();
+  }
+  function initLightbox() {
+    const lb = $("lightbox");
+    $("lightbox-prev").textContent = "›"; // RTL: "previous" sits on the right and points right
+    $("lightbox-next").textContent = "‹";
+    $("lightbox-close").addEventListener("click", closeLightbox);
+    $("lightbox-prev").addEventListener("click", () => showLightbox(lbIndex - 1));
+    $("lightbox-next").addEventListener("click", () => showLightbox(lbIndex + 1));
+    lb.addEventListener("click", (e) => { if (e.target === lb) closeLightbox(); });
+    document.addEventListener("keydown", (e) => {
+      if (lb.hidden) return;
+      if (e.key === "Escape") closeLightbox();
+      else if (e.key === "ArrowLeft") showLightbox(lbIndex + 1);
+      else if (e.key === "ArrowRight") showLightbox(lbIndex - 1);
+    });
+    let touchX = null;
+    lb.addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; }, { passive: true });
+    lb.addEventListener("touchend", (e) => {
+      if (touchX === null) return;
+      const dx = e.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(dx) < 40) return;
+      showLightbox(dx < 0 ? lbIndex + 1 : lbIndex - 1); // swipe left = next (RTL)
+    });
+  }
+
   // ---- boot (later tasks add their init calls here)
   renderHero();
   renderServices();
+  renderGallery();
+  initLightbox();
   renderAbout();
   renderContact();
   renderFooter();

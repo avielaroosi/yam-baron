@@ -228,6 +228,88 @@ try {
     await motion.close();
   }
 
+  // --- opening animation (Task 9). Every page above runs with reducedMotion: "reduce",
+  // which is exactly when the intro must stay out of the way — so it needs its own pages.
+  // The failure that matters most here is a visitor left staring at a black screen, so the
+  // teardown paths are checked as hard as the happy one.
+  need(await mobile.evaluate(() => !document.getElementById("intro") && !document.documentElement.classList.contains("intro-armed")), "intro: must not run under reduced motion");
+  need(await mobile.evaluate(() => getComputedStyle(document.getElementById("hero-logo")).visibility === "visible"), "intro: hero logo stays visible under reduced motion");
+  {
+    const intro = await browser.newPage({ viewport: { width: 900, height: 700 }, locale: "he-IL" });
+    intro.on("console", (m) => { if (m.type() === "error") problems.push(`[intro] console error: ${m.text()}`); });
+    intro.on("pageerror", (e) => problems.push(`[intro] page error: ${e.message}`));
+    await intro.goto(base, { waitUntil: "commit" });
+
+    // The overlay fades out over the hero logo it just landed on. If the logo were still
+    // hidden at that moment there would be a quarter-second with no logo at all, so catch
+    // the exact frame the fade starts. (Checking after teardown proves nothing: cleanup
+    // unhides the logo regardless, which would mask the flash.)
+    const handoff = intro.evaluate(() => new Promise((resolve) => {
+      const giveUp = setTimeout(() => resolve("timeout"), 8000);
+      const poll = setInterval(() => {
+        const el = document.getElementById("intro");
+        if (!el) return;
+        clearInterval(poll);
+        new MutationObserver((_, obs) => {
+          if (!el.classList.contains("is-done")) return;
+          obs.disconnect();
+          clearTimeout(giveUp);
+          resolve(getComputedStyle(document.getElementById("hero-logo")).visibility);
+        }).observe(el, { attributes: true, attributeFilter: ["class"] });
+      }, 16);
+    }));
+
+    // The hand-off is only invisible if the flight ends on the hero logo's exact box.
+    const land = await intro.evaluate(() => new Promise((resolve) => {
+      const giveUp = setTimeout(() => resolve(null), 6000);
+      const poll = setInterval(() => {
+        const s = document.querySelector(".intro__stage");
+        if (!s) return;
+        clearInterval(poll);
+        // the letters' own transitions bubble through the stage, so match the stage's own
+        s.addEventListener("transitionend", (e) => {
+          if (e.target !== s || e.propertyName !== "transform") return;
+          clearTimeout(giveUp);
+          const a = s.getBoundingClientRect(), b = document.getElementById("hero-logo").getBoundingClientRect();
+          resolve({ dx: a.left - b.left, dy: a.top - b.top, dw: a.width - b.width, dh: a.height - b.height });
+        });
+      }, 16);
+    }));
+    need(land && Math.abs(land.dx) < 1 && Math.abs(land.dy) < 1 && Math.abs(land.dw) < 1 && Math.abs(land.dh) < 1,
+      `intro: the flight must land on the hero logo's rect, got ${JSON.stringify(land)}`);
+    need(await handoff === "visible", "intro: the hero logo must be uncovered before the overlay starts fading, or the logo blinks out");
+    await intro.waitForTimeout(1200);
+    need(await intro.evaluate(() => !document.getElementById("intro")), "intro: overlay must remove itself");
+    need(await intro.evaluate(() => document.documentElement.style.overflow !== "hidden"), "intro: scroll lock must be released");
+    need(await intro.evaluate(() => !document.documentElement.classList.contains("intro-running")), "intro: must not leave the hero logo hidden");
+
+    // same session, second load: the visitor has already seen it
+    await intro.goto(base, { waitUntil: "commit" });
+    await intro.waitForTimeout(250);
+    need(await intro.evaluate(() => !document.documentElement.classList.contains("intro-armed") && !document.getElementById("intro")), "intro: must not replay on a second load in the same session");
+    await intro.close();
+  }
+  {
+    // js/intro.js never arrives: the inline failsafe in index.html owns the black screen
+    const stuck = await browser.newPage({ viewport: { width: 900, height: 700 }, locale: "he-IL" });
+    await stuck.route("**/js/intro.js", (route) => route.abort());
+    await stuck.goto(base, { waitUntil: "commit" });
+    await stuck.waitForTimeout(3400);
+    need(await stuck.evaluate(() => !document.documentElement.classList.contains("intro-armed")), "intro: a missing intro.js must not leave the page black");
+    await stuck.close();
+  }
+  {
+    // any key gets the visitor straight to the site
+    const skip = await browser.newPage({ viewport: { width: 900, height: 700 }, locale: "he-IL" });
+    await skip.goto(base, { waitUntil: "commit" });
+    await skip.waitForTimeout(700);
+    await skip.keyboard.press("Escape");
+    await skip.waitForTimeout(500);
+    need(await skip.evaluate(() => !document.getElementById("intro") && document.documentElement.style.overflow !== "hidden"
+      && getComputedStyle(document.getElementById("hero-logo")).visibility === "visible"), "intro: a key press must skip to the finished page");
+    await skip.close();
+  }
+
   // --- screenshots (full page also forces lazy images to load)
   await mobile.screenshot({ path: path.join(shots, "mobile-fold.png") });
   await waitForMap(mobile);

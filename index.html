@@ -5,7 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- נתיבים כפולים: אם משנים hero/logo ב-js/content.js צריך לעדכן גם את שתי השורות האלה -->
   <link rel="preload" as="image" href="assets/img/hero.jpg" fetchpriority="high">
-  <link rel="preload" as="image" href="assets/brand/logo-full-light.png" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/brand/logo-full-light.svg" fetchpriority="high">
+
+  <!-- שער אנימציית הפתיחה. inline וסינכרוני בכוונה: הוא חייב לצבוע את השחור לפני
+       שההירו נצבע, ואותו קוד עצמו מחזיק גם את רשת הביטחון שמנקה אותו. לכן בלי JS
+       שום דבר לא נדרך מלכתחילה, והדף פשוט מוצג כרגיל. -->
+  <style>
+    html.intro-armed { overflow: hidden; }
+    html.intro-armed::before { content: ""; position: fixed; inset: 0; z-index: 300; background: #0b0b0b; }
+  </style>
+  <script>
+    (function () {
+      try {
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (sessionStorage.getItem("yb-intro") === "seen") return;
+        sessionStorage.setItem("yb-intro", "seen"); // נשמר עכשיו: רענון באמצע הפתיחה לא מנגן אותה שוב
+        var h = document.documentElement;
+        h.classList.add("intro-armed");
+        setTimeout(function () { h.classList.remove("intro-armed"); }, 3000); // js/intro.js לא הגיע
+      } catch (e) { /* אין sessionStorage (גלישה פרטית): מדלגים על הפתיחה ומציגים את הדף */ }
+    })();
+  </script>
   <title>YAM BARON | Hair Studio — עיצוב שיער, כלות והחלקות</title>
   <meta name="description" content="YAM BARON Hair Studio: סטודיו בוטיק לעיצוב שיער. עיצוב כלות, החלקות, תספורות וצבע. לתיאום תור בוואטסאפ.">
   <meta name="theme-color" content="#0b0b0b">
@@ -113,5 +133,7 @@
 
   <script src="js/content.js"></script>
   <script src="js/main.js"></script>
+  <!-- אחרי main.js: הפתיחה נוחתת על לוגו ההירו, וצריך ש-renderHero כבר יציב לו src -->
+  <script src="js/intro.js"></script>
 </body>
 </html>

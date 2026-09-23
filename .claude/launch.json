@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "yam-baron",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": ["-c", "exec python3 -m http.server \"${PORT:-8130}\" --bind 127.0.0.1"],
+      "port": 8130,
+      "autoPort": true
+    }
+  ]
+}

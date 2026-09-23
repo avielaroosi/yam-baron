@@ -26,7 +26,7 @@ window.SITE = {
 
   // לוגו: hero = לוגו מלא בגרסה לרקע כהה; mark = המונוגרמה בלבד (פוטר, אייקון)
   // הנתיב של logo.hero מופיע גם בשורת <link rel="preload"> ב-index.html — לעדכן בשני המקומות.
-  logo: { hero: "assets/brand/logo-full-light.png", mark: "assets/brand/logo-mark.png" },
+  logo: { hero: "assets/brand/logo-full-light.svg", mark: "assets/brand/logo-mark.png" },
 
   services: [
     {

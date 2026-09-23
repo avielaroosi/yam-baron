@@ -227,6 +227,10 @@ iframe.video__media { border: 0; }
 }
 .intro.is-landing { background: transparent; transition: background .6s ease .15s; }
 .intro.is-done { opacity: 0; transition: opacity .25s ease; pointer-events: none; }
+/* The black lifts while the logo is still travelling, which would show the resting hero
+   logo underneath the flying one. Hide it until the flight lands on top of it — at that
+   moment the two are the same artwork at the same rect, so the swap cannot be seen. */
+html.intro-running .hero__logo { visibility: hidden; }
 
 /* ===== reveal on scroll ===== */
 .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }

@@ -80,6 +80,9 @@ try {
   need(await mobile.evaluate(() => { const r = document.getElementById("hero-name").getBoundingClientRect(); return r.width <= 1 && r.height <= 1; }), "hero: text wordmark must be visually hidden (sr-only) when the logo is shown");
   need((await mobile.getAttribute("#footer-logo", "src") || "").endsWith(S.logo.mark), "footer: monogram src");
   need((await mobile.getAttribute('link[rel="icon"]', "href")) === "assets/favicon.png", "favicon must be assets/favicon.png");
+  need(await mobile.evaluate(() => !document.getElementById("hero-logo").hasAttribute("loading")), "hero: logo must not be lazy-loaded");
+  need((await mobile.getAttribute("#footer-logo", "loading")) === "lazy", "footer: monogram must be lazy-loaded");
+  need(await mobile.evaluate(() => [...document.querySelectorAll("main img, footer img")].every((i) => i.getAttribute("loading") === "lazy")), "every image below the hero must be lazy-loaded");
 
   // --- WhatsApp links
   wa = await mobile.$$eval('a[href^="https://wa.me/"]', (as) => as.map((a) => a.href));

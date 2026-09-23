@@ -76,9 +76,9 @@
   // ---- footer
   function renderFooter() {
     const fl = $("footer-logo");
-    fl.src = S.logo.mark;
-    fl.alt = S.name;
     fl.loading = "lazy";
+    fl.alt = S.name;
+    fl.src = S.logo.mark;
     $("footer-name").textContent = S.name;
     $("footer-year").textContent = String(new Date().getFullYear());
   }

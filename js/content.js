@@ -82,14 +82,16 @@ window.SITE = {
   ],
 
   gallery: [
-    { src: "assets/img/gallery-01.jpg", alt: "עבודה מהסטודיו 1" },
-    { src: "assets/img/gallery-02.jpg", alt: "עבודה מהסטודיו 2" },
-    { src: "assets/img/gallery-03.jpg", alt: "עבודה מהסטודיו 3" },
-    { src: "assets/img/gallery-04.jpg", alt: "עבודה מהסטודיו 4" },
-    { src: "assets/img/gallery-05.jpg", alt: "עבודה מהסטודיו 5" },
-    { src: "assets/img/gallery-06.jpg", alt: "עבודה מהסטודיו 6" },
-    { src: "assets/img/gallery-07.jpg", alt: "עבודה מהסטודיו 7" },
-    { src: "assets/img/gallery-08.jpg", alt: "עבודה מהסטודיו 8" },
+    { src: "assets/img/gallery-b-01.jpg", alt: "גלים רכים על שיער ארוך בהיר" },
+    { src: "assets/img/gallery-b-02.jpg", alt: "גלים גדולים על שיער חום" },
+    { src: "assets/img/gallery-b-03.jpg", alt: "קוקו גבוה עם גלים" },
+    { src: "assets/img/gallery-b-04.jpg", alt: "קוקו נמוך אסוף ומלוטש" },
+    { src: "assets/img/gallery-b-05.jpg", alt: "גלים רכים לאירוע" },
+    { src: "assets/img/gallery-b-06.jpg", alt: "קוקו גבוה חלק עם גלים" },
+    { src: "assets/img/gallery-b-07.jpg", alt: "אסוף ערב עדין" },
+    { src: "assets/img/gallery-b-08.jpg", alt: "תסרוקת ערב עם גלים" },
+    { src: "assets/img/gallery-b-09.jpg", alt: "קוקו עם גלים, מבט מהגב" },
+    { src: "assets/img/gallery-b-10.jpg", alt: "קוקו נמוך עם גלים, מבט מהגב" },
   ],
 
   // type: "placeholder" (מסגרת עד שיגיע סרטון) | "file" (src = assets/video/x.mp4) | "youtube" (src = קישור Shorts/וידאו) | "instagram" (src = קישור לפוסט/ריל)

@@ -44,7 +44,7 @@
         el("img", { class: "card__img", loading: "lazy", src: s.image, alt: s.title }),
         el("div", { class: "card__body" }, [
           el("h3", { class: "card__title", text: s.title }),
-          el("p", { class: "card__desc", text: s.desc }),
+          ...[].concat(s.desc).map((para) => el("p", { class: "card__desc", text: para })),
           el("a", { class: "card__link", href: waLink(s.whatsappText), target: "_blank", rel: "noopener", text: "לתיאום בוואטסאפ ←" }),
         ]),
       ]));

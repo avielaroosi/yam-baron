@@ -28,6 +28,8 @@ need(S?.hero?.image && S?.hero?.alt, "SITE.hero needs {image, alt}");
 need(Array.isArray(S?.services) && S.services.length === 4, "SITE.services must have exactly 4 items");
 for (const s of S?.services || []) {
   for (const k of ["id", "title", "desc", "image", "whatsappText"]) need(s[k], `service "${s.id || "?"}" missing ${k}`);
+  const desc = [].concat(s.desc ?? []);
+  need(desc.length > 0 && desc.every((t) => typeof t === "string" && t.trim()), `service "${s.id || "?"}": desc must be a non-empty string or a list of paragraphs`);
 }
 need(Array.isArray(S?.gallery) && S.gallery.length >= 6, "SITE.gallery must have at least 6 images");
 for (const g of S?.gallery || []) need(g.src && g.alt, "each gallery item needs {src, alt}");

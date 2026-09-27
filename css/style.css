@@ -45,6 +45,8 @@ p { margin: 0; }
 .btn--wa { background: var(--wa); color: #062b16; }
 .btn--wa:hover { background: #2ee07a; }
 .btn--big { padding: 18px 40px; font-size: 1.1rem; }
+.btn--gold { background: var(--gold); color: var(--black); border-color: var(--gold); }
+.btn--gold:hover { background: #d8b976; border-color: #d8b976; }
 .btn--outline { border-color: var(--gold); color: inherit; }
 .btn--outline:hover { background: var(--gold); color: var(--black); }
 .btn--ig { border-color: var(--gold); color: var(--cream); background: rgba(11, 11, 11, .28); backdrop-filter: blur(4px); }

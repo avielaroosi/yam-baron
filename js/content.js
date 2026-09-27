@@ -100,7 +100,7 @@ window.SITE = {
   ],
 
   about: {
-    image: "assets/img/about.jpg",
+    image: "assets/img/about-2.jpg",
     imageAlt: "ים בראון, מעצבת שיער",
     title: "נעים מאוד, אני ים בראון 🤍",
     // כל פריט ברשימה = פסקה נפרדת בדף

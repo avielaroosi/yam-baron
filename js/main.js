@@ -84,9 +84,10 @@
     $("footer-year").textContent = String(new Date().getFullYear());
   }
 
-  // ---- gallery + lightbox
+  // ---- gallery + lightbox (the lightbox serves any list of {src, alt}: gallery, testimonials)
+  let lbItems = [];
   let lbIndex = 0;
-  let lbOpened = 0;
+  let lbOpenedEl = null;
   let lbScrollY = 0;
   const lbFocusable = () => [$("lightbox-close"), $("lightbox-prev"), $("lightbox-next")];
   function renderGallery() {
@@ -95,19 +96,20 @@
       const btn = el("button", { class: "gallery__item", type: "button", "aria-label": g.alt, "data-index": String(i) }, [
         el("img", { loading: "lazy", src: g.src, alt: g.alt }),
       ]);
-      btn.addEventListener("click", () => openLightbox(i));
+      btn.addEventListener("click", () => openLightbox(S.gallery, i, btn));
       grid.append(btn);
     });
   }
   function showLightbox(i) {
-    lbIndex = (i + S.gallery.length) % S.gallery.length;
-    const g = S.gallery[lbIndex];
+    lbIndex = (i + lbItems.length) % lbItems.length;
+    const g = lbItems[lbIndex];
     const img = $("lightbox-img");
     img.src = g.src; img.alt = g.alt;
-    $("lightbox-count").textContent = `${lbIndex + 1} / ${S.gallery.length}`;
+    $("lightbox-count").textContent = `${lbIndex + 1} / ${lbItems.length}`;
   }
-  function openLightbox(i) {
-    lbOpened = i;
+  function openLightbox(items, i, sourceEl) {
+    lbItems = items;
+    lbOpenedEl = sourceEl || null;
     showLightbox(i);
     $("lightbox").hidden = false;
     // iOS ignores overflow:hidden on <body>, so pin the body at the current offset instead.
@@ -129,8 +131,21 @@
     html.style.scrollBehavior = "auto"; // jump back, never animate the restore
     window.scrollTo(0, lbScrollY);
     html.style.scrollBehavior = prevBehavior;
-    const item = document.querySelector(`.gallery__item[data-index="${lbOpened}"]`);
-    if (item) item.focus({ preventScroll: true });
+    if (lbOpenedEl) lbOpenedEl.focus({ preventScroll: true });
+  }
+
+  // ---- testimonials: screenshots the owner adds to content.js; empty list = "coming soon" note
+  function renderTestimonials() {
+    const grid = $("testimonials-grid");
+    const items = S.testimonials || [];
+    $("testimonials-empty").hidden = items.length > 0;
+    items.forEach((t, i) => {
+      const btn = el("button", { class: "testimonial", type: "button", "aria-label": t.alt }, [
+        el("img", { loading: "lazy", src: t.src, alt: t.alt }),
+      ]);
+      btn.addEventListener("click", () => openLightbox(items, i, btn));
+      grid.append(btn);
+    });
   }
   function initLightbox() {
     const lb = $("lightbox");
@@ -297,6 +312,7 @@
   safe("gallery", renderGallery);
   safe("lightbox", initLightbox);
   safe("videos", renderVideos);
+  safe("testimonials", renderTestimonials);
   safe("about", renderAbout);
   safe("contact", renderContact);
   safe("footer", renderFooter);

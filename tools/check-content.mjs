@@ -33,7 +33,9 @@ for (const s of S?.services || []) {
 }
 need(Array.isArray(S?.gallery) && S.gallery.length >= 6, "SITE.gallery must have at least 6 images");
 for (const g of S?.gallery || []) need(g.src && g.alt, "each gallery item needs {src, alt}");
-need(Array.isArray(S?.videos) && S.videos.length >= 2, "SITE.videos must have at least 2 items");
+need(Array.isArray(S?.videos) && S.videos.length >= 1, "SITE.videos must have at least 1 item");
+need(Array.isArray(S?.testimonials), "SITE.testimonials must be a list (may be empty)");
+for (const t of S?.testimonials || []) need(t.src && t.alt, "each SITE.testimonials item needs {src, alt}");
 for (const v of S?.videos || []) {
   need(["placeholder", "file", "youtube", "instagram"].includes(v.type), `video type invalid: ${v.type}`);
   need(v.title, "each video needs a title");
@@ -58,6 +60,7 @@ const files = [
   S?.hero?.image,
   ...(S?.services || []).map((s) => s.image),
   ...(S?.gallery || []).map((g) => g.src),
+  ...(S?.testimonials || []).map((t) => t.src),
   ...(S?.videos || []).map((v) => v.poster).filter(Boolean),
   ...(S?.videos || []).filter((v) => v.type === "file").map((v) => v.src),
   S?.about?.image,

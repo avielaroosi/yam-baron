@@ -167,6 +167,11 @@ try {
   await mobile.keyboard.press("Escape");
   need(await mobile.evaluate(() => document.activeElement && document.activeElement.dataset.index === "1"), "lightbox: focus returns to the originally opened item, not the last viewed one");
 
+  // --- testimonials
+  need((await mobile.textContent("#testimonials .section__title")).trim() === "המלצות", "testimonials: section title");
+  need((await mobile.$$("#testimonials-grid .testimonial")).length === (S.testimonials || []).length, "testimonials: one card per screenshot");
+  need((await mobile.isVisible("#testimonials-empty")) === ((S.testimonials || []).length === 0), "testimonials: 'coming soon' note only when the list is empty");
+
   // --- videos (Task 4)
   need((await mobile.$$("#videos-grid .video")).length === S.videos.length, "videos: item count");
   need((await mobile.$$eval("#videos-grid .video", (v) => v.map((x) => x.dataset.type).join(","))) === S.videos.map((v) => v.type).join(","), "videos: data-type per item");

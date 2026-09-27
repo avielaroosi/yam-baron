@@ -92,6 +92,17 @@ p { margin: 0; }
 .card__link { margin-top: auto; padding-top: 8px; color: var(--gold); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
 .card__link:hover { text-decoration: underline; }
 
+/* ===== testimonials (screenshots) ===== */
+.section--divided { border-top: 1px solid var(--gold-line); }
+.testimonials__empty { text-align: center; color: var(--grey); }
+.testimonials__empty[hidden] { display: none; }
+.testimonials { columns: 2; column-gap: 12px; max-width: 1000px; margin-inline: auto; }
+.testimonial { display: block; width: 100%; break-inside: avoid; margin: 0 0 12px; padding: 0; border: 1px solid var(--gold-line); border-radius: 12px; overflow: hidden; background: var(--black-2); cursor: zoom-in; }
+.testimonial img { width: 100%; height: auto; display: block; }
+.testimonial:hover { border-color: var(--gold-soft); }
+.testimonial:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+@media (min-width: 760px) { .testimonials { columns: 4; column-gap: 16px; } .testimonial { margin-bottom: 16px; } }
+
 /* ===== about ===== */
 .about { display: grid; gap: 32px; align-items: center; grid-template-columns: 1fr; }
 .about__img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); max-width: 440px; justify-self: center; border: 1px solid var(--gold-soft); transition: var(--hl-ease); }
@@ -156,7 +167,7 @@ p { margin: 0; }
 .lightbox__count { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); color: var(--grey); font-size: .9rem; direction: ltr; }
 
 /* ===== videos ===== */
-.videos { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); max-width: 900px; margin-inline: auto; }
+.videos { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 320px)); justify-content: center; max-width: 900px; margin-inline: auto; }
 .video { margin: 0; display: grid; gap: 10px; }
 .video__media, .video__placeholder { width: 100%; aspect-ratio: 9 / 16; border-radius: var(--radius); overflow: hidden; background: var(--black-2); border: 1px solid var(--gold-line); }
 .video__media { object-fit: cover; display: block; }

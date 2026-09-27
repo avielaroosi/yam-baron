@@ -76,7 +76,7 @@ window.SITE = {
       id: "events",
       title: "תסרוקות לאירועים",
       desc: "תסרוקת מעוצבת לאירוע, לצילומים או לערב מיוחד. מגיעות, יושבות, יוצאות מוכנות.",
-      image: "assets/img/service-events.jpg",
+      image: "assets/img/service-events-2.jpg",
       whatsappText: "היי ים, אשמח לתאם תסרוקת לאירוע",
     },
   ],

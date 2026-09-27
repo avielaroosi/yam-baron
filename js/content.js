@@ -31,7 +31,8 @@ window.SITE = {
   logo: { hero: "assets/brand/logo-full-light.svg", mark: "assets/brand/logo-mark.png" },
 
   // באנר קופץ: הנחה לתור ראשון דרך האתר. enabled: false מכבה אותו לגמרי.
-  // מופיע פעם אחת ל-rememberDays ימים לכל גולשת, אחרי delayMs אלפיות שנייה.
+  // מופיע בכל ביקור (אחרי delayMs אלפיות שנייה) עד שהגולשת לוחצת על כפתור ההטבה;
+  // אחרי לחיצה הוא לא מופיע שוב במשך hideAfterUseDays ימים. סגירה ב-X מסתירה אותו רק עד הביקור הבא.
   promo: {
     enabled: true,
     eyebrow: "ברוכה הבאה",
@@ -46,7 +47,7 @@ window.SITE = {
     fine: "לשימוש חד פעמי · ללקוחות חדשות",
     image: "", // ריק = פאנל עם הלוגו על רקע כהה; נתיב לתמונה = תמונה במקום הלוגו
     delayMs: 6000,
-    rememberDays: 7,
+    hideAfterUseDays: 365,
   },
 
   services: [

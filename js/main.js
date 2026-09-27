@@ -253,15 +253,18 @@
     $("promo-cta").href = waLink(P.whatsappText);
     $("promo-fine").textContent = P.fine;
 
-    const KEY = "yb-promo-seen";
+    // shows on every visit until the CTA is clicked; closing only hides it for the current browser session
+    const USED = "yb-promo-used", DISMISSED = "yb-promo-dismissed";
     const preview = /[?&]promo\b/.test(location.search); // ?promo → always show, right away (owner preview)
-    let seen = 0;
-    try { seen = Number(localStorage.getItem(KEY)) || 0; } catch (e) { /* no storage: show every time */ }
-    if (!preview && Date.now() - seen < (P.rememberDays || 7) * 864e5) return;
+    let used = 0, dismissed = false;
+    try { used = Number(localStorage.getItem(USED)) || 0; } catch (e) { /* no storage: show every time */ }
+    try { dismissed = sessionStorage.getItem(DISMISSED) === "1"; } catch (e) { /* ignore */ }
+    if (!preview && (dismissed || Date.now() - used < (P.hideAfterUseDays || 365) * 864e5)) return;
 
     let lastFocus = null;
     const onKey = (e) => { if (e.key === "Escape") close(); };
     function close() {
+      if (!preview) { try { sessionStorage.setItem(DISMISSED, "1"); } catch (e) { /* ignore */ } }
       root.classList.remove("is-open");
       document.removeEventListener("keydown", onKey);
       setTimeout(() => { root.hidden = true; }, 320);
@@ -270,7 +273,6 @@
     function open() {
       const h = document.documentElement;
       if (h.classList.contains("intro-armed") || h.classList.contains("intro-running")) { setTimeout(open, 800); return; }
-      if (!preview) { try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* ignore */ } }
       lastFocus = document.activeElement;
       if (!img.getAttribute("src")) img.src = visualSrc;
       root.hidden = false;
@@ -279,7 +281,10 @@
       document.addEventListener("keydown", onKey);
     }
     $("promo-close").addEventListener("click", close);
-    $("promo-cta").addEventListener("click", close);
+    $("promo-cta").addEventListener("click", () => {
+      try { localStorage.setItem(USED, String(Date.now())); } catch (e) { /* ignore */ }
+      close();
+    });
     root.addEventListener("click", (e) => { if (e.target === root) close(); });
     setTimeout(open, preview ? 800 : (P.delayMs || 6000));
   }

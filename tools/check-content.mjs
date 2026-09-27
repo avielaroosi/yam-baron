@@ -52,7 +52,7 @@ if (S?.promo?.enabled) {
   need(ptext.length > 0 && ptext.every((t) => typeof t === "string" && t.trim()), "SITE.promo.text must be a non-empty string or a list of paragraphs");
   need(typeof (S.promo.image ?? "") === "string", "SITE.promo.image must be a string (empty = logo panel)");
   need(Number.isFinite(S.promo.delayMs) && S.promo.delayMs >= 0, "SITE.promo.delayMs must be a number");
-  need(Number.isFinite(S.promo.rememberDays) && S.promo.rememberDays > 0, "SITE.promo.rememberDays must be a positive number");
+  need(Number.isFinite(S.promo.hideAfterUseDays) && S.promo.hideAfterUseDays > 0, "SITE.promo.hideAfterUseDays must be a positive number");
 }
 const files = [
   S?.hero?.image,

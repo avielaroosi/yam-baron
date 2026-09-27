@@ -53,7 +53,7 @@ async function waitForMap(page, maxMs = 5000) {
 // Third-party embeds (the Waze live map) log their own errors inside headless Chromium
 // (visitor-id 400s, storage-access denials, GeoRSS 403s). Those are not this site's bugs.
 const THIRD_PARTY = /waze\.com|google\.com|gstatic\.com|googleapis\.com/;
-const NOISE = /Missing user and visitor id|requestStorageAccess|GeoRSS|Failed to load resource/;
+const NOISE = /Missing user and visitor id|requestStorageAccess|GeoRSS|Failed to load resource|report-only Content Security Policy/;
 function watchErrors(page, label, sink) {
   page.on("console", (m) => {
     if (m.type() !== "error") return;
@@ -68,7 +68,7 @@ async function open(name, viewport) {
   const page = await browser.newPage({ viewport, locale: "he-IL", reducedMotion: "reduce" });
   watchErrors(page, name, problems);
   // the promo popup has its own test page; keep it out of the general pages and screenshots
-  await page.addInitScript(() => { try { localStorage.setItem("yb-promo-seen", String(Date.now())); } catch (e) {} });
+  await page.addInitScript(() => { try { localStorage.setItem("yb-promo-used", String(Date.now())); } catch (e) {} });
   page.on("response", (r) => { if (r.url().startsWith(base) && r.status() >= 400) problems.push(`[${name}] ${r.status()} ${r.url().slice(base.length)}`); });
   await page.goto(base, { waitUntil: "load" });
   await scrollThrough(page);
@@ -420,10 +420,22 @@ try {
     need(await pr.isHidden("#promo"), "promo: Escape closes");
     await pr.reload({ waitUntil: "load" });
     await pr.waitForTimeout(S.promo.delayMs + 1500);
-    need(await pr.isHidden("#promo"), "promo: does not reopen within rememberDays");
+    need(await pr.isHidden("#promo"), "promo: closing hides it for the rest of the browser session");
+    await pr.evaluate(() => sessionStorage.removeItem("yb-promo-dismissed")); // = a new visit
+    await pr.reload({ waitUntil: "load" });
+    await pr.waitForTimeout(S.promo.delayMs + 1500);
+    need(await pr.isVisible("#promo"), "promo: comes back on the next visit while the offer is unused");
+    // using the offer (CTA click) hides it for good; block the WhatsApp navigation in the test
+    await pr.evaluate(() => { const a = document.getElementById("promo-cta"); a.addEventListener("click", (e) => e.preventDefault(), { capture: true }); a.click(); });
+    await pr.waitForTimeout(500);
+    need(await pr.isHidden("#promo"), "promo: CTA click closes it");
+    await pr.evaluate(() => sessionStorage.removeItem("yb-promo-dismissed"));
+    await pr.reload({ waitUntil: "load" });
+    await pr.waitForTimeout(S.promo.delayMs + 1500);
+    need(await pr.isHidden("#promo"), "promo: after using the offer it stays hidden on later visits");
     await pr.goto(base + "?promo", { waitUntil: "load" });
     await pr.waitForTimeout(1800);
-    need(await pr.isVisible("#promo"), "promo: ?promo previews it immediately even when remembered");
+    need(await pr.isVisible("#promo"), "promo: ?promo previews it immediately even after use");
     await pr.close();
   }
 

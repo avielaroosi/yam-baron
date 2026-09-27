@@ -238,10 +238,17 @@
     const root = $("promo");
     if (!P || !P.enabled) { if (root) root.remove(); return; }
     const img = $("promo-img"); img.alt = ""; // src is set only when the popup opens (no download for visitors who never see it)
+    const visualSrc = P.image || S.logo.hero;
+    $("promo-visual").classList.add(P.image ? "promo__visual--photo" : "promo__visual--logo");
     $("promo-eyebrow").textContent = P.eyebrow;
     $("promo-big").textContent = P.big;
     $("promo-big-label").textContent = P.bigLabel;
-    $("promo-text").textContent = P.text;
+    $("promo-subtitle").textContent = P.subtitle || "";
+    $("promo-subtitle").hidden = !P.subtitle;
+    const body = $("promo-text"); body.replaceChildren();
+    for (const para of [].concat(P.text || [])) body.append(el("p", { text: para }));
+    $("promo-highlight").textContent = P.highlight || "";
+    $("promo-highlight").hidden = !P.highlight;
     $("promo-cta").textContent = P.cta;
     $("promo-cta").href = waLink(P.whatsappText);
     $("promo-fine").textContent = P.fine;
@@ -264,7 +271,7 @@
       if (h.classList.contains("intro-armed") || h.classList.contains("intro-running")) { setTimeout(open, 800); return; }
       try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* ignore */ }
       lastFocus = document.activeElement;
-      if (!img.src) img.src = P.image;
+      if (!img.getAttribute("src")) img.src = visualSrc;
       root.hidden = false;
       requestAnimationFrame(() => root.classList.add("is-open"));
       $("promo-close").focus();

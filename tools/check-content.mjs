@@ -47,7 +47,10 @@ need(aboutText.length > 0 && aboutText.every((t) => typeof t === "string" && t.t
 need(S?.logo?.hero && S?.logo?.mark, "SITE.logo needs {hero, mark}");
 
 if (S?.promo?.enabled) {
-  for (const k of ["eyebrow", "big", "bigLabel", "text", "cta", "whatsappText", "fine", "image"]) need(typeof S.promo[k] === "string" && S.promo[k].trim(), `SITE.promo.${k} must be a non-empty string`);
+  for (const k of ["eyebrow", "big", "bigLabel", "cta", "whatsappText", "fine"]) need(typeof S.promo[k] === "string" && S.promo[k].trim(), `SITE.promo.${k} must be a non-empty string`);
+  const ptext = [].concat(S.promo.text ?? []);
+  need(ptext.length > 0 && ptext.every((t) => typeof t === "string" && t.trim()), "SITE.promo.text must be a non-empty string or a list of paragraphs");
+  need(typeof (S.promo.image ?? "") === "string", "SITE.promo.image must be a string (empty = logo panel)");
   need(Number.isFinite(S.promo.delayMs) && S.promo.delayMs >= 0, "SITE.promo.delayMs must be a number");
   need(Number.isFinite(S.promo.rememberDays) && S.promo.rememberDays > 0, "SITE.promo.rememberDays must be a positive number");
 }
@@ -58,7 +61,7 @@ const files = [
   ...(S?.videos || []).map((v) => v.poster).filter(Boolean),
   ...(S?.videos || []).filter((v) => v.type === "file").map((v) => v.src),
   S?.about?.image,
-  S?.promo?.enabled ? S.promo.image : null,
+  S?.promo?.enabled && S.promo.image ? S.promo.image : null,
   S?.logo?.hero, S?.logo?.mark,
 ].filter(Boolean);
 for (const f of files) {

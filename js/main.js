@@ -232,6 +232,50 @@
     items.forEach((n) => io.observe(n));
   }
 
+  // ---- promo popup: first-visit discount, once per rememberDays, never during the opening animation
+  function initPromo() {
+    const P = S.promo;
+    const root = $("promo");
+    if (!P || !P.enabled) { if (root) root.remove(); return; }
+    const img = $("promo-img"); img.alt = ""; // src is set only when the popup opens (no download for visitors who never see it)
+    $("promo-eyebrow").textContent = P.eyebrow;
+    $("promo-big").textContent = P.big;
+    $("promo-big-label").textContent = P.bigLabel;
+    $("promo-text").textContent = P.text;
+    $("promo-cta").textContent = P.cta;
+    $("promo-cta").href = waLink(P.whatsappText);
+    $("promo-fine").textContent = P.fine;
+
+    const KEY = "yb-promo-seen";
+    let seen = 0;
+    try { seen = Number(localStorage.getItem(KEY)) || 0; } catch (e) { /* no storage: show every time */ }
+    if (Date.now() - seen < (P.rememberDays || 7) * 864e5) return;
+
+    let lastFocus = null;
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    function close() {
+      root.classList.remove("is-open");
+      document.removeEventListener("keydown", onKey);
+      setTimeout(() => { root.hidden = true; }, 320);
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    function open() {
+      const h = document.documentElement;
+      if (h.classList.contains("intro-armed") || h.classList.contains("intro-running")) { setTimeout(open, 800); return; }
+      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* ignore */ }
+      lastFocus = document.activeElement;
+      if (!img.src) img.src = P.image;
+      root.hidden = false;
+      requestAnimationFrame(() => root.classList.add("is-open"));
+      $("promo-close").focus();
+      document.addEventListener("keydown", onKey);
+    }
+    $("promo-close").addEventListener("click", close);
+    $("promo-cta").addEventListener("click", close);
+    root.addEventListener("click", (e) => { if (e.target === root) close(); });
+    setTimeout(open, P.delayMs || 6000);
+  }
+
   // ---- boot (later tasks add their init calls here)
   const safe = (name, fn) => { try { fn(); } catch (e) { console.error("render failed: " + name, e); } };
   safe("hero", renderHero);
@@ -244,4 +288,5 @@
   safe("footer", renderFooter);
   safe("fab", initFab);
   safe("reveal", initReveal);
+  safe("promo", initPromo);
 })();

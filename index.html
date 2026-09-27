@@ -124,6 +124,20 @@
     <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M16 3C9.4 3 4 8.3 4 14.9c0 2.3.7 4.5 1.9 6.4L4 29l7.9-2.1c1.8 1 3.9 1.5 6.1 1.5 6.6 0 12-5.3 12-11.9S22.6 3 16 3zm0 21.7c-1.9 0-3.8-.5-5.4-1.5l-.4-.2-4.7 1.2 1.3-4.5-.3-.4A9.7 9.7 0 0 1 6.2 15c0-5.4 4.4-9.8 9.8-9.8s9.8 4.4 9.8 9.8-4.4 9.7-9.8 9.7zm5.4-7.3c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-1 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5.3-.5c.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>
   </a>
 
+  <div class="promo" id="promo" hidden role="dialog" aria-modal="true" aria-labelledby="promo-eyebrow">
+    <div class="promo__card">
+      <button class="promo__close" id="promo-close" type="button" aria-label="סגירה">×</button>
+      <img class="promo__img" id="promo-img" alt="" loading="lazy">
+      <div class="promo__body">
+        <p class="promo__eyebrow" id="promo-eyebrow"></p>
+        <p class="promo__big"><span class="promo__big-num" id="promo-big"></span><span class="promo__big-label" id="promo-big-label"></span></p>
+        <p class="promo__text" id="promo-text"></p>
+        <a class="btn btn--wa promo__cta" id="promo-cta" href="#" target="_blank" rel="noopener"></a>
+        <p class="promo__fine" id="promo-fine"></p>
+      </div>
+    </div>
+  </div>
+
   <div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="תצוגת תמונה">
     <button class="lightbox__close" id="lightbox-close" type="button" aria-label="סגירה">×</button>
     <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" type="button" aria-label="הקודמת">›</button>

@@ -276,6 +276,31 @@ iframe.video__media { border: 0; }
    moment the two are the same artwork at the same rect, so the swap cannot be seen. */
 html.intro-running .hero__logo { visibility: hidden; }
 
+/* ===== promo popup (first-visit discount) ===== */
+.promo { position: fixed; inset: 0; z-index: 180; display: grid; place-items: center; padding: 16px; background: rgba(11, 11, 11, .74); opacity: 0; transition: opacity .3s ease; }
+.promo[hidden] { display: none; }
+.promo.is-open { opacity: 1; }
+.promo__card { position: relative; width: min(100%, 400px); background: var(--cream); color: var(--black); border-radius: var(--radius); overflow: hidden; box-shadow: 0 30px 80px rgba(0, 0, 0, .6); transform: translateY(18px) scale(.97); transition: transform .35s ease; }
+.promo.is-open .promo__card { transform: none; }
+.promo__close { position: absolute; top: 10px; left: 10px; z-index: 1; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(11, 11, 11, .55); color: var(--cream); font-size: 1.5rem; line-height: 1; cursor: pointer; display: grid; place-items: center; font-family: var(--font-body); }
+.promo__close:hover { background: var(--black); }
+.promo__close:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.promo__img { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; object-position: 50% 18%; display: block; }
+.promo__body { padding: 22px 22px 20px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+.promo__eyebrow { font-family: var(--font-head); font-size: 1.15rem; line-height: 1.3; }
+.promo__big { display: flex; align-items: baseline; justify-content: center; gap: 12px; line-height: .95; }
+.promo__big-num { font-family: var(--font-mark); font-weight: 600; font-size: 4.4rem; color: var(--gold); letter-spacing: -.02em; direction: ltr; unicode-bidi: isolate; }
+.promo__big-label { font-family: var(--font-head); font-size: 1.7rem; }
+.promo__text { color: #4a443c; font-size: .98rem; max-width: 320px; }
+.promo__cta { width: 100%; }
+.promo__fine { color: var(--grey); font-size: .8rem; }
+@media (min-width: 640px) {
+  .promo__card { width: min(100%, 720px); display: grid; grid-template-columns: 1fr 1fr; }
+  .promo__img { height: 100%; aspect-ratio: auto; min-height: 420px; }
+  .promo__body { padding: 36px 28px; align-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .promo, .promo__card { transition: none; } }
+
 /* ===== reveal on scroll ===== */
 .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
 .reveal.is-in { opacity: 1; transform: none; }

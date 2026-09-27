@@ -30,6 +30,22 @@ window.SITE = {
   // הנתיב של logo.hero מופיע גם בשורת <link rel="preload"> ב-index.html — לעדכן בשני המקומות.
   logo: { hero: "assets/brand/logo-full-light.svg", mark: "assets/brand/logo-mark.png" },
 
+  // באנר קופץ: הנחה לתור ראשון דרך האתר. enabled: false מכבה אותו לגמרי.
+  // מופיע פעם אחת ל-rememberDays ימים לכל גולשת, אחרי delayMs אלפיות שנייה.
+  promo: {
+    enabled: true,
+    eyebrow: "בתיאום התור הראשון דרך האתר",
+    big: "10%",
+    bigLabel: "הנחה",
+    text: "כתבי לי בוואטסאפ שהגעת מהאתר, וההנחה על הביקור הראשון שלך.",
+    cta: "לתיאום תור עם ההנחה",
+    whatsappText: "היי ים, הגעתי מהאתר ואשמח לתאם תור ראשון עם 10% הנחה",
+    fine: "לשימוש חד פעמי · ללקוחות חדשות",
+    image: "assets/img/service-bridal-2.jpg",
+    delayMs: 6000,
+    rememberDays: 7,
+  },
+
   services: [
     {
       id: "bridal",

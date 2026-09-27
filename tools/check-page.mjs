@@ -67,6 +67,8 @@ function watchErrors(page, label, sink) {
 async function open(name, viewport) {
   const page = await browser.newPage({ viewport, locale: "he-IL", reducedMotion: "reduce" });
   watchErrors(page, name, problems);
+  // the promo popup has its own test page; keep it out of the general pages and screenshots
+  await page.addInitScript(() => { try { localStorage.setItem("yb-promo-seen", String(Date.now())); } catch (e) {} });
   page.on("response", (r) => { if (r.url().startsWith(base) && r.status() >= 400) problems.push(`[${name}] ${r.status()} ${r.url().slice(base.length)}`); });
   await page.goto(base, { waitUntil: "load" });
   await scrollThrough(page);
@@ -399,6 +401,27 @@ try {
     need(!moved(quiet.tile) && !moved(quiet.img), "hover: reduced motion must drop the lift and the zoom");
     need(/rgba\(201,\s*169,\s*97,\s*0?\.5/.test(quiet.ring), "hover: reduced motion must keep the gold ring as feedback");
     await calm.close();
+  }
+
+  // --- promo popup: opens after the delay, closes, stays closed for rememberDays
+  if (S.promo && S.promo.enabled) {
+    const pr = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });
+    watchErrors(pr, "promo", problems);
+    await pr.addInitScript(() => { try { sessionStorage.setItem("yb-intro", "seen"); } catch (e) {} });
+    await pr.goto(base, { waitUntil: "load" });
+    need(await pr.isHidden("#promo"), "promo: hidden on load");
+    await pr.waitForTimeout(S.promo.delayMs + 1500);
+    need(await pr.isVisible("#promo"), "promo: opens after the delay");
+    need(((await pr.getAttribute("#promo-cta", "href")) || "").startsWith(`https://wa.me/${S.whatsapp}?text=`), "promo: CTA is a WhatsApp link");
+    need((await pr.textContent("#promo-big")).trim() === S.promo.big && (await pr.textContent("#promo-eyebrow")).trim() === S.promo.eyebrow, "promo: copy rendered from content.js");
+    need(await pr.evaluate(() => document.activeElement && document.activeElement.id === "promo-close"), "promo: focus moves to the close button");
+    await pr.keyboard.press("Escape");
+    await pr.waitForTimeout(500);
+    need(await pr.isHidden("#promo"), "promo: Escape closes");
+    await pr.reload({ waitUntil: "load" });
+    await pr.waitForTimeout(S.promo.delayMs + 1500);
+    need(await pr.isHidden("#promo"), "promo: does not reopen within rememberDays");
+    await pr.close();
   }
 
   // --- screenshots (full page also forces lazy images to load)

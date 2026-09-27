@@ -113,7 +113,7 @@ try {
 
   // --- WhatsApp links
   wa = await mobile.$$eval('a[href^="https://wa.me/"]', (as) => as.map((a) => a.href));
-  need(wa.length >= 6, `expected >= 6 wa.me links (4 services, contact, floating button), got ${wa.length}`);
+  need(wa.length >= S.services.length + 2, `expected >= ${S.services.length + 2} wa.me links (services, contact, floating button), got ${wa.length}`);
   for (const h of wa) {
     need(h.startsWith(`https://wa.me/${S.whatsapp}?text=`), `wa link has wrong number: ${h}`);
     need(/text=%[0-9A-F]{2}/.test(h), `wa link text is not URL-encoded: ${h}`);
@@ -121,7 +121,7 @@ try {
   need(await mobile.$$eval('a[href^="https://wa.me/"]', (as) => as.every((a) => a.target === "_blank")), "wa links must open in a new tab");
 
   // --- services
-  need((await mobile.$$("#services-grid .card")).length === 4, "services: expected 4 cards");
+  need((await mobile.$$("#services-grid .card")).length === S.services.length, "services: one card per service");
   need((await mobile.$$eval("#services-grid .card__title", (h) => h.map((x) => x.textContent).join("|"))) === S.services.map((s) => s.title).join("|"), "services: titles mismatch");
 
   // --- about + contact

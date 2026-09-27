@@ -35,7 +35,6 @@ fetch() { # name query index orientation width height
 fetch hero                  "hair salon interior dark elegant" 0 landscape 1920 1280
 fetch service-bridal        "bridal hairstyle updo"            0 portrait  1200 1500
 fetch service-straightening "sleek straight hair woman"        0 portrait  1200 1500
-fetch service-cut-color     "hair color salon woman"           0 portrait  1200 1500
 fetch service-events        "elegant evening hairstyle woman"  2 portrait  1200 1500
 fetch gallery-01 "hairstyle woman"        0 portrait 1200 1500
 fetch gallery-02 "bride hair"             0 portrait 1200 1500

@@ -25,7 +25,7 @@ need(!/^@/.test(S?.instagram || ""), "SITE.instagram must be the handle without 
 need(Array.isArray(S?.hours) && S.hours.length > 0, "SITE.hours must be a non-empty array");
 for (const h of S?.hours || []) need(h.days && h.time, "each SITE.hours item needs {days, time}");
 need(S?.hero?.image && S?.hero?.alt, "SITE.hero needs {image, alt}");
-need(Array.isArray(S?.services) && S.services.length === 4, "SITE.services must have exactly 4 items");
+need(Array.isArray(S?.services) && S.services.length >= 3 && S.services.length <= 4, "SITE.services must have 3 or 4 items");
 for (const s of S?.services || []) {
   for (const k of ["id", "title", "desc", "image", "whatsappText"]) need(s[k], `service "${s.id || "?"}" missing ${k}`);
   const desc = [].concat(s.desc ?? []);

@@ -85,7 +85,7 @@ p { margin: 0; }
 /* ===== services ===== */
 .cards { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .card { background: var(--black-2); border: 1px solid var(--gold-line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: var(--hl-ease); }
-.card__img { aspect-ratio: 4 / 5; width: 100%; object-fit: cover; transition: var(--hl-ease); }
+.card__img { aspect-ratio: 3 / 4; width: 100%; object-fit: cover; transition: var(--hl-ease); }
 .card__body { padding: 22px 22px 26px; display: grid; gap: 10px; flex: 1; align-content: start; }
 .card__title { font-size: 1.35rem; color: var(--gold); }
 .card__desc { color: var(--cream-2); font-size: .98rem; }

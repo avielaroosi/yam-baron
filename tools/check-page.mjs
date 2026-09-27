@@ -421,6 +421,9 @@ try {
     await pr.reload({ waitUntil: "load" });
     await pr.waitForTimeout(S.promo.delayMs + 1500);
     need(await pr.isHidden("#promo"), "promo: does not reopen within rememberDays");
+    await pr.goto(base + "?promo", { waitUntil: "load" });
+    await pr.waitForTimeout(1800);
+    need(await pr.isVisible("#promo"), "promo: ?promo previews it immediately even when remembered");
     await pr.close();
   }
 

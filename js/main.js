@@ -254,9 +254,10 @@
     $("promo-fine").textContent = P.fine;
 
     const KEY = "yb-promo-seen";
+    const preview = /[?&]promo\b/.test(location.search); // ?promo → always show, right away (owner preview)
     let seen = 0;
     try { seen = Number(localStorage.getItem(KEY)) || 0; } catch (e) { /* no storage: show every time */ }
-    if (Date.now() - seen < (P.rememberDays || 7) * 864e5) return;
+    if (!preview && Date.now() - seen < (P.rememberDays || 7) * 864e5) return;
 
     let lastFocus = null;
     const onKey = (e) => { if (e.key === "Escape") close(); };
@@ -269,7 +270,7 @@
     function open() {
       const h = document.documentElement;
       if (h.classList.contains("intro-armed") || h.classList.contains("intro-running")) { setTimeout(open, 800); return; }
-      try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* ignore */ }
+      if (!preview) { try { localStorage.setItem(KEY, String(Date.now())); } catch (e) { /* ignore */ } }
       lastFocus = document.activeElement;
       if (!img.getAttribute("src")) img.src = visualSrc;
       root.hidden = false;
@@ -280,7 +281,7 @@
     $("promo-close").addEventListener("click", close);
     $("promo-cta").addEventListener("click", close);
     root.addEventListener("click", (e) => { if (e.target === root) close(); });
-    setTimeout(open, P.delayMs || 6000);
+    setTimeout(open, preview ? 800 : (P.delayMs || 6000));
   }
 
   // ---- boot (later tasks add their init calls here)

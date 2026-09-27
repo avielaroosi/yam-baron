@@ -62,6 +62,13 @@ window.SITE = {
       whatsappText: "היי ים, אשמח לתאם עיצוב שיער לכלה",
     },
     {
+      id: "events",
+      title: "תסרוקות לאירועים",
+      desc: "תסרוקת מעוצבת לאירוע, לצילומים או לערב מיוחד. מגיעות, יושבות, יוצאות מוכנות.",
+      image: "assets/img/service-events-3.jpg",
+      whatsappText: "היי ים, אשמח לתאם תסרוקת לאירוע",
+    },
+    {
       id: "straightening",
       title: "החלקות",
       // מחרוזת אחת או רשימה — כל פריט ברשימה הופך לפסקה
@@ -71,13 +78,6 @@ window.SITE = {
       ],
       image: "assets/img/service-straightening-3.jpg",
       whatsappText: "היי ים, אשמח לשמוע על החלקה ולתאם תור",
-    },
-    {
-      id: "events",
-      title: "תסרוקות לאירועים",
-      desc: "תסרוקת מעוצבת לאירוע, לצילומים או לערב מיוחד. מגיעות, יושבות, יוצאות מוכנות.",
-      image: "assets/img/service-events-3.jpg",
-      whatsappText: "היי ים, אשמח לתאם תסרוקת לאירוע",
     },
   ],
 

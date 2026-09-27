@@ -259,6 +259,7 @@
     let used = 0, dismissed = false;
     try { used = Number(localStorage.getItem(USED)) || 0; } catch (e) { /* no storage: show every time */ }
     try { dismissed = sessionStorage.getItem(DISMISSED) === "1"; } catch (e) { /* ignore */ }
+    if (preview) { try { localStorage.removeItem(USED); sessionStorage.removeItem(DISMISSED); } catch (e) { /* ignore */ } } // ?promo also resets this browser
     if (!preview && (dismissed || Date.now() - used < (P.hideAfterUseDays || 365) * 864e5)) return;
 
     let lastFocus = null;

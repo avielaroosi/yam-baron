@@ -179,6 +179,23 @@ try {
   need((await mobile.$$("#videos-grid .video__placeholder .video__play")).length === S.videos.filter((v) => v.type === "placeholder").length, "videos: placeholder items show a play mark");
   need((await mobile.$$("#videos-grid figcaption")).length === S.videos.length, "videos: every item has a caption");
 
+  // --- videos: scrolling away from a playing video pauses it (owner request 30.09). Headless Chromium cannot decode the
+  // file, so the "playing" state is set by hand and pause() is stubbed to count calls; the wiring is what is under test.
+  if (S.videos.some((v) => v.type === "file")) {
+    await mobile.evaluate(() => {
+      const p = document.querySelector('#videos-grid .video[data-type="file"] .video__player');
+      const v = p.querySelector("video");
+      p.classList.add("is-playing"); v.controls = true;
+      v.__pauses = 0; v.pause = () => { v.__pauses++; };
+      document.getElementById("videos").scrollIntoView({ block: "center" });
+    });
+    await mobile.waitForTimeout(500);
+    need(await mobile.evaluate(() => document.querySelector('#videos-grid .video[data-type="file"] video').__pauses === 0 && document.querySelector('#videos-grid .video[data-type="file"] .video__player').classList.contains("is-playing")), "video: while in view a playing video must be left alone");
+    await mobile.evaluate(() => window.scrollTo(0, 0));
+    await mobile.waitForTimeout(600);
+    need(await mobile.evaluate(() => { const p = document.querySelector('#videos-grid .video[data-type="file"] .video__player'); const v = p.querySelector("video"); return v.__pauses >= 1 && !p.classList.contains("is-playing") && !v.controls; }), "video: scrolling it off screen must pause it and bring the gold ring back");
+  }
+
   // --- videos: non-placeholder branches on a fixture page (Task 4 fix)
   {
     const fx = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });

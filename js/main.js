@@ -256,6 +256,12 @@
         });
         video.addEventListener("ended", showRing);
         video.addEventListener("error", showRing);
+        // scrolling away pauses it (owner: a video must not keep playing off screen); the ring returns, a tap resumes where it stopped
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver((entries) => {
+            for (const e of entries) if (!e.isIntersecting && media.classList.contains("is-playing")) { video.pause(); showRing(); }
+          }, { threshold: 0.35 }).observe(video);
+        }
       } else if (v.type === "youtube" && !id) {
         console.warn("video: unrecognized YouTube URL", v.src);
         media = placeholderFrame(v);

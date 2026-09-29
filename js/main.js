@@ -61,15 +61,51 @@
     for (const para of [].concat(S.about.text)) body.append(el("p", { text: para }));
   }
 
-  // ---- gift card band: shows only when content.js has an enabled gift block (old cached content.js has none)
-  function renderGiftBand() {
-    const band = $("gift-band");
+  // ---- gift card: photo banner on the home page + popup with the full text (same manners as the promo popup).
+  // Shows only when content.js has an enabled gift block (an old cached content.js has none). ?gift = share link: opens the popup on load.
+  function renderGift() {
+    const band = $("gift-band"), root = $("gift");
     const G = S.gift;
-    if (!G || G.enabled === false) { band.hidden = true; return; }
+    if (!G || G.enabled === false) { band.hidden = true; if (root) root.remove(); return; }
+    const bimg = $("gift-band-img");
+    bimg.src = G.image; bimg.alt = G.alt;
     $("gift-band-eyebrow").textContent = G.bandEyebrow;
     $("gift-band-title").textContent = G.title;
     $("gift-band-cta").textContent = G.bandCta;
     band.hidden = false;
+
+    const img = $("gift-img"); img.alt = G.alt; // src is set only when the popup opens
+    $("gift-eyebrow").textContent = G.bandEyebrow;
+    $("gift-title").textContent = G.title;
+    const body = $("gift-text"); body.replaceChildren();
+    for (const para of [].concat(G.text)) body.append(el("p", { text: para }));
+    $("gift-closing").textContent = G.closing;
+    const cta = $("gift-cta");
+    cta.textContent = G.cta; cta.href = waLink(G.whatsappText);
+
+    let lastFocus = null;
+    const onKey = (e) => { if (e.key === "Escape") close(); };
+    function close() {
+      root.classList.remove("is-open");
+      document.removeEventListener("keydown", onKey);
+      setTimeout(() => { root.hidden = true; }, 320);
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    function open() {
+      const h = document.documentElement;
+      if (h.classList.contains("intro-armed") || h.classList.contains("intro-running")) { setTimeout(open, 800); return; }
+      lastFocus = document.activeElement;
+      if (!img.getAttribute("src")) img.src = G.image;
+      root.hidden = false;
+      requestAnimationFrame(() => root.classList.add("is-open"));
+      $("gift-close").focus();
+      document.addEventListener("keydown", onKey);
+    }
+    $("gift-band-cta").addEventListener("click", open);
+    $("gift-close").addEventListener("click", close);
+    $("gift-cta").addEventListener("click", close);
+    root.addEventListener("click", (e) => { if (e.target === root) close(); });
+    if (/[?&]gift\b/.test(location.search)) setTimeout(open, 400);
   }
 
   // ---- contact
@@ -286,7 +322,8 @@
     try { used = Number(localStorage.getItem(USED)) || 0; } catch (e) { /* no storage: show every time */ }
     try { dismissed = sessionStorage.getItem(DISMISSED) === "1"; } catch (e) { /* ignore */ }
     if (preview) { try { localStorage.removeItem(USED); sessionStorage.removeItem(DISMISSED); } catch (e) { /* ignore */ } } // ?promo also resets this browser
-    if (!preview && (dismissed || Date.now() - used < (P.hideAfterUseDays || 365) * 864e5)) return;
+    const giftShare = /[?&]gift\b/.test(location.search); // ?gift opens the gift popup instead; two popups at once would fight
+    if (!preview && (giftShare || dismissed || Date.now() - used < (P.hideAfterUseDays || 365) * 864e5)) return;
 
     let lastFocus = null;
     const onKey = (e) => { if (e.key === "Escape") close(); };
@@ -324,7 +361,7 @@
   safe("lightbox", initLightbox);
   safe("videos", renderVideos);
   safe("testimonials", renderTestimonials);
-  safe("giftBand", renderGiftBand);
+  safe("gift", renderGift);
   safe("about", renderAbout);
   safe("contact", renderContact);
   safe("footer", renderFooter);

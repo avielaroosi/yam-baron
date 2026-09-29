@@ -88,11 +88,12 @@
       </div>
     </section>
 
-    <section class="section section--dark section--divided reveal gift-band" id="gift-band" hidden>
+    <section class="section--dark reveal gift-band" id="gift-band" hidden>
+      <img class="gift-band__img" id="gift-band-img" alt="" loading="lazy">
       <div class="container gift-band__inner">
         <p class="gift-band__eyebrow" id="gift-band-eyebrow"></p>
         <h2 class="gift-band__title" id="gift-band-title"></h2>
-        <a class="btn btn--gold btn--big" id="gift-band-cta" href="gift.html"></a>
+        <button class="btn btn--gold btn--big" id="gift-band-cta" type="button"></button>
       </div>
     </section>
 
@@ -152,6 +153,21 @@
         <p class="promo__highlight" id="promo-highlight"></p>
         <a class="btn btn--gold promo__cta" id="promo-cta" href="#" target="_blank" rel="noopener"></a>
         <p class="promo__fine" id="promo-fine"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- גיפט קארד: אותו כרטיס כמו הפופאפ של ההטבה (מחלקות promo__*), נפתח מכפתור הבאנר או מהכתובת ?gift -->
+  <div class="promo promo--gift" id="gift" hidden role="dialog" aria-modal="true" aria-labelledby="gift-title">
+    <div class="promo__card">
+      <button class="promo__close" id="gift-close" type="button" aria-label="סגירה">×</button>
+      <div class="promo__visual promo__visual--photo"><img class="promo__img" id="gift-img" alt="" loading="lazy"></div>
+      <div class="promo__body">
+        <p class="gift__eyebrow" id="gift-eyebrow"></p>
+        <h2 class="gift__title" id="gift-title"></h2>
+        <div class="promo__text" id="gift-text"></div>
+        <p class="gift__closing" id="gift-closing"></p>
+        <a class="btn btn--gold promo__cta" id="gift-cta" href="#" target="_blank" rel="noopener"></a>
       </div>
     </div>
   </div>

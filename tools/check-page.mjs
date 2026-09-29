@@ -504,8 +504,10 @@ try {
       need(await g.evaluate(() => [...document.querySelectorAll("body *")].every((n) => { const r = n.getBoundingClientRect(); return r.width === 0 || (r.right <= window.innerWidth + 1 && r.left >= -1); })), `${name}: an element extends past a viewport edge`);
       need(await g.evaluate(() => { const r = document.getElementById("gift-cta").getBoundingClientRect(); return r.height >= 44; }), `${name}: CTA tap target at least 44px tall`);
       need(await g.evaluate(() => [...document.images].filter((i) => i.src).every((i) => i.complete && i.naturalWidth > 0)), `${name}: some <img> failed to load`);
-      if (name === "gift-desktop") need(await g.evaluate(() => { const a = document.getElementById("gift-img").getBoundingClientRect(), b = document.getElementById("gift-title").getBoundingClientRect(); return a.bottom > b.top && b.bottom > a.top; }), "gift-desktop: photo and text sit side by side");
-      if (name === "gift-mobile") need(await g.evaluate(() => document.getElementById("gift-img").getBoundingClientRect().bottom <= document.getElementById("gift-title").getBoundingClientRect().top), "gift-mobile: photo sits above the text");
+      // owner (30.09): the text sits ON the photo, hero style — the photo fills the first screen and every text element lies inside its box
+      need(await g.evaluate(() => { const r = document.getElementById("gift-img").getBoundingClientRect(); return r.top <= 1 && r.width >= window.innerWidth - 1 && r.height >= window.innerHeight * 0.9; }), `${name}: the photo must fill the first screen`);
+      need(await g.evaluate(() => { const a = document.getElementById("gift-img").getBoundingClientRect(); return ["gift-title", "gift-text", "gift-closing", "gift-cta"].every((id) => { const b = document.getElementById(id).getBoundingClientRect(); return b.top >= a.top && b.bottom <= a.bottom + 1 && b.left >= a.left - 1 && b.right <= a.right + 1; }); }), `${name}: title, text, closing line and button must lie on the photo`);
+      need(await g.evaluate(() => { const r = document.getElementById("gift-cta").getBoundingClientRect(); return r.bottom <= window.innerHeight; }), `${name}: the button must be visible without scrolling`);
       await g.screenshot({ path: path.join(shots, `${name}.png`), fullPage: true });
       await g.close();
     }

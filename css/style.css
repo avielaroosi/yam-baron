@@ -348,27 +348,30 @@ html.intro-running .hero__logo { visibility: hidden; }
 .gift-band__title { font-size: clamp(1.7rem, 5vw, 2.4rem); max-width: 640px; }
 .gift-band .btn { margin-top: 8px; }
 
-/* ===== gift card page (gift.html) ===== */
-.topbar { display: flex; justify-content: center; padding: 14px var(--pad); border-bottom: 1px solid var(--gold-line); background: var(--black); }
-.topbar__home { display: inline-flex; align-items: center; gap: 12px; color: var(--cream); }
+/* ===== gift card page (gift.html): the photo fills the first screen, the text sits on it (owner choice 30.09) ===== */
+.topbar { position: absolute; top: 0; left: 0; right: 0; z-index: 2; display: flex; justify-content: center; padding: 14px var(--pad); background: linear-gradient(180deg, rgba(11, 11, 11, .55), rgba(11, 11, 11, 0)); }
+.topbar__home { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; color: var(--cream); }
 .topbar__home:hover .wordmark { color: var(--gold); }
-.topbar__logo { width: 40px; height: auto; display: block; }
-.gift { min-height: calc(100vh - 70px); display: grid; align-items: center; }
-.gift__inner { display: grid; gap: 30px; align-items: center; }
-.gift__img { width: 100%; max-width: 440px; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--gold-soft); justify-self: center; }
-.gift__body { display: grid; gap: 20px; justify-items: center; text-align: center; }
-.gift__title { font-size: clamp(1.9rem, 6vw, 2.8rem); max-width: 560px; }
+.topbar__logo { width: 40px; height: auto; display: block; filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .5)); }
+.gift { position: relative; isolation: isolate; min-height: 100vh; min-height: 100svh; display: grid; align-items: end; background: var(--black); color: var(--cream); }
+.gift__img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+/* readable cream text on a bright kitchen: darken from the bottom, lightly at the top for the top bar */
+.gift::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(11, 11, 11, .25) 0%, rgba(11, 11, 11, .05) 30%, rgba(11, 11, 11, .55) 55%, rgba(11, 11, 11, .9) 80%, var(--black) 100%); }
+.gift__body { position: relative; display: grid; gap: 18px; justify-items: center; text-align: center; padding: 120px 0 44px; }
+.gift__title { font-size: clamp(1.9rem, 6.2vw, 3rem); max-width: 620px; text-shadow: 0 2px 18px rgba(0, 0, 0, .55); }
 .gift__title::after { content: ""; display: block; width: 56px; height: 1px; background: var(--gold); margin: 16px auto 0; }
-.gift__text { max-width: 560px; font-size: 1.05rem; color: var(--cream-2); }
-.gift__text p { margin: 0 0 14px; }
+.gift__text { max-width: 560px; font-size: 1.02rem; color: var(--cream-2); text-shadow: 0 1px 10px rgba(0, 0, 0, .6); }
+.gift__text p { margin: 0 0 12px; }
 .gift__text p:last-child { margin-bottom: 0; }
-.gift__closing { margin: 0; font-family: var(--font-head); font-size: 1.35rem; color: var(--gold); }
-.gift .btn { margin-top: 6px; }
+.gift__closing { margin: 0; font-family: var(--font-head); font-size: 1.3rem; color: var(--gold); text-shadow: 0 1px 10px rgba(0, 0, 0, .6); }
+.gift .btn { margin-top: 4px; box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
 .footer__home { color: var(--gold); }
 .footer__home:hover { text-decoration: underline; }
 @media (min-width: 820px) {
-  .gift__inner { grid-template-columns: 5fr 7fr; gap: 64px; }
-  .gift__img { max-width: none; }
-  .gift__body { text-align: start; justify-items: start; }
+  .gift { align-items: center; }
+  .gift__img { object-position: 50% 30%; }
+  /* text on the start side (right, in RTL): darken that side instead of the bottom */
+  .gift::before { background: linear-gradient(to left, rgba(11, 11, 11, .88) 0%, rgba(11, 11, 11, .7) 38%, rgba(11, 11, 11, .15) 70%, rgba(11, 11, 11, 0) 100%), linear-gradient(180deg, rgba(11, 11, 11, .35), rgba(11, 11, 11, 0) 25%); }
+  .gift__body { justify-items: start; text-align: start; padding: 120px 0 80px; } /* .container keeps the side gutters; the text blocks cap their own width */
   .gift__title::after { margin-inline: 0; }
 }

@@ -480,7 +480,11 @@ try {
       await g.goto(base + "gift.html", { waitUntil: "load" });
       await g.waitForTimeout(500);
       need(await g.evaluate(() => document.documentElement.dir === "rtl" && document.documentElement.lang === "he"), `${name}: html must have dir=rtl lang=he`);
-      need((await g.title()).includes("גיפט קארד"), `${name}: <title> names the page`);
+      need((await g.title()) === "גיפט קארד | YAM BARON", `${name}: <title> is exactly the spec's`);
+      need(!/[,\-־–—]/.test((await g.getAttribute('meta[name="description"]', "content")) || "-"), `${name}: meta description must contain no commas or dashes (owner rule)`);
+      // gift.html is new, but content.js/style.css may sit in a visitor's cache for ~10 min after a deploy (GitHub Pages);
+      // a versioned URL forces a fresh copy so the page never renders with a content.js that has no gift block
+      need(await g.evaluate(() => /js\/content\.js\?v=/.test(document.querySelector('script[src*="content.js"]').getAttribute("src")) && /css\/style\.css\?v=/.test(document.querySelector('link[href*="style.css"]').getAttribute("href"))), `${name}: content.js and style.css must be loaded with a cache-busting ?v= query`);
       need((await g.$$("h1")).length === 1 && (await g.textContent("h1")).trim() === S.gift.title, `${name}: exactly one h1 = the gift title`);
       need((await g.$$eval("#gift-text p", (ps) => ps.map((p) => p.textContent).join("|"))) === [].concat(S.gift.text).join("|"), `${name}: paragraphs come from content.js`);
       need((await g.textContent("#gift-closing")).trim() === S.gift.closing, `${name}: closing line`);
@@ -507,7 +511,7 @@ try {
     {
       // content.js broken on the gift page: the visitor must still see a way home, not a black page
       const broken = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });
-      await broken.route("**/js/content.js", (route) => route.fulfill({ status: 200, contentType: "text/javascript", body: "window.SITE = {" }));
+      await broken.route("**/js/content.js*", (route) => route.fulfill({ status: 200, contentType: "text/javascript", body: "window.SITE = {" })); // the * covers gift.html's ?v= query
       await broken.goto(base + "gift.html", { waitUntil: "load" });
       need(await broken.evaluate(() => !window.SITE), "gift: broken content.js fixture did not actually break window.SITE");
       need(await broken.isVisible("#footer-home") && await broken.isVisible(".topbar__home"), "gift: with broken content.js the home links must stay visible");

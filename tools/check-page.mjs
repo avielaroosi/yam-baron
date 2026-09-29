@@ -444,6 +444,32 @@ try {
     await pr.close();
   }
 
+  // --- gift card: home band (spec docs/superpowers/specs/2026-09-30-gift-card-page-design.md)
+  if (S.gift && S.gift.enabled !== false) {
+    need(await mobile.isVisible("#gift-band"), "home: gift band must be visible");
+    need((await mobile.getAttribute("#gift-band-cta", "href")) === "gift.html", "home: gift band button must lead to gift.html");
+    need((await mobile.textContent("#gift-band-title")).trim() === S.gift.title, "home: gift band title comes from content.js");
+    need((await mobile.textContent("#gift-band-eyebrow")).trim() === S.gift.bandEyebrow && (await mobile.textContent("#gift-band-cta")).trim() === S.gift.bandCta, "home: gift band eyebrow and button label come from content.js");
+    need(await mobile.evaluate(() => {
+      const ids = [...document.querySelectorAll("main > section")].map((s) => s.id);
+      return ids.indexOf("testimonials") + 1 === ids.indexOf("gift-band") && ids.indexOf("gift-band") + 1 === ids.indexOf("about");
+    }), "home: gift band must sit between testimonials and about");
+  }
+  {
+    // the owner switches the gift off (or a phone still holds a cached content.js without the block): band hidden, nothing logged
+    const off = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });
+    const offProblems = [];
+    watchErrors(off, "gift-off", offProblems);
+    await off.route("**/js/content.js", async (route) => {
+      const body = fs.readFileSync(path.join(root, "js/content.js"), "utf8") + `\n        delete window.SITE.gift;`;
+      await route.fulfill({ status: 200, contentType: "text/javascript", body });
+    });
+    await off.goto(base, { waitUntil: "load" });
+    need(await off.isHidden("#gift-band"), "home: without SITE.gift the band must be hidden");
+    need(offProblems.length === 0, "home: a missing SITE.gift must not log errors: " + offProblems.join("; "));
+    await off.close();
+  }
+
   // --- screenshots (full page also forces lazy images to load)
   await mobile.screenshot({ path: path.join(shots, "mobile-fold.png") });
   await waitForMap(mobile);

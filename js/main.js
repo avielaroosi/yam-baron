@@ -61,6 +61,17 @@
     for (const para of [].concat(S.about.text)) body.append(el("p", { text: para }));
   }
 
+  // ---- gift card band: shows only when content.js has an enabled gift block (old cached content.js has none)
+  function renderGiftBand() {
+    const band = $("gift-band");
+    const G = S.gift;
+    if (!G || G.enabled === false) { band.hidden = true; return; }
+    $("gift-band-eyebrow").textContent = G.bandEyebrow;
+    $("gift-band-title").textContent = G.title;
+    $("gift-band-cta").textContent = G.bandCta;
+    band.hidden = false;
+  }
+
   // ---- contact
   function renderContact() {
     $("contact-wa").href = waLink();
@@ -313,6 +324,7 @@
   safe("lightbox", initLightbox);
   safe("videos", renderVideos);
   safe("testimonials", renderTestimonials);
+  safe("giftBand", renderGiftBand);
   safe("about", renderAbout);
   safe("contact", renderContact);
   safe("footer", renderFooter);

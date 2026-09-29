@@ -470,6 +470,51 @@ try {
     await off.close();
   }
 
+  // --- gift card: the page itself
+  if (S.gift && S.gift.enabled !== false) {
+    const giftLink = `https://wa.me/${S.whatsapp}?text=${encodeURIComponent(S.gift.whatsappText)}`;
+    for (const [name, viewport] of [["gift-mobile", { width: 390, height: 844 }], ["gift-desktop", { width: 1440, height: 900 }]]) {
+      const g = await browser.newPage({ viewport, locale: "he-IL", reducedMotion: "reduce" });
+      watchErrors(g, name, problems);
+      g.on("response", (r) => { if (r.url().startsWith(base) && r.status() >= 400) problems.push(`[${name}] ${r.status()} ${r.url().slice(base.length)}`); });
+      await g.goto(base + "gift.html", { waitUntil: "load" });
+      await g.waitForTimeout(500);
+      need(await g.evaluate(() => document.documentElement.dir === "rtl" && document.documentElement.lang === "he"), `${name}: html must have dir=rtl lang=he`);
+      need((await g.title()).includes("גיפט קארד"), `${name}: <title> names the page`);
+      need((await g.$$("h1")).length === 1 && (await g.textContent("h1")).trim() === S.gift.title, `${name}: exactly one h1 = the gift title`);
+      need((await g.$$eval("#gift-text p", (ps) => ps.map((p) => p.textContent).join("|"))) === [].concat(S.gift.text).join("|"), `${name}: paragraphs come from content.js`);
+      need((await g.textContent("#gift-closing")).trim() === S.gift.closing, `${name}: closing line`);
+      need((await g.getAttribute("#gift-cta", "href")) === giftLink && (await g.textContent("#gift-cta")).trim() === S.gift.cta, `${name}: CTA is the gift WhatsApp link with the gift label`);
+      need((await g.getAttribute("#wa-fab", "href")) === giftLink, `${name}: the floating button carries the gift message`);
+      need(await g.evaluate(() => document.getElementById("wa-fab").classList.contains("is-visible")), `${name}: floating button visible`);
+      need(await g.$$eval('a[href^="https://wa.me/"]', (as) => as.length === 2 && as.every((a) => a.target === "_blank" && a.rel.includes("noopener"))), `${name}: exactly two wa links (CTA + floating), both in a new tab`);
+      need((await g.$$('a[href="#"]')).length === 0, `${name}: no href='#' left`);
+      need((await g.$$('a[href="index.html"]')).length === 2, `${name}: top bar and footer both link back home`);
+      need(await g.evaluate(() => [...document.images].every((i) => i.getAttribute("alt") !== null)), `${name}: every <img> needs alt`);
+      need((await g.getAttribute("#gift-img", "src") || "").endsWith(S.gift.image) && (await g.getAttribute("#gift-img", "alt")) === S.gift.alt, `${name}: gift photo src/alt from content.js`);
+      need(await g.evaluate(() => !document.getElementById("gift-img").hasAttribute("loading")), `${name}: the gift photo must not be lazy-loaded`);
+      need((await g.getAttribute("#footer-logo", "loading")) === "lazy", `${name}: footer monogram lazy`);
+      need(await g.evaluate(() => !document.getElementById("promo") && !document.getElementById("intro") && !document.documentElement.classList.contains("intro-armed") && !document.querySelector('script[src$="main.js"], script[src$="intro.js"]')), `${name}: no promo popup, no intro, no main.js/intro.js on the gift page`);
+      need(await g.evaluate(() => !document.body.innerHTML.includes("HAIR DATE")), `${name}: HAIR DATE must not appear`);
+      need(await g.evaluate(() => [...document.querySelectorAll("body *")].every((n) => { const r = n.getBoundingClientRect(); return r.width === 0 || (r.right <= window.innerWidth + 1 && r.left >= -1); })), `${name}: an element extends past a viewport edge`);
+      need(await g.evaluate(() => { const r = document.getElementById("gift-cta").getBoundingClientRect(); return r.height >= 44; }), `${name}: CTA tap target at least 44px tall`);
+      need(await g.evaluate(() => [...document.images].filter((i) => i.src).every((i) => i.complete && i.naturalWidth > 0)), `${name}: some <img> failed to load`);
+      if (name === "gift-desktop") need(await g.evaluate(() => { const a = document.getElementById("gift-img").getBoundingClientRect(), b = document.getElementById("gift-title").getBoundingClientRect(); return a.bottom > b.top && b.bottom > a.top; }), "gift-desktop: photo and text sit side by side");
+      if (name === "gift-mobile") need(await g.evaluate(() => document.getElementById("gift-img").getBoundingClientRect().bottom <= document.getElementById("gift-title").getBoundingClientRect().top), "gift-mobile: photo sits above the text");
+      await g.screenshot({ path: path.join(shots, `${name}.png`), fullPage: true });
+      await g.close();
+    }
+    {
+      // content.js broken on the gift page: the visitor must still see a way home, not a black page
+      const broken = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });
+      await broken.route("**/js/content.js", (route) => route.fulfill({ status: 200, contentType: "text/javascript", body: "window.SITE = {" }));
+      await broken.goto(base + "gift.html", { waitUntil: "load" });
+      need(await broken.evaluate(() => !window.SITE), "gift: broken content.js fixture did not actually break window.SITE");
+      need(await broken.isVisible("#footer-home") && await broken.isVisible(".topbar__home"), "gift: with broken content.js the home links must stay visible");
+      await broken.close();
+    }
+  }
+
   // --- screenshots (full page also forces lazy images to load)
   await mobile.screenshot({ path: path.join(shots, "mobile-fold.png") });
   await waitForMap(mobile);

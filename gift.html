@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- הנתיב כפול: אם משנים gift.image ב-js/content.js צריך לעדכן גם כאן -->
+  <link rel="preload" as="image" href="assets/img/gift-01.jpg" fetchpriority="high">
+  <title>גיפט קארד | YAM BARON Hair Studio</title>
+  <meta name="description" content="גיפט קארד אישי מ-YAM BARON Hair Studio. המתנה שהיא תרגיש בה הכי יפה. החלקה או תסרוקת לאירוע או פן. נתאים יחד בשיחה אחת בוואטסאפ.">
+  <meta name="theme-color" content="#0b0b0b">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="he_IL">
+  <meta property="og:site_name" content="YAM BARON | Hair Studio">
+  <meta property="og:title" content="גיפט קארד | YAM BARON">
+  <meta property="og:description" content="המתנה שהיא תרגיש בה הכי יפה. נתאים יחד בשיחה אחת בוואטסאפ.">
+  <meta property="og:image" content="https://avielaroosi.github.io/yam-baron/assets/img/gift-01.jpg">
+  <meta property="og:url" content="https://avielaroosi.github.io/yam-baron/gift.html">
+  <link rel="icon" href="assets/favicon.png" type="image/png" sizes="256x256">
+  <link rel="apple-touch-icon" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Frank+Ruhl+Libre:wght@400;500;700&family=Heebo:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#gift">דלג לתוכן</a>
+
+  <header class="topbar">
+    <a class="topbar__home" href="index.html" aria-label="לדף הבית">
+      <img class="topbar__logo" id="topbar-logo" alt="">
+      <span class="wordmark wordmark--sm">YAM BARON</span>
+    </a>
+  </header>
+
+  <main>
+    <section class="section section--dark gift" id="gift">
+      <div class="container gift__inner">
+        <img class="gift__img" id="gift-img" fetchpriority="high" alt="">
+        <div class="gift__body">
+          <h1 class="gift__title" id="gift-title"></h1>
+          <div class="gift__text" id="gift-text"></div>
+          <p class="gift__closing" id="gift-closing"></p>
+          <a class="btn btn--gold btn--big" id="gift-cta" href="https://wa.me/" target="_blank" rel="noopener"></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <img class="footer__logo" id="footer-logo" alt="" loading="lazy">
+    <p><span class="wordmark wordmark--sm" id="footer-name"></span> · <span id="footer-year"></span></p>
+    <p><a class="footer__home" id="footer-home" href="index.html">חזרה לדף הבית</a></p>
+  </footer>
+
+  <a class="wa-fab" id="wa-fab" href="https://wa.me/" target="_blank" rel="noopener" aria-label="וואטסאפ">
+    <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M16 3C9.4 3 4 8.3 4 14.9c0 2.3.7 4.5 1.9 6.4L4 29l7.9-2.1c1.8 1 3.9 1.5 6.1 1.5 6.6 0 12-5.3 12-11.9S22.6 3 16 3zm0 21.7c-1.9 0-3.8-.5-5.4-1.5l-.4-.2-4.7 1.2 1.3-4.5-.3-.4A9.7 9.7 0 0 1 6.2 15c0-5.4 4.4-9.8 9.8-9.8s9.8 4.4 9.8 9.8-4.4 9.7-9.8 9.7zm5.4-7.3c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-1 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5.3-.5c.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4z"/></svg>
+  </a>
+
+  <script src="js/content.js"></script>
+  <script src="js/gift.js"></script>
+</body>
+</html>

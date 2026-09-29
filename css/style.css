@@ -347,3 +347,28 @@ html.intro-running .hero__logo { visibility: hidden; }
 .gift-band__eyebrow { margin: 0; color: var(--gold); letter-spacing: .14em; font-size: .95rem; font-weight: 500; }
 .gift-band__title { font-size: clamp(1.7rem, 5vw, 2.4rem); max-width: 640px; }
 .gift-band .btn { margin-top: 8px; }
+
+/* ===== gift card page (gift.html) ===== */
+.topbar { display: flex; justify-content: center; padding: 14px var(--pad); border-bottom: 1px solid var(--gold-line); background: var(--black); }
+.topbar__home { display: inline-flex; align-items: center; gap: 12px; color: var(--cream); }
+.topbar__home:hover .wordmark { color: var(--gold); }
+.topbar__logo { width: 40px; height: auto; display: block; }
+.gift { min-height: calc(100vh - 70px); display: grid; align-items: center; }
+.gift__inner { display: grid; gap: 30px; align-items: center; }
+.gift__img { width: 100%; max-width: 440px; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--gold-soft); justify-self: center; }
+.gift__body { display: grid; gap: 20px; justify-items: center; text-align: center; }
+.gift__title { font-size: clamp(1.9rem, 6vw, 2.8rem); max-width: 560px; }
+.gift__title::after { content: ""; display: block; width: 56px; height: 1px; background: var(--gold); margin: 16px auto 0; }
+.gift__text { max-width: 560px; font-size: 1.05rem; color: var(--cream-2); }
+.gift__text p { margin: 0 0 14px; }
+.gift__text p:last-child { margin-bottom: 0; }
+.gift__closing { margin: 0; font-family: var(--font-head); font-size: 1.35rem; color: var(--gold); }
+.gift .btn { margin-top: 6px; }
+.footer__home { color: var(--gold); }
+.footer__home:hover { text-decoration: underline; }
+@media (min-width: 820px) {
+  .gift__inner { grid-template-columns: 5fr 7fr; gap: 64px; }
+  .gift__img { max-width: none; }
+  .gift__body { text-align: start; justify-items: start; }
+  .gift__title::after { margin-inline: 0; }
+}

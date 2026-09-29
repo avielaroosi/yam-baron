@@ -108,7 +108,7 @@ window.SITE = {
     { src: "assets/img/gallery-b-04.jpg", alt: "קוקו נמוך אסוף ומלוטש" },
     { src: "assets/img/gallery-b-05.jpg", alt: "גלים רכים לאירוע" },
     { src: "assets/img/gallery-b-06.jpg", alt: "קוקו גבוה חלק עם גלים" },
-    { src: "assets/img/gallery-b-07.jpg", alt: "אסוף ערב עדין" },
+    { src: "assets/img/gallery-b-07b.jpg", alt: "אסוף ערב עדין" },
     { src: "assets/img/gallery-b-08.jpg", alt: "תסרוקת ערב עם גלים" },
     { src: "assets/img/gallery-b-09.jpg", alt: "קוקו עם גלים, מבט מהגב" },
     { src: "assets/img/gallery-b-10.jpg", alt: "קוקו נמוך עם גלים, מבט מהגב" },

@@ -53,7 +53,8 @@ async function waitForMap(page, maxMs = 5000) {
 // Third-party embeds (the Waze live map) log their own errors inside headless Chromium
 // (visitor-id 400s, storage-access denials, GeoRSS 403s). Those are not this site's bugs.
 const THIRD_PARTY = /waze\.com|google\.com|gstatic\.com|googleapis\.com/;
-const NOISE = /Missing user and visitor id|requestStorageAccess|GeoRSS|Failed to load resource|report-only Content Security Policy/;
+// "compute-pressure" = Chromium logging its own Permissions-Policy default for the <video> fixture, intermittently; not this site.
+const NOISE = /Missing user and visitor id|requestStorageAccess|GeoRSS|Failed to load resource|report-only Content Security Policy|compute-pressure/;
 function watchErrors(page, label, sink) {
   page.on("console", (m) => {
     if (m.type() !== "error") return;

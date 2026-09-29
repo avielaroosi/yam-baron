@@ -52,6 +52,8 @@ python3 tools/trace-logo.py
 - `{ type: "instagram", src: "https://www.instagram.com/reel/XXXX/", title: "..." }` — קישור לריל/פוסט.
 - `{ type: "placeholder", poster: "assets/img/x.jpg", title: "..." }` — מסגרת זמנית עד שיגיע סרטון.
 
+המרת סרטון מהטלפון (‎.mov‎, HEVC 4K) לקובץ שמתאים לאתר: 720×1280, H.264, ‎~6MB ל-20 שניות. אין ffmpeg במחשב; הדרך שעבדה (30.09): `pip install imageio-ffmpeg` בסביבה זמנית ואז `ffmpeg -i in.mov -vf scale=720:1280 -c:v libx264 -preset slow -crf 24 -movflags +faststart -c:a aac -b:a 96k out.mp4`. תמונת פוסטר: `cd tools && node video-poster.mjs ../assets/video/x.mp4 ../assets/img/video-x.jpg 1` (מדפיס גם אורך/גודל; משתמש ב-Chrome המותקן). שם קובץ חדש לכל סרטון חדש, הישן נשאר יום.
+
 ## אנימציית הפתיחה
 
 בכניסה לאתר המסך שחור, המונוגרמה מתרכבת מהחלקים שלה — ה-Y נכנס משמאל, ה-B מימין, ה-S נשזר ביניהם — ואז הלוגו השלם מחליק בדיוק למקומו בפתיח בזמן שהשחור נמוג וחושף את האתר. סך הכל כ-2.5 שניות.

@@ -116,7 +116,8 @@ window.SITE = {
 
   // type: "placeholder" (מסגרת עד שיגיע סרטון) | "file" (src = assets/video/x.mp4) | "youtube" (src = קישור Shorts/וידאו) | "instagram" (src = קישור לפוסט/ריל)
   videos: [
-    { type: "file", src: "assets/video/yam-01.mp4", poster: "assets/img/video-yam-01.jpg", title: "החלקה: לפני ואחרי" },
+    // yam-02 = הסרטון המעודכן (30.09). yam-01 נשאר בתיקייה עוד יום בגלל המטמון, ואז אפשר למחוק.
+    { type: "file", src: "assets/video/yam-02.mp4", poster: "assets/img/video-yam-02.jpg", title: "החלקה: לפני ואחרי" },
   ],
 
   // המלצות: צילומי מסך של לקוחות (וואטסאפ/אינסטגרם). שמים את הקבצים ב-assets/img/testimonials/ ומוסיפים שורה לכל אחד.

@@ -56,6 +56,16 @@ if (S?.promo?.enabled) {
   need(Number.isFinite(S.promo.delayMs) && S.promo.delayMs >= 0, "SITE.promo.delayMs must be a number");
   need(Number.isFinite(S.promo.hideAfterUseDays) && S.promo.hideAfterUseDays > 0, "SITE.promo.hideAfterUseDays must be a positive number");
 }
+need(S?.gift && typeof S.gift === "object", "SITE.gift block is missing");
+if (S?.gift) {
+  for (const k of ["title", "closing", "cta", "whatsappText", "image", "alt", "bandEyebrow", "bandCta"]) need(typeof S.gift[k] === "string" && S.gift[k].trim(), `SITE.gift.${k} must be a non-empty string`);
+  const gtext = [].concat(S.gift.text ?? []);
+  need(gtext.length > 0 && gtext.every((t) => typeof t === "string" && t.trim()), "SITE.gift.text must be a non-empty string or a list of paragraphs");
+  need(S.gift.enabled === undefined || typeof S.gift.enabled === "boolean", "SITE.gift.enabled must be true/false when present");
+  const giftCopy = [S.gift.title, ...gtext, S.gift.closing, S.gift.cta, S.gift.whatsappText, S.gift.bandEyebrow, S.gift.bandCta].join(" ");
+  need(!/HAIR DATE/i.test(giftCopy), "gift copy must not mention HAIR DATE (owner dropped the name)");
+  need(!/[,\u2013\u2014]/.test([S.gift.title, ...gtext, S.gift.closing, S.gift.cta].join(" ")), "gift page copy must contain no commas or dashes (owner request)");
+}
 const files = [
   S?.hero?.image,
   ...(S?.services || []).map((s) => s.image),
@@ -64,6 +74,7 @@ const files = [
   ...(S?.videos || []).map((v) => v.poster).filter(Boolean),
   ...(S?.videos || []).filter((v) => v.type === "file").map((v) => v.src),
   S?.about?.image,
+  S?.gift?.image,
   S?.promo?.enabled && S.promo.image ? S.promo.image : null,
   S?.logo?.hero, S?.logo?.mark,
 ].filter(Boolean);

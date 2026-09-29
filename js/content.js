@@ -102,6 +102,10 @@ window.SITE = {
   // המלצות: צילומי מסך של לקוחות (וואטסאפ/אינסטגרם). שמים את הקבצים ב-assets/img/testimonials/ ומוסיפים שורה לכל אחד.
   // רשימה ריקה = מוצג "המלצות של לקוחות יעלו כאן בקרוב".
   testimonials: [
+    { src: "assets/img/testimonials/t-01.jpg", alt: "המלצה מלקוחה 1" },
+    { src: "assets/img/testimonials/t-02.jpg", alt: "המלצה מלקוחה 2" },
+    { src: "assets/img/testimonials/t-03.jpg", alt: "המלצה מלקוחה 3" },
+    { src: "assets/img/testimonials/t-04.jpg", alt: "המלצה מלקוחה 4" },
   ],
 
   about: {

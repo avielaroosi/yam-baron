@@ -28,11 +28,14 @@
   function renderHero() {
     const img = $("hero-img");
     img.src = S.hero.image; img.alt = S.hero.alt;
-    // The loops are 2-4MB each; a phone gets the still photograph instead.
+    // The phone gets the tall clip, the desktop the wide one. Someone who turned on
+    // data saver gets the poster and nothing else; reduced motion is honoured by
+    // mountAmbientVideo, which simply never plays.
     const heroVideo = document.getElementById("hero-video");
-    if (heroVideo && matchMedia("(min-width: 820px)").matches) {
-      heroVideo.poster = "assets/img/hero-video-poster.jpg";
-      heroVideo.src = "assets/video/hero-wide.mp4";
+    if (heroVideo && !(navigator.connection && navigator.connection.saveData)) {
+      const wide = window.matchMedia("(min-width: 820px)").matches;
+      heroVideo.poster = wide ? "assets/img/hero-video-poster.jpg" : "assets/img/hero-video-poster-tall.jpg";
+      heroVideo.src = wide ? "assets/video/hero-wide.mp4" : "assets/video/hero-tall.mp4";
       heroVideo.preload = "metadata";
     }
     const logo = $("hero-logo");
@@ -41,6 +44,7 @@
     $("hero-name").textContent = S.name;
     $("hero-tagline").textContent = S.tagline;
     $("hero-text").textContent = S.heroText;
+    const heroWa = $("hero-wa"); if (heroWa) heroWa.href = waLink();
   }
 
   // ---- services, as chapters: a photograph and a paragraph rather than a card
@@ -312,11 +316,19 @@
     document.querySelectorAll("video.is-ambient").forEach(mountAmbientVideo);
   }
 
-  // ---- floating WhatsApp button: hidden while the hero is on screen
+  // ---- floating WhatsApp button: hidden wherever a call to action is already on screen
   function initFab() {
     const fab = $("wa-fab");
     fab.href = waLink();
-    fab.classList.add("is-visible"); // the hero has no contact buttons, so the floating button shows from the start
+    // Shown only where no call to action is already on screen: the hero has its own
+    // button now, and the contact section's primary button would sit right under
+    // the floating one. In between, the floating button is the way to reach Yam.
+    const covered = new Map();
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) covered.set(e.target, e.isIntersecting);
+      fab.classList.toggle("is-visible", ![...covered.values()].some(Boolean));
+    }, { threshold: 0.15 });
+    for (const id of ["top", "contact"]) { const t = $(id); if (t) io.observe(t); }
   }
 
   // ---- reveal sections on scroll; skipped entirely when the user prefers reduced motion

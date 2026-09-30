@@ -48,8 +48,11 @@
 
   <header class="hero" id="top">
     <div class="hero__media">
-      <video class="hero__video is-ambient" id="hero-video" muted loop playsinline preload="none"></video>
+      <!-- DOM order is the paint order here (both absolutely positioned, neither carries a
+           z-index): the still photo must come first so the video — preloading behind it —
+           ends up stacked above it once it has a frame to show. -->
       <img class="hero__bg" id="hero-img" fetchpriority="high" alt="">
+      <video class="hero__video is-ambient" id="hero-video" muted loop playsinline preload="none"></video>
     </div>
     <div class="hero__inner">
       <img class="hero__logo" id="hero-logo" fetchpriority="high" alt="">
@@ -57,6 +60,7 @@
       <p class="sr-only" id="hero-sub"></p>
       <p class="hero__tagline" id="hero-tagline"></p>
       <p class="hero__text" id="hero-text"></p>
+      <a class="btn btn--wa hero__cta" id="hero-wa" href="#" target="_blank" rel="noopener">לתיאום תור בוואטסאפ</a>
     </div>
     <a class="hero__scroll" href="#services" aria-label="גלילה למטה">↓</a>
   </header>

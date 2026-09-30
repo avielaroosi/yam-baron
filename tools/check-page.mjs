@@ -135,7 +135,10 @@ try {
   // Task 11: contact keeps one primary action (WhatsApp); Instagram is now a
   // secondary text link, not a filled button — so this no longer checks .btn.
   need(await mobile.$$eval("#contact-ig", (as) => as.length === 1 && as.every((a) => !!a.querySelector("svg") && a.href.startsWith("https://instagram.com/"))), "instagram: contact link has an icon pointing at instagram");
-  need((await mobile.$$("#hero-wa, #hero-ig, .hero__actions")).length === 0, "hero: no contact buttons (owner choice)");
+  // Task 15: the spec calls for "לוגו מעליו, CTA אחד" — the hero now carries its own
+  // WhatsApp CTA; #hero-ig / .hero__actions must still not exist (one button, not a row).
+  need((await mobile.$$("#hero-ig, .hero__actions")).length === 0, "hero: no secondary contact actions (spec: one CTA only)");
+  need((await mobile.$$("#hero-wa.btn")).length === 1, "hero: #hero-wa is the hero's one CTA");
   need(await mobile.$$eval(".wordmark", (s) => s.length > 0 && s.every((x) => getComputedStyle(x).direction === "ltr" && getComputedStyle(x).unicodeBidi === "isolate")), "the English wordmark must be laid out LTR and bidi-isolated");
   need(((await mobile.getAttribute("#contact-waze", "href")) || "").startsWith("https://waze.com/ul?q=") && (await mobile.getAttribute("#contact-waze", "href")).endsWith("&navigate=yes"), "contact: Waze navigation link");
 
@@ -248,14 +251,30 @@ try {
     await broken.close();
   }
 
-  // --- floating button + reveal (Task 5)
+  // --- floating button + reveal (Task 5; behavior changed in Task 15 — the fab now
+  // yields to whichever section already carries its own call to action)
   await mobile.evaluate(() => window.scrollTo(0, 0)); // earlier blocks scrolled the page (gallery click)
   await mobile.waitForTimeout(400);
-  need(await mobile.evaluate(() => document.getElementById("wa-fab").classList.contains("is-visible")), "fab: visible from the start (hero has no contact buttons)");
+  need(await mobile.evaluate(() => !document.getElementById("wa-fab").classList.contains("is-visible")), "fab: hidden at load (the hero now carries its own CTA)");
   need((await mobile.getAttribute("#wa-fab", "href") || "").startsWith(`https://wa.me/${S.whatsapp}?text=`), "fab: whatsapp href");
-  await mobile.evaluate(() => document.getElementById("contact").scrollIntoView());
+  // instant jumps, not smooth: html carries scroll-behavior:smooth site-wide, and on a
+  // page this long a fixed wait would sample the animation mid-flight, not the settled spot
+  await mobile.evaluate(() => {
+    const html = document.documentElement, prev = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+    document.getElementById("gallery").scrollIntoView({ block: "center" });
+    html.style.scrollBehavior = prev;
+  });
   await mobile.waitForTimeout(400);
-  need(await mobile.evaluate(() => document.getElementById("wa-fab").classList.contains("is-visible")), "fab: still visible after scrolling past the hero");
+  need(await mobile.evaluate(() => document.getElementById("wa-fab").classList.contains("is-visible")), "fab: visible over an in-between section (#gallery) with no CTA of its own");
+  await mobile.evaluate(() => {
+    const html = document.documentElement, prev = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+    document.getElementById("contact").scrollIntoView({ block: "center" });
+    html.style.scrollBehavior = prev;
+  });
+  await mobile.waitForTimeout(400);
+  need(await mobile.evaluate(() => !document.getElementById("wa-fab").classList.contains("is-visible")), "fab: hidden again over #contact (which has its own primary button)");
   need(await mobile.evaluate(() => [...document.querySelectorAll(".reveal")].every((n) => n.classList.contains("is-in"))), "reveal: with reduced motion every section is marked is-in");
   await mobile.evaluate(() => window.scrollTo(0, 0));
   await mobile.waitForTimeout(400);

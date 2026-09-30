@@ -225,18 +225,75 @@ try {
   const playing = await rm.evaluate(() => [...document.querySelectorAll("video.is-ambient")].filter((v) => !v.paused).map((v) => v.className));
   need(playing.length === 0, `reduced motion must not autoplay: ${playing.join(", ")}`);
   await rm.close();
-  // --- the hero video is desktop-only: 15MB of loops must not reach a phone
+  // --- the hero video must still exist in the markup (desktop uses it)
   const heroOnDesktop = await page.evaluate(() => !!document.querySelector("#hero-video"));
   need(heroOnDesktop, "#hero-video must exist in the markup");
+
+  // --- the phone gets the tall clip, exactly one request, and never the wide one;
+  // a visitor who asked to save data gets the poster and no video at all
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
   const asked = [];
-  phone.on("request", (r) => { if (r.resourceType() === "media" || /\.mp4/.test(r.url())) asked.push(r.url()); });
+  phone.on("request", (r) => { if (/\.mp4/.test(r.url())) asked.push(r.url().split("/").pop()); });
   await phone.goto(base, { waitUntil: "load" });
-  await phone.waitForTimeout(1000);
-  need(!asked.some((u) => /hero-/.test(u)), `phone requested a hero video: ${asked.join(", ")}`);
-  const heroPoster = await phone.evaluate(() => { const v = document.querySelector("#hero-video"); return v ? getComputedStyle(v).display : "none"; });
-  need(heroPoster === "none", "the hero video element must not render below 820px");
+  await phone.waitForTimeout(1200);
+  need(asked.includes("hero-tall.mp4"), `phone must request hero-tall.mp4, requested: ${asked.join(", ") || "nothing"}`);
+  need(!asked.includes("hero-wide.mp4"), "phone must never request hero-wide.mp4");
+  const phoneHero = await phone.evaluate(() => {
+    const v = document.querySelector("#hero-video"), logo = document.querySelector("#hero-logo"), r = logo.getBoundingClientRect();
+    return { display: getComputedStyle(v).display, src: (v.currentSrc || v.src).split("/").pop(), poster: (v.poster || "").split("/").pop(),
+             logoInView: r.top >= 0 && r.bottom <= innerHeight, heroH: document.querySelector(".hero").getBoundingClientRect().height, vh: innerHeight };
+  });
+  need(phoneHero.display === "block", "the hero video must render on the phone");
+  need(phoneHero.poster === "hero-video-poster-tall.jpg", `phone poster is ${phoneHero.poster}, want hero-video-poster-tall.jpg`);
+  need(phoneHero.logoInView, "the hero logo must sit fully inside the first phone screen");
+  need(phoneHero.heroH >= phoneHero.vh * 0.9, `phone hero is ${phoneHero.heroH}px tall for a ${phoneHero.vh}px screen`);
+  // the hero carries its own call to action (spec: "לוגו מעליו, CTA אחד"), so the
+  // floating button is redundant there and must stay hidden until the hero scrolls away
+  const heroCta = await phone.evaluate(() => {
+    const a = document.querySelector(".hero__inner #hero-wa");
+    return a ? { btn: a.classList.contains("btn"), wa: /^https:\/\/wa\.me\//.test(a.href), inView: a.getBoundingClientRect().bottom <= innerHeight } : null;
+  });
+  need(heroCta && heroCta.btn && heroCta.wa, "#hero-wa must be a .btn inside .hero__inner linking to wa.me");
+  need(heroCta && heroCta.inView, "the hero CTA must fit inside the first phone screen");
+  need(await phone.evaluate(() => !document.querySelector(".wa-fab").classList.contains("is-visible")), "the WhatsApp FAB must stay hidden while the hero (which has its own CTA) is on screen");
+
+  // --- no sideways scroll and no tap target under 44px, anywhere on the phone
+  const phoneLayout = await phone.evaluate(() => {
+    const out = [];
+    if (document.documentElement.scrollWidth > innerWidth + 1) out.push(`page scrolls sideways: ${document.documentElement.scrollWidth} > ${innerWidth}`);
+    for (const el of document.querySelectorAll(".btn, .wa-fab, .contact__secondary a, .contact__tel, .chapter__link, .lightbox__close, .lightbox__nav, .promo__close")) {
+      if (!el.getClientRects().length) continue;
+      const h = el.getBoundingClientRect().height;
+      if (h < 44) out.push(`${el.className.toString().split(" ")[0]} is ${Math.round(h)}px tall, want >= 44`);
+    }
+    return out;
+  });
+  need(phoneLayout.length === 0, "phone layout:\n    " + phoneLayout.join("\n    "));
+
+  // --- the floating button must not sit on the contact section's own button
+  // (an instant jump, not smooth: html carries scroll-behavior:smooth site-wide, and
+  // on a page this long a fixed wait would sample the animation mid-flight instead
+  // of the settled position — every other scrollIntoView in these tools uses the
+  // same override for the same reason)
+  await phone.evaluate(() => {
+    const html = document.documentElement, prev = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+    document.querySelector("#contact").scrollIntoView({ block: "center" });
+    html.style.scrollBehavior = prev;
+  });
+  await phone.waitForTimeout(700);
+  need(await phone.evaluate(() => !document.querySelector(".wa-fab").classList.contains("is-visible")), "the WhatsApp FAB must hide while #contact is on screen");
   await phone.close();
+
+  // --- data saver: poster only, nothing downloaded
+  const saver = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await saver.addInitScript(() => { Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true }); });
+  const savedAsked = [];
+  saver.on("request", (r) => { if (/\.mp4/.test(r.url())) savedAsked.push(r.url().split("/").pop()); });
+  await saver.goto(base, { waitUntil: "load" });
+  await saver.waitForTimeout(1200);
+  need(savedAsked.length === 0, `with saveData on, no video may load; requested: ${savedAsked.join(", ")}`);
+  await saver.close();
   // --- chapters must survive a visitor who doubled their text size
   const big = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await big.goto(base, { waitUntil: "load" });

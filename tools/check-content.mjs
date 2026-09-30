@@ -22,8 +22,6 @@ for (const k of ["name", "sub", "tagline", "heroText", "whatsapp", "whatsappDefa
 need(/^\d{11,13}$/.test(S?.whatsapp || ""), "SITE.whatsapp must be digits only, international format, no '+'");
 need(/^\d{11,13}$/.test(S?.phone || ""), "SITE.phone must be digits only, international format, no '+' (used for the tel: link)");
 need(!/^@/.test(S?.instagram || ""), "SITE.instagram must be the handle without '@'");
-need(Array.isArray(S?.hours) && S.hours.length > 0, "SITE.hours must be a non-empty array");
-for (const h of S?.hours || []) need(h.days && h.time, "each SITE.hours item needs {days, time}");
 need(S?.hero?.image && S?.hero?.alt, "SITE.hero needs {image, alt}");
 need(Array.isArray(S?.services) && S.services.length >= 3 && S.services.length <= 4, "SITE.services must have 3 or 4 items");
 for (const s of S?.services || []) {
@@ -42,7 +40,6 @@ for (const v of S?.videos || []) {
   if (v.type !== "placeholder") need(v.src, `video "${v.title}" of type ${v.type} needs src`);
   if (v.type === "placeholder" || v.type === "file") need(v.poster, `video "${v.title}" needs poster`);
 }
-need(typeof S?.geo?.lat === "number" && typeof S?.geo?.lon === "number" && Math.abs(S.geo.lat) <= 90 && Math.abs(S.geo.lon) <= 180, "SITE.geo needs numeric {lat, lon}");
 need(S?.about?.image && S?.about?.imageAlt && S?.about?.title, "SITE.about needs {image, imageAlt, title}");
 const aboutText = [].concat(S?.about?.text ?? []);
 need(aboutText.length > 0 && aboutText.every((t) => typeof t === "string" && t.trim()), "SITE.about.text must be a non-empty string or a list of non-empty paragraphs");

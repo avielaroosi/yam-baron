@@ -383,8 +383,8 @@ html.intro-running .hero__logo { visibility: hidden; }
   .gift-band__inner { justify-items: start; text-align: start; padding: 90px 0; }
 }
 /* the popup reuses the promo card (.promo__*); only the gift-specific lines differ */
-.promo--gift .gift__eyebrow { margin: 0; color: #8a6d2f; letter-spacing: .14em; font-size: .85rem; font-weight: 500; }
+.promo--gift .gift__eyebrow { margin: 0; color: var(--gold-on-paper); letter-spacing: .14em; font-size: .85rem; font-weight: 500; }
 .promo--gift .gift__title { font-size: 1.5rem; line-height: 1.25; }
-.promo--gift .gift__closing { margin: 0; font-family: var(--font-head); color: #8a6d2f; font-size: 1.1rem; }
+.promo--gift .gift__closing { margin: 0; font-family: var(--font-head); color: var(--gold-on-paper); font-size: 1.1rem; }
 .promo--gift .promo__text { max-width: none; }
 .promo--gift .promo__visual--photo .promo__img { object-position: 50% 30%; }

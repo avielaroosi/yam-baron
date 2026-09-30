@@ -88,10 +88,14 @@ try {
     return out;
   };
 
-  for (const [label, url] of [["home", base], ["gift card", base + "?gift"], ["promo", base + "?promo"]]) {
+  for (const [label, url, dialog] of [["home", base, null], ["gift card", base + "?gift", "#gift"], ["promo", base + "?promo", "#promo"]]) {
     const p = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await p.goto(url, { waitUntil: "load" });
-    await p.waitForTimeout(url.endsWith("?promo") ? 3600 : 600); // the promo opens on a timer set in content.js
+    // A fixed wait raced the dialog's fade: sampled before opacity crossed .5 the
+    // walk skipped every element inside and passed vacuously; sampled after, it
+    // failed. Wait for the dialog to be open and fully opaque, deterministically.
+    if (dialog) await p.waitForFunction((sel) => { const d = document.querySelector(sel); return !!d && !d.hidden && d.classList.contains("is-open") && getComputedStyle(d).opacity === "1"; }, dialog, { timeout: 10000 });
+    else await p.waitForTimeout(400);
     const low = await p.evaluate(contrastWalk);
     need(low.length === 0, `${label}: text below 4.5:1 contrast:\n    ` + low.join("\n    "));
     await p.close();

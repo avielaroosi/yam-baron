@@ -262,7 +262,38 @@ try {
     }).length;
   });
   need(primaries === 1, `#contact has ${primaries} filled buttons, want exactly 1`);
-  // [slot:task12] — the task's own assertions replace this line
+  // --- the HIG warns against a launch screen used purely for branding; ours
+  // earns its place only if it gets out of the way quickly
+  const { introMs, tFlipMs } = await page.evaluate(() => {
+    const probe = document.createElement("div");
+    probe.className = "intro";
+    probe.style.cssText = "position:absolute;visibility:hidden";
+    document.body.append(probe);
+    const cs = getComputedStyle(probe);
+    const toMs = (v) => (v.endsWith("ms") ? parseFloat(v) : v.endsWith("s") ? parseFloat(v) * 1000 : parseFloat(v) || 0);
+    const introMs = parseFloat(cs.getPropertyValue("--intro-total"));
+    const tFlipMs = toMs(cs.getPropertyValue("--t-flip").trim());
+    probe.remove();
+    return { introMs, tFlipMs };
+  });
+  need(introMs <= 1800, `intro runs ${introMs}ms, want <= 1800`);
+
+  // --- the flying logo must land no later than the moment the black lifts and
+  // un-hides the resting hero logo underneath, or the two show at once
+  const flipMs = await page.evaluate(() => {
+    const probe = document.createElement("div");
+    probe.className = "intro is-landing";
+    probe.style.cssText = "position:absolute;visibility:hidden";
+    const stage = document.createElement("div");
+    stage.className = "intro__stage";
+    stage.style.cssText = "position:absolute;visibility:hidden";
+    probe.append(stage);
+    document.body.append(probe);
+    const raw = getComputedStyle(stage).transitionDuration.split(",")[0].trim();
+    probe.remove();
+    return raw.endsWith("ms") ? parseFloat(raw) : parseFloat(raw) * 1000;
+  });
+  need(tFlipMs + flipMs <= introMs, `the flight lands at ${tFlipMs + flipMs}ms but the black lifts at ${introMs}ms — the hero logo would show under the flying one`);
 } finally {
   await browser.close();
   server.close();

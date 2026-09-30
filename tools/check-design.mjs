@@ -225,7 +225,18 @@ try {
   const playing = await rm.evaluate(() => [...document.querySelectorAll("video.is-ambient")].filter((v) => !v.paused).map((v) => v.className));
   need(playing.length === 0, `reduced motion must not autoplay: ${playing.join(", ")}`);
   await rm.close();
-  // [slot:task9] — the task's own assertions replace this line
+  // --- the hero video is desktop-only: 15MB of loops must not reach a phone
+  const heroOnDesktop = await page.evaluate(() => !!document.querySelector("#hero-video"));
+  need(heroOnDesktop, "#hero-video must exist in the markup");
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const asked = [];
+  phone.on("request", (r) => { if (r.resourceType() === "media" || /\.mp4/.test(r.url())) asked.push(r.url()); });
+  await phone.goto(base, { waitUntil: "load" });
+  await phone.waitForTimeout(1000);
+  need(!asked.some((u) => /hero-/.test(u)), `phone requested a hero video: ${asked.join(", ")}`);
+  const heroPoster = await phone.evaluate(() => { const v = document.querySelector("#hero-video"); return v ? getComputedStyle(v).display : "none"; });
+  need(heroPoster === "none", "the hero video element must not render below 820px");
+  await phone.close();
   // [slot:task10] — the task's own assertions replace this line
   // --- one primary action per section: three buttons of equal weight is none
   const primaries = await page.evaluate(() => {

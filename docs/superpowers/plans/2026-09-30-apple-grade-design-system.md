@@ -1665,3 +1665,196 @@ the primary button carry the current WhatsApp glyph.
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
+
+---
+
+### Task 15: וידאו אנכי בנייד + מעבר מובייל
+
+**Files:**
+- Create: `assets/img/hero-video-poster-tall.jpg`
+- Modify: `index.html` (הערת ה-preload בלבד, אם צריך), `css/style.css` (בלוק `hero`, `wa-fab`, ותיקוני מובייל נקודתיים), `js/main.js` (`renderHero`, `initFab`), `tools/check-design.mjs` (מחליף את טענת "הטלפון לא מבקש וידאו" ממשימה 9)
+
+**Interfaces:**
+- Consumes: `mountAmbientVideo`/`initAmbientVideo` (8), `#hero-video` (9), `.contact__stack` (14), `--section-y`, `--sp-*`.
+- Produces: `hero-video-poster-tall.jpg`; `initFab` שמסתיר גם מול `#contact`.
+
+- [ ] **Step 1: פוסטר לקליפ האנכי**
+
+```bash
+cd tools && node video-poster.mjs ../assets/video/hero-tall.mp4 ../assets/img/hero-video-poster-tall.jpg 0
+```
+
+- [ ] **Step 2: כותבים את הבדיקה הנכשלת**
+
+ב-`tools/check-design.mjs`, מצא את בלוק משימה 9 (`phone requested a hero video` / `the hero video element must not render below 820px`) והחלף אותו כולו ב:
+
+```js
+  // --- the phone gets the tall clip, exactly one request, and never the wide one;
+  // a visitor who asked to save data gets the poster and no video at all
+  const phone = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  const asked = [];
+  phone.on("request", (r) => { if (/\.mp4/.test(r.url())) asked.push(r.url().split("/").pop()); });
+  await phone.goto(base, { waitUntil: "load" });
+  await phone.waitForTimeout(1200);
+  need(asked.includes("hero-tall.mp4"), `phone must request hero-tall.mp4, requested: ${asked.join(", ") || "nothing"}`);
+  need(!asked.includes("hero-wide.mp4"), "phone must never request hero-wide.mp4");
+  const phoneHero = await phone.evaluate(() => {
+    const v = document.querySelector("#hero-video"), logo = document.querySelector("#hero-logo"), r = logo.getBoundingClientRect();
+    return { display: getComputedStyle(v).display, src: (v.currentSrc || v.src).split("/").pop(), poster: (v.poster || "").split("/").pop(),
+             logoInView: r.top >= 0 && r.bottom <= innerHeight, heroH: document.querySelector(".hero").getBoundingClientRect().height, vh: innerHeight };
+  });
+  need(phoneHero.display === "block", "the hero video must render on the phone");
+  need(phoneHero.poster === "hero-video-poster-tall.jpg", `phone poster is ${phoneHero.poster}, want hero-video-poster-tall.jpg`);
+  need(phoneHero.logoInView, "the hero logo must sit fully inside the first phone screen");
+  need(phoneHero.heroH >= phoneHero.vh * 0.9, `phone hero is ${phoneHero.heroH}px tall for a ${phoneHero.vh}px screen`);
+
+  // --- no sideways scroll and no tap target under 44px, anywhere on the phone
+  const phoneLayout = await phone.evaluate(() => {
+    const out = [];
+    if (document.documentElement.scrollWidth > innerWidth + 1) out.push(`page scrolls sideways: ${document.documentElement.scrollWidth} > ${innerWidth}`);
+    for (const el of document.querySelectorAll(".btn, .wa-fab, .contact__secondary a, .contact__tel, .chapter__link, .lightbox__close, .lightbox__nav, .promo__close")) {
+      if (!el.getClientRects().length) continue;
+      const h = el.getBoundingClientRect().height;
+      if (h < 44) out.push(`${el.className.toString().split(" ")[0]} is ${Math.round(h)}px tall, want >= 44`);
+    }
+    return out;
+  });
+  need(phoneLayout.length === 0, "phone layout:\n    " + phoneLayout.join("\n    "));
+
+  // --- the floating button must not sit on the contact section's own button
+  await phone.evaluate(() => document.querySelector("#contact").scrollIntoView({ block: "center" }));
+  await phone.waitForTimeout(700);
+  need(await phone.evaluate(() => !document.querySelector(".wa-fab").classList.contains("is-visible")), "the WhatsApp FAB must hide while #contact is on screen");
+  await phone.close();
+
+  // --- data saver: poster only, nothing downloaded
+  const saver = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await saver.addInitScript(() => { Object.defineProperty(navigator, "connection", { value: { saveData: true }, configurable: true }); });
+  const savedAsked = [];
+  saver.on("request", (r) => { if (/\.mp4/.test(r.url())) savedAsked.push(r.url().split("/").pop()); });
+  await saver.goto(base, { waitUntil: "load" });
+  await saver.waitForTimeout(1200);
+  need(savedAsked.length === 0, `with saveData on, no video may load; requested: ${savedAsked.join(", ")}`);
+  await saver.close();
+```
+
+- [ ] **Step 3: מריצים ורואים שהיא נכשלת**
+
+```bash
+cd tools && node check-design.mjs
+```
+צפוי: `FAIL` עם `phone must request hero-tall.mp4, requested: nothing`, `the hero video must render on the phone`, ו-`the WhatsApp FAB must hide while #contact is on screen`.
+
+- [ ] **Step 4: הפתיח — מבנה אחד לשני המסכים**
+
+ב-`css/style.css`, החלף את בלוק `hero` כולו (כולל ה-`@media (min-width: 820px)` שלו):
+
+```css
+/* ===== hero =====
+   One structure for every screen: the still photograph paints first (it is
+   preloaded), the clip's poster and then the clip itself sit above it, the scrim
+   above those, the logo on top. The phone gets the tall clip, the desktop the wide. */
+.hero { position: relative; background: var(--ink-0); text-align: center; isolation: isolate; display: block; min-height: 100svh; }
+.hero__media { position: absolute; inset: 0; height: 100%; line-height: 0; }
+.hero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+.hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+/* darker at the foot on the phone, where the tagline and text sit */
+.hero__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 10, 11, .35) 0%, rgba(10, 10, 11, .1) 35%, rgba(10, 10, 11, .9) 100%); }
+.hero__inner { position: relative; z-index: 1; max-width: 720px; margin-inline: auto; min-height: 100svh; display: grid; gap: var(--sp-2); justify-items: center; align-content: center; padding: var(--section-y) var(--pad) var(--sp-7); }
+.hero__tagline { font-family: var(--font-head); font-size: var(--step-lead); letter-spacing: var(--track-display); }
+.hero__text { max-width: 560px; color: var(--text-on-ink-2); font-size: var(--step-body); }
+.hero__scroll { display: none; }
+@media (min-width: 820px) {
+  .hero__media::after { background: linear-gradient(180deg, rgba(10, 10, 11, .45) 0%, rgba(10, 10, 11, .15) 40%, rgba(10, 10, 11, .85) 100%); }
+  .hero__inner { padding: var(--section-y) var(--pad); }
+  .hero__scroll { display: block; position: absolute; bottom: var(--sp-3); left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 1.4rem; opacity: .8; }
+}
+```
+(אם בענף שלך ה-hero כבר שונה ממה שתיאור זה מניח — למשל בגלל משימה 9 — התאם: המטרה
+היא שהמבנה למעלה יהיה התוצאה הסופית.)
+
+- [ ] **Step 5: הבחירה בין הקליפים, ו-saveData**
+
+ב-`js/main.js`, החלף את בלוק ה-`hero-video` בתוך `renderHero` ב:
+
+```js
+    // The phone gets the tall clip, the desktop the wide one. Someone who turned on
+    // data saver gets the poster and nothing else; reduced motion is honoured by
+    // mountAmbientVideo, which simply never plays.
+    const heroVideo = document.getElementById("hero-video");
+    if (heroVideo && !(navigator.connection && navigator.connection.saveData)) {
+      const wide = window.matchMedia("(min-width: 820px)").matches;
+      heroVideo.poster = wide ? "assets/img/hero-video-poster.jpg" : "assets/img/hero-video-poster-tall.jpg";
+      heroVideo.src = wide ? "assets/video/hero-wide.mp4" : "assets/video/hero-tall.mp4";
+      heroVideo.preload = "metadata";
+    }
+```
+
+- [ ] **Step 6: ה-FAB מפנה מקום לכפתור הראשי**
+
+ב-`js/main.js`, ב-`initFab`: היום הוא מסתיר את הכפתור הצף כשה-hero על המסך. הוסף את
+`#contact` לאותו כלל — הכפתור מוצג רק כשלא ה-hero ולא `#contact` נמצאים בתצוגה. השתמש
+באותו `IntersectionObserver` עם שני יעדים ומפה של מצבים:
+
+```js
+  function initFab() {
+    const fab = $("wa-fab");
+    fab.href = waLink();
+    // Hidden while the hero is on screen (it has its own CTA) and while the contact
+    // section is (its primary button would sit right under the floating one).
+    const covered = new Map();
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) covered.set(e.target, e.isIntersecting);
+      fab.classList.toggle("is-visible", ![...covered.values()].some(Boolean));
+    }, { threshold: 0.15 });
+    for (const id of ["top", "contact"]) { const t = $(id); if (t) io.observe(t); }
+  }
+```
+(התאם לשמות/מבנה הקיימים אם `initFab` שונה — שמור על ה-`is-visible` וה-`href`.)
+
+- [ ] **Step 7: מריצים עד ירוק**
+
+```bash
+cd tools && node check-design.mjs
+```
+צפוי: `check-design: OK`. יעד מגע שנפל מתחת ל-44px — הגדל `min-height`/`padding` בכלל שלו עם טוקנים, לא במספר קשיח.
+
+- [ ] **Step 8: המעבר המובייל — עין, לא רק סקריפט**
+
+```bash
+cd tools && npm run check
+```
+פתח `tools/shots/mobile-fold.png` ו-`mobile.png` וקרא אותם. עבור מקטע-מקטע ותקן מה שלא
+יושב, בכלל CSS נקודתי תחת `@media (max-width: 819px)` עם טוקנים בלבד:
+- **פתיח:** לוגו + טאגליין + טקסט קריאים על הסקרים; אין "פס" שחור מעל/מתחת לווידאו.
+- **פרקים:** תמונה 4:5 ברוחב מלא, כותרת, טקסט, קישור — עם `--sp-3` ביניהם; הקישור לא צמוד לתמונה הבאה.
+- **עבודות:** 2 עמודות, גאטר `--sp-2` (לא `--sp-3` — בנייד זה מבזבז).
+- **המלצות:** הסרטון ברוחב מלא ואז חומת ההמלצות ב-2 עמודות.
+- **גיפט קארד:** הטקסט על השליש התחתון, קריא.
+- **עלינו:** תמונה ואז טקסט, כותרת ממורכזת.
+- **יצירת קשר:** כפתור ברוחב מלא, טלפון גדול, כתובת, קישורים, מפה 4:3.
+- **פוטר:** לא נחתך מאחורי ה-FAB.
+- **פרומו/גיפט קארד קופצים:** `?promo` ו-`?gift` ב-390px — הכרטיס לא חורג, ה-× נגיש.
+לכל תיקון: שורה בדו"ח — מה היה, מה שונה.
+
+- [ ] **Step 9: README**
+
+בסעיף הסרטונים: "בנייד הפתיח הוא `hero-tall.mp4`; מי שהפעיל חיסכון בנתונים רואה את הפוסטר בלבד."
+בסעיף מערכת העיצוב: "ה-FAB נעלם מול הפתיח ומול יצירת קשר."
+
+- [ ] **Step 10: קומיט**
+
+```bash
+git add assets/img/hero-video-poster-tall.jpg css/style.css js/main.js tools/check-design.mjs README.md index.html
+git commit -m "design: the tall clip on the phone, and a real mobile pass
+
+The phone now gets the same full-bleed canvas as the desktop, with the 9:16 clip
+and its own poster; the still photograph stays underneath so the hero paints
+before any video arrives. Data saver gets the poster and nothing else. The
+floating WhatsApp button hides while the contact section is on screen, where it
+sat on top of the primary button. The check now requires exactly one hero
+request on a phone — the tall one — and none with saveData on, plus 44px tap
+targets and no sideways scroll at 390px.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+```

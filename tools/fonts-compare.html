@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>השוואת גופנים — YAM BARON</title>
+<!-- Dev tool: renders the site's real type moments in candidate Hebrew families side by side.
+     Open via the local server: http://localhost:8130/tools/fonts-compare.html -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600&family=Heebo:wght@400;500;600&family=Rubik:wght@400;500;600&family=Noto+Sans+Hebrew:wght@400;500;600&family=IBM+Plex+Sans+Hebrew:wght@400;500;600&family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #0a0a0b; --ink-1: #121213; --paper: #f4efe7; --gold: #c9a961; --gold-paper: #7d6229; --t: #f5f2ed; --t2: #a8a49d; --tp: #1a1815; --tp2: #5c564d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--t); font-family: system-ui, sans-serif; }
+  header { padding: 28px 32px 8px; color: var(--t2); font-size: 14px; }
+  header b { color: var(--t); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 16px 32px 40px; }
+  @media (max-width: 1100px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--ink-1); border-radius: 18px; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; }
+  .tag { padding: 14px 22px 0; font: 600 13px/1.4 system-ui; letter-spacing: .04em; color: var(--gold); text-transform: uppercase; direction: ltr; text-align: right; }
+  .tag small { display: block; color: var(--t2); font-weight: 400; letter-spacing: 0; text-transform: none; }
+  .dark { padding: 18px 22px 26px; }
+  .h2 { font-size: 2.6rem; font-weight: 600; line-height: 1.08; letter-spacing: -.015em; margin: 0 0 14px; }
+  .h3 { font-size: 1.6rem; font-weight: 600; line-height: 1.2; letter-spacing: -.01em; margin: 0 0 10px; }
+  .p { font-size: 17px; line-height: 1.5; color: var(--t2); margin: 0 0 12px; }
+  .link { color: var(--gold); font-weight: 500; font-size: 17px; }
+  .btn { display: inline-block; margin-top: 12px; padding: 12px 24px; border-radius: 999px; background: #25d366; color: #062b16; font-weight: 500; font-size: 17px; }
+  .light { background: var(--paper); color: var(--tp); padding: 18px 22px 22px; }
+  .light .h3 { color: var(--tp); }
+  .light .p { color: var(--tp2); }
+  .light .link { color: var(--gold-paper); }
+  .foot { margin-top: 10px; font-size: 14px; color: var(--t2); }
+  .wm { font-family: "Playfair Display", serif; font-weight: 500; letter-spacing: .2em; text-transform: uppercase; direction: ltr; unicode-bidi: isolate; color: var(--t); }
+  .light .wm { color: var(--tp); }
+  .light .foot { color: var(--tp2); }
+  .f-assistant { font-family: "Assistant", sans-serif; }
+  .f-heebo { font-family: "Heebo", sans-serif; }
+  .f-rubik { font-family: "Rubik", sans-serif; }
+  .f-noto { font-family: "Noto Sans Hebrew", sans-serif; }
+  .f-plex { font-family: "IBM Plex Sans Hebrew", sans-serif; }
+  .f-system { font-family: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif; }
+</style>
+</head>
+<body>
+<header>אותם מקטעים, אותם גדלים ומשקלים (600 / 500 / 400), שש משפחות. <b>הוורדמארק נשאר Playfair בכולן.</b> על מק/אייפון העמודה "מערכת" היא SF Hebrew של אפל.</header>
+<div class="grid" id="grid"></div>
+<script>
+  const fams = [
+    ["f-system", "System", "מק/אייפון: SF Hebrew · Windows: Segoe UI · Android: Roboto"],
+    ["f-assistant", "Assistant", "בן נתן · המקבילה העברית ל-Source Sans"],
+    ["f-heebo", "Heebo", "המקבילה העברית ל-Roboto · הגופן הנוכחי של הגוף"],
+    ["f-rubik", "Rubik", "עגלגל יותר, חם יותר"],
+    ["f-noto", "Noto Sans Hebrew", "ניטרלי, גוגל"],
+    ["f-plex", "IBM Plex Sans Hebrew", "אופייני, מעט טכני"],
+  ];
+  const p = "עיצוב שיער לכלות הוא הרבה מעבר לתסרוקת, זו חוויה אישית ביום מרגש במיוחד. אני מלווה כל כלה מקרוב, מקפידה על הפרטים הקטנים ודואגת שתרגיש הכי יפה, בטוחה ומוכנה לערב שלה.";
+  const p2 = "מכירה את הבקרים שבהם השיער פשוט לא מסתדר? אני כאן כדי להקל עלייך, עם החלקה בהתאמה אישית.";
+  document.getElementById("grid").innerHTML = fams.map(([cls, name, note]) => `
+    <div class="card ${cls}">
+      <div class="tag">${name}<small>${note}</small></div>
+      <div class="dark">
+        <h2 class="h2">השירותים</h2>
+        <h3 class="h3">עיצוב כלות</h3>
+        <p class="p">${p}</p>
+        <a class="link">לתיאום בוואטסאפ ←</a><br>
+        <a class="btn">לתיאום תור בוואטסאפ</a>
+        <p class="foot"><span class="wm">Yam Baron</span> · 2026 · 054-392-2677</p>
+      </div>
+      <div class="light">
+        <h3 class="h3">נעים מאוד, אני ים בראון</h3>
+        <p class="p">${p2}</p>
+        <a class="link">לפרטים על המתנה</a>
+        <p class="foot"><span class="wm">Yam Baron</span> · נחל גלים 15, כפר יונה</p>
+      </div>
+    </div>`).join("");
+</script>
+</body>
+</html>

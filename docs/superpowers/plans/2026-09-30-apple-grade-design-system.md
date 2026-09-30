@@ -1484,6 +1484,9 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
       if (map.getAttribute("loading") !== "lazy") out.push("map must be loading=lazy");
       if (!map.title) out.push("map iframe needs a title");
     }
+    if (!document.querySelector("#contact .contact__stack #contact-wa")) out.push("#contact-wa must sit inside .contact__stack");
+    if (!document.querySelector("#contact .contact__tel#contact-tel")) out.push("#contact-tel is a .contact__tel link, not a list item");
+    if (document.querySelector("#contact .contact__list")) out.push(".contact__list is gone — the stack replaces it");
     for (const sel of [".wa-fab svg path", "#contact-wa svg path"]) {
       const d = document.querySelector(sel)?.getAttribute("d") || "";
       if (!d.startsWith("M17.472 14.382")) out.push(`${sel} is not the current WhatsApp glyph`);
@@ -1574,6 +1577,68 @@ cd tools && node check-design.mjs
               <a class="btn btn--wa btn--big" id="contact-wa" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span>לתיאום תור בוואטסאפ</span></a>
 ```
 `.btn` כבר מסדר אייקון וטקסט עם `gap: .5em`. הכיתוב לא משתנה.
+
+
+- [ ] **Step 5b: יצירת קשר — מבנה חדש (הבעלים: "לא נראה טוב")**
+
+היום: כותרת ממורכזת, כפתור ירוק בודד, שני קישורים קטנים, טלפון וכתובת — שטח שחור גדול
+עם פריט אחד בתוכו. הכיוון: שתי עמודות בדסקטופ כמו "עלינו" — ההזמנה מימין, המפה משמאל;
+בנייד הכל נערם. אין מסגרות, אין צל (מפה אינה צילום), כל מרווח טוקן.
+
+ב-`index.html`, החלף את כל `<div class="contact">…</div>` (בתוך `#contact`, אחרי ה-`h2`) ב:
+
+```html
+        <div class="contact">
+          <div class="contact__stack">
+            <a class="btn btn--wa btn--big" id="contact-wa" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="[אותו path של הגליף מ-Step 5]"/></svg><span>לתיאום תור בוואטסאפ</span></a>
+            <a class="contact__tel" id="contact-tel" href="#"></a>
+            <p class="contact__address" id="contact-address"></p>
+            <div class="contact__secondary">
+              <a id="contact-ig" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg><span>אינסטגרם</span></a>
+              <a id="contact-waze" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3 20 20 12 16 4 20z"/></svg><span>נווט בוויז</span></a>
+            </div>
+          </div>
+          <div class="contact__map">
+            <iframe id="contact-map" title="מפה: הסטודיו" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          </div>
+        </div>
+```
+(ה-`<ul class="contact__list">` נעלם; `#contact-tel` ו-`#contact-address` נשארים כ-IDs
+כי `renderContact` ממלא אותם. בדוק ב-`js/main.js` שהוא כותב `textContent`/`href` לפי ID
+ולא מניח `li` — אם כן, התאם את שתי השורות האלה בלבד.)
+
+ב-`css/style.css`, החלף את בלוק `contact` כולו:
+
+```css
+/* ===== contact =====
+   Two columns, like "about": the invitation on the start side, the map on the end.
+   No frame and no shadow — a map is not a photograph. Everything stacks on a phone. */
+.contact { display: grid; gap: var(--sp-6); align-items: start; }
+.contact__stack { display: grid; gap: var(--sp-3); justify-items: start; }
+.contact__stack .btn { width: 100%; }
+/* digits keep their order inside RTL text, and a phone number is a tap target, not a caption */
+.contact__tel { font-size: var(--step-lead); font-weight: 500; color: var(--gold); direction: ltr; unicode-bidi: isolate; }
+.contact__tel:hover { text-decoration: underline; }
+.contact__address { color: var(--text-on-ink-2); font-size: var(--step-body); }
+.contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+.contact__secondary a { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--gold); font-size: var(--step-body); min-height: 44px; }
+.contact__secondary a:hover { text-decoration: underline; }
+.contact__secondary a:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); border-radius: var(--radius-sm); }
+.contact__map { aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden; background: var(--ink-0); }
+/* desaturated so the map sits inside the ink/gold palette instead of shouting over it */
+.contact__map iframe { width: 100%; height: 100%; border: 0; display: block; filter: grayscale(1) contrast(1.05); }
+#contact .section__title { text-align: center; }
+@media (min-width: 820px) {
+  .contact { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-7); }
+  .contact__stack .btn { width: auto; }
+  #contact .section__title { text-align: start; }
+}
+```
+(אם `--focus-ring`/`--focus-offset`/`--radius-sm` עדיין לא קיימים ב-`:root` בענף שלך —
+משימה 12 מוסיפה אותם במקביל — הכרז אותם זמנית ב-`:root` עם אותם ערכים:
+`--focus-ring: 2px solid var(--gold); --focus-offset: 3px; --radius-sm: 4px;` המיזוג ישאיר עותק אחד.)
+
+Step 4 (המפה) מתמזג לכאן — ה-`iframe` כבר במבנה הזה; השאר את שורת ה-`map.src` ב-`renderContact` כמו ב-Step 4.
 
 - [ ] **Step 6: מריצים עד ירוק, ואז הסוויטה**
 

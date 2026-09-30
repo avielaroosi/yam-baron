@@ -131,7 +131,9 @@ try {
   need((await mobile.textContent("#about-title")).trim() === S.about.title, "about: title not rendered");
   need((await mobile.getAttribute("#contact-ig", "href")) === `https://instagram.com/${S.instagram}`, "contact: instagram link");
   need((await mobile.$$("#contact-hours, #contact-map, .contact__map, .hours, .contact__sub")).length === 0, "contact: no opening hours and no map (owner removed them 30.09)");
-  need(await mobile.$$eval("#contact-ig", (as) => as.length === 1 && as.every((a) => a.classList.contains("btn") && !!a.querySelector("svg") && a.href.startsWith("https://instagram.com/"))), "instagram: contact link is a styled button with an icon pointing at instagram");
+  // Task 11: contact keeps one primary action (WhatsApp); Instagram is now a
+  // secondary text link, not a filled button — so this no longer checks .btn.
+  need(await mobile.$$eval("#contact-ig", (as) => as.length === 1 && as.every((a) => !!a.querySelector("svg") && a.href.startsWith("https://instagram.com/"))), "instagram: contact link has an icon pointing at instagram");
   need((await mobile.$$("#hero-wa, #hero-ig, .hero__actions")).length === 0, "hero: no contact buttons (owner choice)");
   need(await mobile.$$eval(".wordmark", (s) => s.length > 0 && s.every((x) => getComputedStyle(x).direction === "ltr" && getComputedStyle(x).unicodeBidi === "isolate")), "the English wordmark must be laid out LTR and bidi-isolated");
   need(((await mobile.getAttribute("#contact-waze", "href")) || "").startsWith("https://waze.com/ul?q=") && (await mobile.getAttribute("#contact-waze", "href")).endsWith("&navigate=yes"), "contact: Waze navigation link");

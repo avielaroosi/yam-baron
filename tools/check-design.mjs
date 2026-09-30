@@ -203,7 +203,16 @@ try {
   await rm.close();
   // [slot:task9] — the task's own assertions replace this line
   // [slot:task10] — the task's own assertions replace this line
-  // [slot:task11] — the task's own assertions replace this line
+  // --- one primary action per section: three buttons of equal weight is none
+  const primaries = await page.evaluate(() => {
+    const c = document.querySelector("#contact");
+    if (!c) return -1;
+    return [...c.querySelectorAll(".btn")].filter((b) => {
+      const bg = getComputedStyle(b).backgroundColor;
+      return bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+    }).length;
+  });
+  need(primaries === 1, `#contact has ${primaries} filled buttons, want exactly 1`);
   // [slot:task12] — the task's own assertions replace this line
 } finally {
   await browser.close();

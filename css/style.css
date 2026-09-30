@@ -155,6 +155,10 @@ p { margin: 0; }
 .contact { display: grid; gap: 36px; grid-template-columns: 1fr; } /* one centered column: the map and the hours were removed (owner, 30.09) */
 .contact__info { display: grid; gap: 20px; justify-items: center; text-align: center; }
 .contact__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+.contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: center; }
+.contact__secondary a { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--gold); font-size: var(--step-body); }
+.contact__secondary a:hover { text-decoration: underline; }
+.contact__secondary a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
 .contact__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 1.05rem; }
 .contact__list a { color: var(--gold); }
 .contact__list a:hover { text-decoration: underline; }

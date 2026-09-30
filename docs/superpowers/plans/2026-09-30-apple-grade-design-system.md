@@ -1330,3 +1330,118 @@ so the rhythm survives.
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
+
+---
+
+### Task 13: גופן אחד — Assistant
+
+**Files:**
+- Modify: `index.html` (שורת ה-`<link>` של Google Fonts)
+- Modify: `css/style.css` (בלוקים `tokens`, `base`)
+- Modify: `tools/check-design.mjs`
+
+**Interfaces:**
+- Consumes: `--track-display`, `--step-*` ממשימה 5.
+- Produces: `--font-head` ו-`--font-body` שניהם Assistant; `--track-h3: -.01em`.
+
+- [ ] **Step 1: כותבים את הבדיקה הנכשלת**
+
+הוסף ל-`tools/check-design.mjs`, אחרי הבלוק האחרון בתוך ה-`try`:
+
+```js
+  // --- one text family, and no weight downloaded that nothing uses.
+  // A weight used in CSS but absent from the <link> makes the browser fake it
+  // (faux bold); a weight in the <link> that no rule uses is a download for nothing.
+  await page.evaluate(() => document.fonts.ready);
+  const fonts = await page.evaluate(() => {
+    const out = [];
+    const fam = (el) => getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "").trim();
+    for (const [sel, want] of [["body", "Assistant"], [".section__title", "Assistant"], [".chapter__title", "Assistant"], [".wordmark", "Playfair Display"]]) {
+      const el = document.querySelector(sel);
+      if (!el) { out.push(`${sel} missing`); continue; }
+      const got = fam(el);
+      if (got !== want) out.push(`${sel} renders ${got}, want ${want}`);
+      if (!document.fonts.check(`${getComputedStyle(el).fontWeight} 16px "${want}"`)) out.push(`${sel}: ${want} ${getComputedStyle(el).fontWeight} is not loaded — the browser is faking it`);
+    }
+    const link = [...document.querySelectorAll('link[href*="fonts.googleapis.com"]')].map((l) => l.href).join(" ");
+    for (const dead of ["Frank+Ruhl", "Heebo"]) if (link.includes(dead)) out.push(`the font link still loads ${dead}`);
+    const loaded = {};
+    for (const m of link.matchAll(/family=([^:&]+):wght@([\d;]+)/g)) loaded[decodeURIComponent(m[1]).replace(/\+/g, " ")] = m[2].split(";");
+    const used = new Set([...document.querySelectorAll("body *")].filter((e) => e.getClientRects().length).map((e) => `${fam(e)}|${getComputedStyle(e).fontWeight}`));
+    for (const [f, ws] of Object.entries(loaded)) for (const w of ws) if (!used.has(`${f}|${w}`)) out.push(`${f} ${w} is downloaded but nothing renders it`);
+    return out;
+  });
+  need(fonts.length === 0, "fonts:\n    " + fonts.join("\n    "));
+```
+
+- [ ] **Step 2: מריצים ורואים שהיא נכשלת**
+
+```bash
+cd tools && node check-design.mjs
+```
+צפוי: `FAIL` עם `body renders Heebo, want Assistant`, `.section__title renders Frank Ruhl Libre`, `the font link still loads Frank+Ruhl`, ו-`Heebo 300 is downloaded but nothing renders it`.
+
+- [ ] **Step 3: מחליפים את הטעינה**
+
+ב-`index.html`, החלף את שורת ה-`<link href="https://fonts.googleapis.com/css2?...">` ב:
+
+```html
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Assistant:wght@400;500;600&display=swap" rel="stylesheet">
+```
+
+- [ ] **Step 4: מחליפים את הטוקנים**
+
+ב-`:root` של `css/style.css`:
+
+```css
+  /* One text family, the way Apple runs SF: hierarchy comes from weight, not
+     from switching faces. Assistant is the Hebrew companion to Source Sans —
+     the nearest thing to SF that actually ships Hebrew (Inter does not).
+     Playfair is the logo's voice and appears only in the wordmark. */
+  --font-mark: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-head: "Assistant", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Assistant", "Helvetica Neue", Arial, sans-serif;
+  --track-h3: -.01em;
+```
+(מחק את שתי ההכרזות הישנות של `--font-head` ו-`--font-body`.)
+
+- [ ] **Step 5: היררכיה ממשקל**
+
+```css
+h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.1; letter-spacing: var(--track-display); margin: 0; }
+h3 { letter-spacing: var(--track-h3); }
+```
+ובדוק שאף כלל אחר לא מחזיר את כותרות ל-500: `grep -n "font-weight: 500" css/style.css` — כפתורים, קישורי פעולה, `.wordmark` ותוויות נשארים 500; כותרות (`.section__title`, `.chapter__title`, `.gift-band__title`, `.gift__title`, `.promo__eyebrow`, `.promo__subtitle`, `.promo__big-label`, `.hero__tagline`) — אם אחד מהם מכריז משקל במפורש, העבר ל-600 או הסר את ההכרזה כדי שיירש.
+
+- [ ] **Step 6: מריצים עד ירוק**
+
+```bash
+cd tools && node check-design.mjs
+```
+צפוי: `check-design: OK`. אם נשאר `X is downloaded but nothing renders it` — הסר את המשקל מה-`<link>`; אם נשאר `is not loaded — the browser is faking it` — הוסף אותו.
+
+- [ ] **Step 7: הסוויטה המלאה + מבט**
+
+```bash
+cd tools && npm run check
+```
+צפוי: שלושתן `OK`. פתח `tools/shots/desktop.png` ו-`mobile.png`: כותרות עבריות ב-Assistant 600, גוף 400, הוורדמארק עדיין Playfair.
+
+- [ ] **Step 8: קומיט**
+
+```bash
+git add index.html css/style.css tools/check-design.mjs
+git commit -m "design: one text family — Assistant for headings and body
+
+Hierarchy now comes from weight (600 / 500 / 400), the way Apple runs SF,
+instead of from switching between a serif and a sans. Assistant is the Hebrew
+companion to Source Sans and the nearest thing to SF that actually ships Hebrew
+— Inter does not, so every Hebrew glyph would have fallen back to another face.
+Playfair stays for the wordmark alone.
+
+Two font bugs fixed on the way: Heebo 300 and Frank Ruhl 700 were downloaded on
+every visit and used by nothing; h3 now carries its own, lighter tracking. The
+check fails on any loaded-but-unused weight and any used-but-unloaded one.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+```

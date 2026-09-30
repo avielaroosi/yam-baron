@@ -102,7 +102,7 @@ p { margin: 0; }
 .card { background: var(--black-2); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: var(--hl-ease); }
 .card__img { aspect-ratio: 3 / 4; width: 100%; object-fit: cover; transition: var(--hl-ease); }
 .card__body { padding: 22px 22px 26px; display: grid; gap: 10px; flex: 1; align-content: start; }
-.card__title { font-size: 1.35rem; color: var(--gold); }
+.card__title { font-size: 1.35rem; color: var(--text-on-ink); }
 .card__desc { color: var(--cream-2); font-size: .98rem; }
 .card__link { margin-top: auto; padding-top: 8px; color: var(--gold); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
 .card__link:hover { text-decoration: underline; }

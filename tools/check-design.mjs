@@ -128,6 +128,25 @@ try {
     return out;
   });
   need(chrome.length === 0, "decorative chrome remains:\n    " + chrome.join("\n    "));
+
+  // --- gold says "tap here" and nothing else. Anything outside ACTION that paints
+  // itself gold is decoration, and decoration in the action colour is what drains
+  // a call to action of its meaning.
+  const strayGold = await page.evaluate(() => {
+    const GOLD = ["rgb(201, 169, 97)", "rgb(125, 98, 41)"];
+    const ACTION = ".btn, .card__link, .chapter__link, .contact__list a, .contact__secondary a, .wa-fab, .skip, .hero__scroll, .lightbox__close, .lightbox__nav, .video__play, .promo__close, .gift-band__eyebrow, .promo__highlight, .promo__big-num, .gift__eyebrow, .gift__closing";
+    const out = [];
+    for (const el of document.querySelectorAll("body *")) {
+      if (!el.getClientRects().length) continue;
+      if (el.closest(ACTION)) continue;
+      const cs = getComputedStyle(el);
+      for (const [prop, val] of [["color", cs.color], ["background-color", cs.backgroundColor], ["border-top-color", parseFloat(cs.borderTopWidth) > 0 ? cs.borderTopColor : ""]]) {
+        if (GOLD.includes(val)) out.push(`${el.tagName.toLowerCase()}.${(el.className || "").toString().split(" ")[0]} uses gold as ${prop}`);
+      }
+    }
+    return out;
+  });
+  need(strayGold.length === 0, "gold used outside an action:\n    " + strayGold.join("\n    "));
 } finally {
   await browser.close();
   server.close();

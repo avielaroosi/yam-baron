@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node check-content.mjs && node check-page.mjs"
+    "check": "node check-content.mjs && node check-design.mjs && node check-page.mjs"
   },
   "devDependencies": {
     "playwright-core": "1.61.1"

@@ -1445,3 +1445,158 @@ check fails on any loaded-but-unused weight and any used-but-unloaded one.
 
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
+
+---
+
+### Task 14: דף קצר יותר — מקטע הוכחה אחד, מפה, גליף וואטסאפ (מקובץ)
+
+**Files:**
+- Modify: `index.html` (מקטעי `#videos`/`#testimonials`, `#contact`, `.wa-fab`)
+- Modify: `css/style.css` (בלוקים `testimonials`, `contact`, `floating WhatsApp button`)
+- Modify: `js/main.js` (`renderContact`)
+- Modify: `tools/check-design.mjs`, `tools/check-page.mjs` (התאמת בדיקות שמשוות למבנה הישן — סלקטורים בלבד)
+
+**Interfaces:**
+- Consumes: `S.address`, `--sp-5`, `--radius`, `--section-y`, `.videos` ממשימה 6.
+- Produces: `.proof`, `.contact__map`, `#contact-map`.
+
+- [ ] **Step 1: כותבים את הבדיקה הנכשלת**
+
+הוסף ל-`tools/check-design.mjs`, אחרי הבלוק האחרון בתוך ה-`try`:
+
+```js
+  // --- one proof section: the single clip and the testimonials share a heading,
+  // the map is back under the address, and the WhatsApp glyph is the current one
+  const shorter = await page.evaluate(() => {
+    const out = [];
+    if (document.querySelector("#videos")) out.push("#videos section still exists — the clip belongs inside #testimonials");
+    const t = document.querySelector("#testimonials");
+    if (!t) out.push("#testimonials missing");
+    else {
+      if (!t.querySelector("#videos-grid")) out.push("#videos-grid must live inside #testimonials");
+      if (!t.querySelector("#testimonials-grid")) out.push("#testimonials-grid must live inside #testimonials");
+      if (t.querySelector(".section__title")?.textContent.trim() !== "המלצות") out.push("the merged section keeps the heading המלצות");
+    }
+    const map = document.querySelector("#contact-map");
+    if (!map) out.push("#contact-map iframe missing");
+    else {
+      if (!/google\.com\/maps/.test(map.src) || !map.src.includes("output=embed")) out.push(`map src is not a Google Maps embed: ${map.src}`);
+      if (map.getAttribute("loading") !== "lazy") out.push("map must be loading=lazy");
+      if (!map.title) out.push("map iframe needs a title");
+    }
+    for (const sel of [".wa-fab svg path", "#contact-wa svg path"]) {
+      const d = document.querySelector(sel)?.getAttribute("d") || "";
+      if (!d.startsWith("M17.472 14.382")) out.push(`${sel} is not the current WhatsApp glyph`);
+    }
+    return out;
+  });
+  need(shorter.length === 0, "shorter page:\n    " + shorter.join("\n    "));
+```
+
+- [ ] **Step 2: מריצים ורואים שהיא נכשלת**
+
+```bash
+cd tools && node check-design.mjs
+```
+צפוי: `FAIL` עם `#videos section still exists`, `#contact-map iframe missing`, ושתי שורות הגליף.
+
+- [ ] **Step 3: ממזגים את הסרטון לתוך ההמלצות**
+
+ב-`index.html`, מחק את כל `<section … id="videos">…</section>` והחלף את מקטע ההמלצות ב:
+
+```html
+    <section class="section section--dark reveal" id="testimonials">
+      <div class="container">
+        <h2 class="section__title">המלצות</h2>
+        <div class="proof">
+          <div class="videos" id="videos-grid"></div>
+          <div class="proof__wall">
+            <p class="testimonials__empty" id="testimonials-empty">המלצות של לקוחות יעלו כאן בקרוב</p>
+            <div class="testimonials" id="testimonials-grid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+```
+
+ב-`css/style.css`, בבלוק `testimonials`:
+
+```css
+/* One proof section: the real before/after clip beside the client screenshots.
+   Desktop puts the clip on the start side and lets the wall fill the rest. */
+.proof { display: grid; gap: var(--sp-5); }
+.proof .videos { max-width: none; }
+@media (min-width: 820px) {
+  .proof { grid-template-columns: minmax(0, var(--video-max)) 1fr; align-items: start; gap: var(--sp-6); }
+  .proof .videos { grid-template-columns: 1fr; justify-content: stretch; }
+  .proof .testimonials { columns: 3; }
+}
+```
+מחק את `.section--divided { border-top: 0; }` (המחלקה כבר לא בשימוש).
+
+- [ ] **Step 4: מחזירים את המפה**
+
+ב-`index.html`, בתוך `#contact` אחרי `</ul>` של `.contact__list`:
+
+```html
+            <div class="contact__map">
+              <iframe id="contact-map" title="מפה: הסטודיו" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+            </div>
+```
+
+ב-`js/main.js`, בתוך `renderContact`, אחרי קביעת הכתובת:
+
+```js
+    // The map follows the address in content.js, so an address change moves the pin too.
+    const map = $("contact-map");
+    if (map) map.src = "https://www.google.com/maps?q=" + encodeURIComponent(S.address) + "&output=embed&hl=he";
+```
+
+ב-`css/style.css`, בבלוק `contact`:
+
+```css
+.contact__map { width: min(100%, var(--measure)); margin-inline: auto; aspect-ratio: 16 / 9; border-radius: var(--radius); overflow: hidden; background: var(--ink-1); }
+/* desaturated so the map sits inside the ink/gold palette instead of shouting over it */
+.contact__map iframe { width: 100%; height: 100%; border: 0; display: block; filter: grayscale(1) contrast(1.05); }
+```
+
+- [ ] **Step 5: הגליף העדכני**
+
+ב-`index.html`, החלף את ה-`<svg>` בתוך `.wa-fab` ב:
+
+```html
+    <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+```
+
+ואת כפתור הוואטסאפ הראשי ב-`#contact`:
+
+```html
+              <a class="btn btn--wa btn--big" id="contact-wa" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg><span>לתיאום תור בוואטסאפ</span></a>
+```
+`.btn` כבר מסדר אייקון וטקסט עם `gap: .5em`. הכיתוב לא משתנה.
+
+- [ ] **Step 6: מריצים עד ירוק, ואז הסוויטה**
+
+```bash
+cd tools && node check-design.mjs && npm run check
+```
+`check-page.mjs` מכיר את המבנה הישן (מקטע `#videos` נפרד, אולי כותרת "סרטונים"). אם הוא נופל על סלקטור שמצביע על מבנה שכבר לא קיים — תקן **סלקטור בלבד**, שמור על מה שהטענה מוודאת (הסרטון מתנגן/נעצר, ההמלצות נפתחות ב-lightbox), ותעד לפני/אחרי בדו"ח. אל תחליש שום דבר אחר. בדיקת הסמיכות (משימה 6) חייבת להישאר ירוקה: `gallery → testimonials → gift-band` = paper-0 → ink-0 → ink-1.
+
+- [ ] **Step 7: README**
+
+בסעיף "יצירת קשר"/"תוכן" ב-`README.md`: שורה שהמפה היא Google Maps embed שנגזר מ-`address` ב-`content.js` (שינוי כתובת מזיז את הסיכה), ושהסרטון יושב במקטע ההמלצות.
+
+- [ ] **Step 8: קומיט**
+
+```bash
+git add index.html css/style.css js/main.js tools/check-design.mjs tools/check-page.mjs README.md
+git commit -m "content: one proof section, the map back, the current WhatsApp glyph
+
+With a single clip there is no case for a videos section of its own; the real
+before/after is proof exactly like the client screenshots, so both sit under
+one heading and the page loses a whole section of scroll. The map returns as a
+Google Maps embed driven by the address in content.js. The floating button and
+the primary button carry the current WhatsApp glyph.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+```

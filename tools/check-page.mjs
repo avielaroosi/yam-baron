@@ -123,9 +123,9 @@ try {
   }
   need(await mobile.$$eval('a[href^="https://wa.me/"]', (as) => as.every((a) => a.target === "_blank")), "wa links must open in a new tab");
 
-  // --- services
-  need((await mobile.$$("#services-grid .card")).length === S.services.length, "services: one card per service");
-  need((await mobile.$$eval("#services-grid .card__title", (h) => h.map((x) => x.textContent).join("|"))) === S.services.map((s) => s.title).join("|"), "services: titles mismatch");
+  // --- services (Task 10: services are chapters, not cards)
+  need((await mobile.$$("#services-grid .chapter")).length === S.services.length, "services: one chapter per service");
+  need((await mobile.$$eval("#services-grid .chapter__title", (h) => h.map((x) => x.textContent).join("|"))) === S.services.map((s) => s.title).join("|"), "services: titles mismatch");
 
   // --- about + contact
   need((await mobile.textContent("#about-title")).trim() === S.about.title, "about: title not rendered");

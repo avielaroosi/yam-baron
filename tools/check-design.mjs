@@ -237,7 +237,21 @@ try {
   const heroPoster = await phone.evaluate(() => { const v = document.querySelector("#hero-video"); return v ? getComputedStyle(v).display : "none"; });
   need(heroPoster === "none", "the hero video element must not render below 820px");
   await phone.close();
-  // [slot:task10] — the task's own assertions replace this line
+  // --- chapters must survive a visitor who doubled their text size
+  const big = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  await big.goto(base, { waitUntil: "load" });
+  await big.addStyleTag({ content: "html { font-size: 32px !important; }" });
+  await big.waitForTimeout(300);
+  const clipped = await big.evaluate(() => {
+    const out = [];
+    for (const el of document.querySelectorAll(".chapter__body")) {
+      if (el.scrollHeight > el.clientHeight + 2) out.push(`${el.closest(".chapter").id || "chapter"} clips its text at 2x`);
+    }
+    if (document.documentElement.scrollWidth > window.innerWidth + 1) out.push("the page scrolls sideways at 2x text");
+    return out;
+  });
+  need(clipped.length === 0, "large text:\n    " + clipped.join("\n    "));
+  await big.close();
   // --- one primary action per section: three buttons of equal weight is none
   const primaries = await page.evaluate(() => {
     const c = document.querySelector("#contact");

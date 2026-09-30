@@ -43,19 +43,21 @@
     $("hero-text").textContent = S.heroText;
   }
 
-  // ---- services
+  // ---- services, as chapters: a photograph and a paragraph rather than a card
   function renderServices() {
     const grid = $("services-grid");
-    for (const s of S.services) {
-      grid.append(el("article", { class: "card", id: "service-" + s.id }, [
-        el("img", { class: "card__img", loading: "lazy", src: s.image, alt: s.title }),
-        el("div", { class: "card__body" }, [
-          el("h3", { class: "card__title", text: s.title }),
-          ...[].concat(s.desc).map((para) => el("p", { class: "card__desc", text: para })),
-          el("a", { class: "card__link", href: waLink(s.whatsappText), target: "_blank", rel: "noopener", text: "לתיאום בוואטסאפ ←" }),
+    S.services.forEach((s, i) => {
+      grid.append(el("article", { class: "chapter" + (i % 2 ? " chapter--flip" : ""), id: "service-" + s.id }, [
+        el("div", { class: "chapter__media" }, [
+          el("img", { loading: "lazy", src: s.image, alt: s.title }),
+        ]),
+        el("div", { class: "chapter__body" }, [
+          el("h3", { class: "chapter__title", text: s.title }),
+          ...[].concat(s.desc).map((para) => el("p", { class: "chapter__text", text: para })),
+          el("a", { class: "chapter__link", href: waLink(s.whatsappText), target: "_blank", rel: "noopener", text: "לתיאום בוואטסאפ ←" }),
         ]),
       ]));
-    }
+    });
   }
 
   // ---- about

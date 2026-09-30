@@ -44,6 +44,8 @@
   --dur-micro: 180ms;
   --dur-ui: 280ms;
   --dur-scene: 600ms;
+  --stagger-rise: 12px;
+  --stagger-step: 60ms;
 
   --gold: #c9a961;
   --gold-soft: rgba(201, 169, 97, .35);
@@ -318,9 +320,9 @@ iframe.video__media { border: 0; }
    the black lifts, and the identical hero logo is already sitting underneath. */
 .intro.is-landing .intro__stage {
   transform: translate(var(--flip-x), var(--flip-y)) scale(var(--flip-s));
-  transition: transform .75s cubic-bezier(.65, 0, .2, 1);
+  transition: transform .53s cubic-bezier(.65, 0, .2, 1);
 }
-.intro.is-landing { background: transparent; transition: background .6s ease .15s; }
+.intro.is-landing { background: transparent; transition: background .42s ease .1s; }
 .intro.is-done { opacity: 0; transition: opacity .25s ease; pointer-events: none; }
 /* The black lifts while the logo is still travelling, which would show the resting hero
    logo underneath the flying one. Hide it until the flight lands on top of it — at that
@@ -369,11 +371,11 @@ html.intro-running .hero__logo { visibility: hidden; }
    at once. Reduced motion collapses both to nothing. */
 .js .reveal { opacity: 0; transform: translateY(18px); transition: opacity var(--dur-scene) var(--ease), transform var(--dur-scene) var(--ease); }
 .reveal.is-in { opacity: 1; transform: none; }
-.js .reveal .container > *, .js .reveal .chapter { opacity: 0; transform: translateY(12px); transition: opacity var(--dur-scene) var(--ease), transform var(--dur-scene) var(--ease); }
+.js .reveal .container > *, .js .reveal .chapter { opacity: 0; transform: translateY(var(--stagger-rise)); transition: opacity var(--dur-scene) var(--ease), transform var(--dur-scene) var(--ease); }
 .reveal.is-in .container > *, .reveal.is-in .chapter { opacity: 1; transform: none; }
-.reveal.is-in .container > *:nth-child(2), .reveal.is-in .chapter:nth-child(2) { transition-delay: 60ms; }
-.reveal.is-in .container > *:nth-child(3), .reveal.is-in .chapter:nth-child(3) { transition-delay: 120ms; }
-.reveal.is-in .container > *:nth-child(n+4), .reveal.is-in .chapter:nth-child(n+4) { transition-delay: 180ms; }
+.reveal.is-in .container > *:nth-child(2), .reveal.is-in .chapter:nth-child(2) { transition-delay: var(--stagger-step); }
+.reveal.is-in .container > *:nth-child(3), .reveal.is-in .chapter:nth-child(3) { transition-delay: calc(var(--stagger-step) * 2); }
+.reveal.is-in .container > *:nth-child(n+4), .reveal.is-in .chapter:nth-child(n+4) { transition-delay: calc(var(--stagger-step) * 3); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; transition: none; }

@@ -1707,6 +1707,15 @@ cd tools && node video-poster.mjs ../assets/video/hero-tall.mp4 ../assets/img/he
   need(phoneHero.poster === "hero-video-poster-tall.jpg", `phone poster is ${phoneHero.poster}, want hero-video-poster-tall.jpg`);
   need(phoneHero.logoInView, "the hero logo must sit fully inside the first phone screen");
   need(phoneHero.heroH >= phoneHero.vh * 0.9, `phone hero is ${phoneHero.heroH}px tall for a ${phoneHero.vh}px screen`);
+  // the hero carries its own call to action (spec: "לוגו מעליו, CTA אחד"), so the
+  // floating button is redundant there and must stay hidden until the hero scrolls away
+  const heroCta = await phone.evaluate(() => {
+    const a = document.querySelector(".hero__inner #hero-wa");
+    return a ? { btn: a.classList.contains("btn"), wa: /^https:\/\/wa\.me\//.test(a.href), inView: a.getBoundingClientRect().bottom <= innerHeight } : null;
+  });
+  need(heroCta && heroCta.btn && heroCta.wa, "#hero-wa must be a .btn inside .hero__inner linking to wa.me");
+  need(heroCta && heroCta.inView, "the hero CTA must fit inside the first phone screen");
+  need(await phone.evaluate(() => !document.querySelector(".wa-fab").classList.contains("is-visible")), "the WhatsApp FAB must stay hidden while the hero (which has its own CTA) is on screen");
 
   // --- no sideways scroll and no tap target under 44px, anywhere on the phone
   const phoneLayout = await phone.evaluate(() => {
@@ -1790,18 +1799,34 @@ cd tools && node check-design.mjs
     }
 ```
 
+- [ ] **Step 5c: CTA בפתיח**
+
+האפיון קבע "לוגו מעליו, CTA אחד" ומשימה 9 לא הוסיפה אותו; היום הכפתור הצף הוא הפעולה
+היחידה במסך הראשון. ב-`index.html`, בתוך `.hero__inner` אחרי `<p class="hero__text" …>`:
+
+```html
+      <a class="btn btn--wa hero__cta" id="hero-wa" href="#" target="_blank" rel="noopener">לתיאום תור בוואטסאפ</a>
+```
+(אותו כיתוב שכבר קיים ביצירת קשר — אין קופי חדש.) ב-`js/main.js`, ב-`renderHero`:
+```js
+    const heroWa = $("hero-wa"); if (heroWa) heroWa.href = waLink();
+```
+ב-`css/style.css`, בבלוק `hero`: `.hero__cta { margin-top: var(--sp-2); }`.
+`check-page.mjs` סופר קישורי וואטסאפ דינמית — המספר גדל באחד; אם הוא מניח מספר קשיח, תקן את המספר בלבד ותעד.
+
 - [ ] **Step 6: ה-FAB מפנה מקום לכפתור הראשי**
 
-ב-`js/main.js`, ב-`initFab`: היום הוא מסתיר את הכפתור הצף כשה-hero על המסך. הוסף את
-`#contact` לאותו כלל — הכפתור מוצג רק כשלא ה-hero ולא `#contact` נמצאים בתצוגה. השתמש
-באותו `IntersectionObserver` עם שני יעדים ומפה של מצבים:
+ב-`js/main.js`, `initFab` היום פשוט מציג את הכפתור הצף מהרגע הראשון (ההערה שם: "ל-hero
+אין כפתור"). אחרי Step 5c יש ל-hero כפתור, וליצירת קשר יש כפתור — הכפתור הצף מיותר מול
+שניהם ונחוץ רק באמצע הדף. החלף את הפונקציה כולה ב-`IntersectionObserver` עם שני יעדים:
 
 ```js
   function initFab() {
     const fab = $("wa-fab");
     fab.href = waLink();
-    // Hidden while the hero is on screen (it has its own CTA) and while the contact
-    // section is (its primary button would sit right under the floating one).
+    // Shown only where no call to action is already on screen: the hero has its own
+    // button now, and the contact section's primary button would sit right under
+    // the floating one. In between, the floating button is the way to reach Yam.
     const covered = new Map();
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) covered.set(e.target, e.isIntersecting);
@@ -1817,7 +1842,7 @@ cd tools && node check-design.mjs
 ```bash
 cd tools && node check-design.mjs
 ```
-צפוי: `check-design: OK`. יעד מגע שנפל מתחת ל-44px — הגדל `min-height`/`padding` בכלל שלו עם טוקנים, לא במספר קשיח.
+צפוי: `check-design: OK`. `check-page.mjs` עשוי להניח שהכפתור הצף גלוי מיד אחרי טעינה (ההתנהגות הישנה) — אם טענה כזאת נופלת, הפוך את הציפייה שלה (מוסתר מול הפתיח, גלוי אחרי גלילה למקטע ביניים כמו `#gallery`) ותעד לפני/אחרי. יעד מגע שנפל מתחת ל-44px — הגדל `min-height`/`padding` בכלל שלו עם טוקנים, לא במספר קשיח.
 
 - [ ] **Step 8: המעבר המובייל — עין, לא רק סקריפט**
 

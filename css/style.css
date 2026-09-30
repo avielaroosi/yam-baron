@@ -76,6 +76,7 @@
   --focus-offset: 3px;
   --radius-sm: 4px;
   --video-min: 260px; --video-max: 380px; --video-solo: 460px;
+  --tap: 44px;
 }
 
 /* ===== base ===== */
@@ -105,26 +106,25 @@ p { margin: 0; }
 .btn--gold { background: var(--gold); color: var(--ink-0); border-color: var(--gold); }
 .btn--gold:hover { background: #d8b976; border-color: #d8b976; }
 
-/* ===== hero ===== */
-/* The studio photo is shown whole (never cropped): stacked above the logo on phones,
-   as a full-height column beside the logo on wider screens. */
-.hero { position: relative; background: var(--ink-0); text-align: center; isolation: isolate; }
-.hero__media { position: relative; line-height: 0; }
-.hero__bg { width: 100%; height: auto; display: block; }
-.hero__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 10, 11, .25) 0%, rgba(10, 10, 11, 0) 25%, rgba(10, 10, 11, 0) 60%, var(--ink-0) 100%); }
-.hero__inner { position: relative; max-width: 720px; margin-inline: auto; display: grid; gap: 18px; justify-items: center; padding: 0 var(--pad) 56px; margin-top: -22vw; }
-.hero__tagline { font-family: var(--font-head); font-weight: 600; font-size: var(--step-lead); letter-spacing: var(--track-display); }
+/* ===== hero =====
+   One structure for every screen: the still photograph paints first (it is
+   preloaded), the clip's poster and then the clip itself sit above it, the scrim
+   above those, the logo on top. The phone gets the tall clip, the desktop the wide. */
+.hero { position: relative; background: var(--ink-0); text-align: center; isolation: isolate; display: block; min-height: 100svh; }
+.hero__media { position: absolute; inset: 0; height: 100%; line-height: 0; }
+.hero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+.hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+/* darker at the foot on the phone, where the tagline and text sit */
+.hero__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 10, 11, .35) 0%, rgba(10, 10, 11, .1) 35%, rgba(10, 10, 11, .9) 100%); }
+.hero__inner { position: relative; z-index: 1; max-width: 720px; margin-inline: auto; min-height: 100svh; display: grid; gap: var(--sp-2); justify-items: center; align-content: center; padding: var(--section-y) var(--pad) var(--sp-7); }
+.hero__tagline { font-family: var(--font-head); font-size: var(--step-lead); letter-spacing: var(--track-display); }
 .hero__text { max-width: 560px; color: var(--text-on-ink-2); font-size: var(--step-body); }
+.hero__cta { margin-top: var(--sp-2); }
 .hero__scroll { display: none; }
-.hero__video { display: none; }
 @media (min-width: 820px) {
-  .hero { display: block; min-height: 100svh; }
-  .hero__media { position: absolute; inset: 0; height: 100%; }
-  .hero__video { display: block; position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .hero__bg { display: none; }
   .hero__media::after { background: linear-gradient(180deg, rgba(10, 10, 11, .45) 0%, rgba(10, 10, 11, .15) 40%, rgba(10, 10, 11, .85) 100%); }
-  .hero__inner { position: relative; z-index: 1; margin-top: 0; min-height: 100svh; align-content: center; padding: var(--section-y) var(--pad); }
-  .hero__scroll { display: block; position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 1.4rem; opacity: .8; }
+  .hero__inner { padding: var(--section-y) var(--pad); }
+  .hero__scroll { display: block; position: absolute; bottom: var(--sp-3); left: 50%; transform: translateX(-50%); color: var(--gold); font-size: 1.4rem; opacity: .8; }
 }
 
 /* ===== sections ===== */
@@ -147,7 +147,7 @@ p { margin: 0; }
 .chapter__body { display: grid; gap: var(--sp-3); align-content: center; }
 .chapter__title { font-size: var(--step-h2); line-height: 1.08; color: var(--text-on-ink); }
 .chapter__text { color: var(--text-on-ink-2); max-width: var(--measure); }
-.chapter__link { color: var(--gold); font-weight: 500; justify-self: start; }
+.chapter__link { color: var(--gold); font-weight: 500; justify-self: start; min-height: var(--tap); display: inline-flex; align-items: center; }
 .chapter__link:hover { text-decoration: underline; }
 @media (min-width: 820px) {
   .chapter { grid-template-columns: 1fr 1fr; gap: var(--sp-7); }
@@ -195,7 +195,7 @@ p { margin: 0; }
 .contact__stack { display: grid; gap: var(--sp-3); justify-items: start; }
 .contact__stack .btn { width: 100%; }
 /* digits keep their order inside RTL text, and a phone number is a tap target, not a caption */
-.contact__tel { font-size: var(--step-lead); font-weight: 500; color: var(--gold); direction: ltr; unicode-bidi: isolate; }
+.contact__tel { font-size: var(--step-lead); font-weight: 500; color: var(--gold); direction: ltr; unicode-bidi: isolate; min-height: var(--tap); display: inline-flex; align-items: center; }
 .contact__tel:hover { text-decoration: underline; }
 .contact__address { color: var(--text-on-ink-2); font-size: var(--step-body); }
 .contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
@@ -368,7 +368,7 @@ html.intro-running .hero__logo { visibility: hidden; }
 .promo.is-open { opacity: 1; }
 .promo__card { position: relative; width: min(100%, 400px); background: var(--paper-0); color: var(--ink-0); border-radius: var(--radius); overflow: hidden; box-shadow: 0 30px 80px rgba(0, 0, 0, .6); transform: translateY(18px) scale(.97); transition: transform .35s ease; }
 .promo.is-open .promo__card { transform: none; }
-.promo__close { position: absolute; top: 10px; left: 10px; z-index: 1; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(10, 10, 11, .55); color: var(--paper-0); font-size: 1.5rem; line-height: 1; cursor: pointer; display: grid; place-items: center; font-family: var(--font-body); }
+.promo__close { position: absolute; top: 10px; left: 10px; z-index: 1; width: var(--tap); height: var(--tap); border-radius: 50%; border: 0; background: rgba(10, 10, 11, .55); color: var(--paper-0); font-size: 1.5rem; line-height: 1; cursor: pointer; display: grid; place-items: center; font-family: var(--font-body); }
 .promo__close:hover { background: var(--ink-0); }
 .promo__close:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .promo__visual { position: relative; }
@@ -450,3 +450,14 @@ html.intro-running .hero__logo { visibility: hidden; }
 .promo--gift .gift__closing { margin: 0; font-family: var(--font-head); font-weight: 600; color: var(--gold-on-paper); font-size: 1.1rem; }
 .promo--gift .promo__text { max-width: none; }
 .promo--gift .promo__visual--photo .promo__img { object-position: 50% 30%; }
+
+/* ===== mobile pass (task 15) =====
+   Point fixes found by reading tools/shots/mobile.png and mobile-fold.png section by
+   section, not by re-guessing the whole layout. Every number here is a token already
+   declared in :root. */
+@media (max-width: 819px) {
+  /* Works (gallery): the two-column gutter reused the section-level --sp-3 (24px),
+     which reads as wasted air between thumbnails at 390px wide. --sp-2 (16px) keeps
+     the same rhythm the rest of the mobile grid uses for tight clusters. */
+  .gallery { gap: var(--sp-2); }
+}

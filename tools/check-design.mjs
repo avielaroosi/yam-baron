@@ -147,6 +147,38 @@ try {
     return out;
   });
   need(strayGold.length === 0, "gold used outside an action:\n    " + strayGold.join("\n    "));
+
+  // --- type scale: display type is big and tight; Hebrew body type is neither.
+  // Negative tracking is what gives Apple's headlines their grip, but Hebrew has
+  // no capitals and no ascender rhythm to tighten against — squeezing it at
+  // reading size only crowds it. So the scale tracks display sizes and nothing else.
+  const type = await page.evaluate(() => {
+    const out = [];
+    const px = (el, prop) => parseFloat(getComputedStyle(el)[prop]);
+    const h2 = document.querySelector(".section__title");
+    if (h2) {
+      if (px(h2, "fontSize") < 48) out.push(`section title is ${px(h2, "fontSize")}px at 1440 wide, want >= 48`);
+      // an untracked heading computes to "normal", whose parseFloat is NaN — and
+      // every comparison against NaN is false, so this must test the string too
+      const hls = getComputedStyle(h2).letterSpacing;
+      if (hls === "normal" || parseFloat(hls) >= 0) out.push(`section title must carry negative tracking, got ${hls}`);
+    }
+    const body = document.querySelector(".about__text p");
+    if (body) {
+      const size = px(body, "fontSize");
+      if (Math.abs(size - 17) > 0.6) out.push(`body copy is ${size}px, want 17`);
+      const ls = getComputedStyle(body).letterSpacing;
+      if (ls !== "normal" && parseFloat(ls) !== 0) out.push(`body copy must not be tracked, got ${ls}`);
+      if (px(body, "lineHeight") / size < 1.45) out.push("body line-height must stay at or above 1.47");
+    }
+    // HIG, Right to Left: Hebrew reads small beside an uppercased Latin wordmark,
+    // because it has no capitals. The footer sets the two side by side.
+    const year = document.querySelector(".footer__year");
+    if (!year) out.push(".footer__year must exist so the Hebrew can be balanced against the wordmark");
+    else if (px(year, "fontSize") <= px(year.parentElement, "fontSize")) out.push("the footer's Hebrew must be larger than the surrounding size");
+    return out;
+  });
+  need(type.length === 0, "type scale:\n    " + type.join("\n    "));
 } finally {
   await browser.close();
   server.close();

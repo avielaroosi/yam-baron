@@ -155,7 +155,15 @@ p { margin: 0; }
 }
 
 /* ===== testimonials (screenshots) ===== */
-.section--divided { border-top: 0; }
+/* One proof section: the real before/after clip beside the client screenshots.
+   Desktop puts the clip on the start side and lets the wall fill the rest. */
+.proof { display: grid; gap: var(--sp-5); }
+.proof .videos { max-width: none; }
+@media (min-width: 820px) {
+  .proof { grid-template-columns: minmax(0, var(--video-max)) 1fr; align-items: start; gap: var(--sp-6); }
+  .proof .videos { grid-template-columns: 1fr; justify-content: stretch; }
+  .proof .testimonials { columns: 3; }
+}
 .testimonials__empty { text-align: center; color: var(--text-on-ink-2); }
 .testimonials__empty[hidden] { display: none; }
 .testimonials { columns: 2; column-gap: 12px; max-width: 1000px; margin-inline: auto; }
@@ -180,17 +188,29 @@ p { margin: 0; }
   .about__text { margin-inline: 0; }
 }
 
-/* ===== contact ===== */
-.contact { display: grid; gap: 36px; grid-template-columns: 1fr; } /* one centered column: the map and the hours were removed (owner, 30.09) */
-.contact__info { display: grid; gap: 20px; justify-items: center; text-align: center; }
-.contact__actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-.contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: center; }
-.contact__secondary a { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--gold); font-size: var(--step-body); }
+/* ===== contact =====
+   Two columns, like "about": the invitation on the start side, the map on the end.
+   No frame and no shadow — a map is not a photograph. Everything stacks on a phone. */
+.contact { display: grid; gap: var(--sp-6); align-items: start; }
+.contact__stack { display: grid; gap: var(--sp-3); justify-items: start; }
+.contact__stack .btn { width: 100%; }
+/* digits keep their order inside RTL text, and a phone number is a tap target, not a caption */
+.contact__tel { font-size: var(--step-lead); font-weight: 500; color: var(--gold); direction: ltr; unicode-bidi: isolate; }
+.contact__tel:hover { text-decoration: underline; }
+.contact__address { color: var(--text-on-ink-2); font-size: var(--step-body); }
+.contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
+.contact__secondary a { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--gold); font-size: var(--step-body); min-height: 44px; }
 .contact__secondary a:hover { text-decoration: underline; }
 .contact__secondary a:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); border-radius: var(--radius-sm); }
-.contact__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 1.05rem; }
-.contact__list a { color: var(--gold); }
-.contact__list a:hover { text-decoration: underline; }
+.contact__map { aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden; background: var(--ink-0); }
+/* desaturated so the map sits inside the ink/gold palette instead of shouting over it */
+.contact__map iframe { width: 100%; height: 100%; border: 0; display: block; filter: grayscale(1) contrast(1.05); }
+#contact .section__title { text-align: center; }
+@media (min-width: 820px) {
+  .contact { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-7); }
+  .contact__stack .btn { width: auto; }
+  #contact .section__title { text-align: start; }
+}
 
 /* ===== footer ===== */
 .footer { padding: 28px var(--pad); text-align: center; color: var(--text-on-ink-2); font-size: .9rem; }

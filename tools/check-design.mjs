@@ -138,7 +138,7 @@ try {
   // a call to action of its meaning.
   const strayGold = await page.evaluate(() => {
     const GOLD = ["rgb(201, 169, 97)", "rgb(125, 98, 41)"];
-    const ACTION = ".btn, .card__link, .chapter__link, .contact__list a, .contact__secondary a, .wa-fab, .skip, .hero__scroll, .lightbox__close, .lightbox__nav, .video__play, .promo__close, .gift-band__eyebrow, .promo__highlight, .promo__big-num, .gift__eyebrow, .gift__closing";
+    const ACTION = ".btn, .card__link, .chapter__link, .contact__tel, .contact__secondary a, .wa-fab, .skip, .hero__scroll, .lightbox__close, .lightbox__nav, .video__play, .promo__close, .gift-band__eyebrow, .promo__highlight, .promo__big-num, .gift__eyebrow, .gift__closing";
     const out = [];
     for (const el of document.querySelectorAll("body *")) {
       if (!el.getClientRects().length) continue;
@@ -318,6 +318,36 @@ try {
     return out;
   });
   need(fonts.length === 0, "fonts:\n    " + fonts.join("\n    "));
+
+  // --- one proof section: the single clip and the testimonials share a heading,
+  // the map is back under the address, and the WhatsApp glyph is the current one
+  const shorter = await page.evaluate(() => {
+    const out = [];
+    if (document.querySelector("#videos")) out.push("#videos section still exists — the clip belongs inside #testimonials");
+    const t = document.querySelector("#testimonials");
+    if (!t) out.push("#testimonials missing");
+    else {
+      if (!t.querySelector("#videos-grid")) out.push("#videos-grid must live inside #testimonials");
+      if (!t.querySelector("#testimonials-grid")) out.push("#testimonials-grid must live inside #testimonials");
+      if (t.querySelector(".section__title")?.textContent.trim() !== "המלצות") out.push("the merged section keeps the heading המלצות");
+    }
+    const map = document.querySelector("#contact-map");
+    if (!map) out.push("#contact-map iframe missing");
+    else {
+      if (!/google\.com\/maps/.test(map.src) || !map.src.includes("output=embed")) out.push(`map src is not a Google Maps embed: ${map.src}`);
+      if (map.getAttribute("loading") !== "lazy") out.push("map must be loading=lazy");
+      if (!map.title) out.push("map iframe needs a title");
+    }
+    if (!document.querySelector("#contact .contact__stack #contact-wa")) out.push("#contact-wa must sit inside .contact__stack");
+    if (!document.querySelector("#contact .contact__tel#contact-tel")) out.push("#contact-tel is a .contact__tel link, not a list item");
+    if (document.querySelector("#contact .contact__list")) out.push(".contact__list is gone — the stack replaces it");
+    for (const sel of [".wa-fab svg path", "#contact-wa svg path"]) {
+      const d = document.querySelector(sel)?.getAttribute("d") || "";
+      if (!d.startsWith("M17.472 14.382")) out.push(`${sel} is not the current WhatsApp glyph`);
+    }
+    return out;
+  });
+  need(shorter.length === 0, "shorter page:\n    " + shorter.join("\n    "));
 } finally {
   await browser.close();
   server.close();

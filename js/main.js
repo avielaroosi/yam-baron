@@ -125,6 +125,9 @@
     $("contact-tel").textContent = S.phoneDisplay;
     $("contact-address").textContent = S.address;
     $("contact-waze").href = "https://waze.com/ul?q=" + encodeURIComponent(S.address) + "&navigate=yes";
+    // The map follows the address in content.js, so an address change moves the pin too.
+    const map = $("contact-map");
+    if (map) map.src = "https://www.google.com/maps?q=" + encodeURIComponent(S.address) + "&output=embed&hl=he";
   }
 
   // ---- footer

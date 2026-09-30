@@ -372,7 +372,9 @@ try {
         held: tile.matches(":hover"),
         tile: getComputedStyle(tile).transform,
         img: getComputedStyle(tile.querySelector("img")).transform,
-        ring: getComputedStyle(tile, "::after").borderColor,
+        // the gold ring is gone (design system, task 3); reduced motion answers the
+        // pointer with a brightness lift on the photo instead — feedback without movement
+        glow: getComputedStyle(tile.querySelector("img")).filter,
       };
     });
 
@@ -387,7 +389,6 @@ try {
     need(on.held, "hover: the cursor slipped off the tile, so the rest of this block proves nothing");
     need(moved(on.tile), "hover: the gallery tile must lift");
     need(moved(on.img), "hover: the photo must grow inside its frame");
-    need(/rgba\(201,\s*169,\s*97,\s*0?\.5/.test(on.ring), `hover: the gold ring must appear, got ${on.ring}`);
     // keyboard gets the same highlight, and keeps the outline that marks focus itself
     await mouse.evaluate(() => document.querySelector(".gallery__item:nth-child(3)").focus());
     await mouse.waitForTimeout(500);
@@ -420,7 +421,7 @@ try {
     await calm.waitForTimeout(400);
     const quiet = await styles(calm);
     need(!moved(quiet.tile) && !moved(quiet.img), "hover: reduced motion must drop the lift and the zoom");
-    need(/rgba\(201,\s*169,\s*97,\s*0?\.5/.test(quiet.ring), "hover: reduced motion must keep the gold ring as feedback");
+    need(/brightness\(1\.0[1-9]|brightness\(1\.[1-9]/.test(quiet.glow), `hover: reduced motion must still answer the pointer — a brightness lift, no movement — got ${quiet.glow}`);
     await calm.close();
   }
 

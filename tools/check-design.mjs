@@ -248,7 +248,18 @@ try {
     }).length;
   });
   need(primaries === 1, `#contact has ${primaries} filled buttons, want exactly 1`);
-  // [slot:task12] — the task's own assertions replace this line
+  // --- the HIG warns against a launch screen used purely for branding; ours
+  // earns its place only if it gets out of the way quickly
+  const introMs = await page.evaluate(() => {
+    const probe = document.createElement("div");
+    probe.className = "intro";
+    probe.style.cssText = "position:absolute;visibility:hidden";
+    document.body.append(probe);
+    const v = parseFloat(getComputedStyle(probe).getPropertyValue("--intro-total"));
+    probe.remove();
+    return v;
+  });
+  need(introMs <= 1800, `intro runs ${introMs}ms, want <= 1800`);
 } finally {
   await browser.close();
   server.close();

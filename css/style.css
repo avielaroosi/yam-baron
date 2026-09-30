@@ -36,6 +36,15 @@
   --sp-5: 48px; --sp-6: 64px; --sp-7: 96px; --sp-8: 128px;
   --section-y: clamp(72px, 10vw, 120px);
 
+  /* ===== motion =====
+     --ease is Apple's own curve, read off apple.com. Three durations, because
+     one duration for everything is what makes a page feel machine-made: a press
+     answers instantly, a hover is quick, a section arriving is unhurried. */
+  --ease: cubic-bezier(0.28, 0.11, 0.32, 1);
+  --dur-micro: 180ms;
+  --dur-ui: 280ms;
+  --dur-scene: 600ms;
+
   --gold: #c9a961;
   --gold-soft: rgba(201, 169, 97, .35);
   --gold-line: rgba(201, 169, 97, .18);
@@ -47,7 +56,7 @@
   --hl-zoom: 1.06;
   --hl-shadow: none; /* cards and tiles carry no shadow; --shadow-photo is the site's only one */
   --shadow-photo: 0 3px 30px rgba(0, 0, 0, .22);
-  --hl-ease: transform .35s cubic-bezier(.2, .7, .3, 1), box-shadow .35s ease, border-color .35s ease, opacity .35s ease;
+  --hl-ease: transform var(--dur-ui) var(--ease), box-shadow var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease), opacity var(--dur-ui) var(--ease);
   --wa: #25d366;
   --font-mark: "Playfair Display", Georgia, "Times New Roman", serif;
   --font-head: "Frank Ruhl Libre", "Times New Roman", serif;
@@ -55,6 +64,11 @@
   --container: 1240px;
   --pad: clamp(16px, 5vw, 40px);
   --radius: 18px;
+  /* one focus treatment for the whole site; the 2px/3px offsets were never a decision */
+  --focus-ring: 2px solid var(--gold);
+  --focus-offset: 3px;
+  --radius-sm: 4px;
+  --video-min: 260px; --video-max: 380px; --video-solo: 460px;
 }
 
 /* ===== base ===== */
@@ -75,19 +89,13 @@ p { margin: 0; }
 .footer__year { font-size: 1.08em; }
 
 /* ===== buttons ===== */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5em; padding: 14px 28px; border-radius: 999px; font-family: var(--font-body); font-weight: 500; font-size: 1rem; letter-spacing: .02em; border: 1px solid transparent; transition: transform .2s ease, background .2s ease, color .2s ease, border-color .2s ease; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5em; padding: 14px 28px; border-radius: 999px; font-family: var(--font-body); font-weight: 500; font-size: var(--step-body); letter-spacing: .02em; border: 1px solid transparent; transition: transform var(--dur-micro) var(--ease), background var(--dur-micro) var(--ease), color var(--dur-micro) var(--ease), border-color var(--dur-micro) var(--ease); }
 .btn:hover { transform: translateY(-2px); }
 .btn--wa { background: var(--wa); color: #062b16; }
 .btn--wa:hover { background: #2ee07a; }
 .btn--big { padding: 18px 40px; font-size: 1.1rem; }
 .btn--gold { background: var(--gold); color: var(--ink-0); border-color: var(--gold); }
 .btn--gold:hover { background: #d8b976; border-color: #d8b976; }
-.btn--outline { border-color: var(--gold); color: inherit; }
-.btn--outline:hover { background: var(--gold); color: var(--ink-0); }
-.btn--ig { border-color: var(--gold); color: var(--paper-0); background: rgba(10, 10, 11, .28); backdrop-filter: blur(4px); }
-.btn--ig:hover { background: var(--gold); color: var(--ink-0); }
-.btn--ig svg { flex: none; }
-.section--light .btn--ig { color: var(--ink-0); background: transparent; }
 
 /* ===== hero ===== */
 /* The studio photo is shown whole (never cropped): stacked above the logo on phones,
@@ -138,7 +146,7 @@ p { margin: 0; }
 .testimonials { columns: 2; column-gap: 12px; max-width: 1000px; margin-inline: auto; }
 .testimonial { display: block; width: 100%; break-inside: avoid; margin: 0 0 12px; padding: 0; border: 0; border-radius: 12px; overflow: hidden; background: var(--ink-1); cursor: zoom-in; }
 .testimonial img { width: 100%; height: auto; display: block; }
-.testimonial:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.testimonial:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 @media (min-width: 760px) { .testimonials { columns: 4; column-gap: 16px; } .testimonial { margin-bottom: 16px; } }
 
 /* ===== about ===== */
@@ -164,7 +172,7 @@ p { margin: 0; }
 .contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: center; }
 .contact__secondary a { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--gold); font-size: var(--step-body); }
 .contact__secondary a:hover { text-decoration: underline; }
-.contact__secondary a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+.contact__secondary a:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); border-radius: var(--radius-sm); }
 .contact__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 1.05rem; }
 .contact__list a { color: var(--gold); }
 .contact__list a:hover { text-decoration: underline; }
@@ -181,7 +189,7 @@ p { margin: 0; }
 .gallery { display: grid; gap: var(--sp-3); grid-template-columns: repeat(2, 1fr); }
 .gallery__item { position: relative; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 5; transition: var(--hl-ease); }
 .gallery__item img { width: 100%; height: 100%; object-fit: cover; transition: var(--hl-ease); }
-.gallery__item:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.gallery__item:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 @media (min-width: 760px) { .gallery { grid-template-columns: repeat(5, 1fr); gap: var(--sp-3); } }
 
 /* ===== lightbox ===== */
@@ -196,10 +204,10 @@ p { margin: 0; }
 .lightbox__count { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); color: var(--text-on-ink-2); font-size: .9rem; direction: ltr; }
 
 /* ===== videos ===== */
-.videos { display: grid; gap: var(--sp-4); grid-template-columns: repeat(auto-fit, minmax(260px, 380px)); justify-content: center; max-width: var(--container); margin-inline: auto; }
+.videos { display: grid; gap: var(--sp-4); grid-template-columns: repeat(auto-fit, minmax(var(--video-min), var(--video-max))); justify-content: center; max-width: var(--container); margin-inline: auto; }
 @media (min-width: 820px) {
   /* a single clip has no grid to sit in — let it stand at a confident size */
-  .videos:has(.video:only-child) { grid-template-columns: minmax(0, 460px); }
+  .videos:has(.video:only-child) { grid-template-columns: minmax(0, var(--video-solo)); }
 }
 .video { margin: 0; display: grid; gap: 10px; }
 .video__media, .video__placeholder { width: 100%; aspect-ratio: 9 / 16; border-radius: var(--radius); overflow: hidden; background: var(--ink-1); }
@@ -212,7 +220,7 @@ iframe.video__media { border: 0; }
 .video__player .video__media { display: block; }
 .video__player .video__play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 0; cursor: pointer; font: inherit; }
 .video__player .video__play:hover { transform: translate(-50%, -50%) scale(1.08); background: rgba(10, 10, 11, .5); }
-.video__player .video__play:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.video__player .video__play:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .video__player.is-playing .video__play { display: none; }
 .video__play::after { content: ""; border-style: solid; border-width: 11px 0 11px 18px; border-color: transparent transparent transparent var(--gold); margin-left: 4px; }
 .video__soon { position: absolute; bottom: 16px; color: var(--paper-0); font-size: .9rem; letter-spacing: .05em; }
@@ -256,8 +264,8 @@ iframe.video__media { border: 0; }
    adds .is-running to start them and reads --intro-total to know when to hand off,
    so the clock lives here and the script follows it. */
 .intro {
-  --t-y: .15s; --t-b: .45s; --t-s: .75s; --t-sweep: 1.05s; --t-name: 1.2s; --t-sub: 1.35s;
-  --t-flip: 1.75s; --intro-total: 2550;
+  --t-y: .1s; --t-b: .3s; --t-s: .5s; --t-sweep: .72s; --t-name: .82s; --t-sub: .94s;
+  --t-flip: 1.2s; --intro-total: 1800;
   position: fixed; inset: 0; z-index: 300; background: var(--ink-0);
   display: grid; place-items: center; overscroll-behavior: contain;
 }
@@ -327,7 +335,7 @@ html.intro-running .hero__logo { visibility: hidden; }
 .promo.is-open .promo__card { transform: none; }
 .promo__close { position: absolute; top: 10px; left: 10px; z-index: 1; width: 40px; height: 40px; border-radius: 50%; border: 0; background: rgba(10, 10, 11, .55); color: var(--paper-0); font-size: 1.5rem; line-height: 1; cursor: pointer; display: grid; place-items: center; font-family: var(--font-body); }
 .promo__close:hover { background: var(--ink-0); }
-.promo__close:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.promo__close:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .promo__visual { position: relative; }
 .promo__visual--photo .promo__img { width: 100%; aspect-ratio: 5 / 4; object-fit: cover; object-position: 50% 18%; display: block; }
 .promo__visual--logo { display: grid; place-items: center; padding: 34px 28px; aspect-ratio: 4 / 3; background: radial-gradient(ellipse at 50% 42%, #2b2416 0%, #151209 45%, var(--ink-0) 100%); }
@@ -355,12 +363,21 @@ html.intro-running .hero__logo { visibility: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .promo, .promo__card { transition: none; } }
 
-/* ===== reveal on scroll ===== */
-.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+/* ===== reveal on scroll =====
+   The section fades and rises as one; its direct children follow in a short
+   stagger, so the eye is led down the section instead of being handed all of it
+   at once. Reduced motion collapses both to nothing. */
+.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity var(--dur-scene) var(--ease), transform var(--dur-scene) var(--ease); }
 .reveal.is-in { opacity: 1; transform: none; }
+.js .reveal .container > *, .js .reveal .chapter { opacity: 0; transform: translateY(12px); transition: opacity var(--dur-scene) var(--ease), transform var(--dur-scene) var(--ease); }
+.reveal.is-in .container > *, .reveal.is-in .chapter { opacity: 1; transform: none; }
+.reveal.is-in .container > *:nth-child(2), .reveal.is-in .chapter:nth-child(2) { transition-delay: 60ms; }
+.reveal.is-in .container > *:nth-child(3), .reveal.is-in .chapter:nth-child(3) { transition-delay: 120ms; }
+.reveal.is-in .container > *:nth-child(n+4), .reveal.is-in .chapter:nth-child(n+4) { transition-delay: 180ms; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .js .reveal { opacity: 1; transform: none; transition: none; }
+  .js .reveal .container > *, .js .reveal .chapter { opacity: 1; transform: none; transition: none; }
   .btn, .card, .gallery__item img, .wa-fab { transition: none; }
   /* One switch for the whole image highlight: the gold ring still answers the pointer,
      the lift and the zoom go to nothing. Feedback without movement. */

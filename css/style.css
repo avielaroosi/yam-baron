@@ -29,7 +29,8 @@
      and prefers-reduced-motion flattens the whole effect by zeroing the two below. */
   --hl-lift: -6px;
   --hl-zoom: 1.06;
-  --hl-shadow: 0 14px 30px rgba(0, 0, 0, .5);
+  --hl-shadow: none; /* cards and tiles carry no shadow; --shadow-photo is the site's only one */
+  --shadow-photo: 0 3px 30px rgba(0, 0, 0, .22);
   --hl-ease: transform .35s cubic-bezier(.2, .7, .3, 1), box-shadow .35s ease, border-color .35s ease, opacity .35s ease;
   --grey: var(--text-on-ink-2);
   --wa: #25d366;
@@ -79,7 +80,6 @@ p { margin: 0; }
 .hero__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11, 11, 11, .25) 0%, rgba(11, 11, 11, 0) 25%, rgba(11, 11, 11, 0) 60%, var(--black) 100%); }
 .hero__inner { position: relative; max-width: 720px; margin-inline: auto; display: grid; gap: 18px; justify-items: center; padding: 0 var(--pad) 56px; margin-top: -22vw; }
 .hero__tagline { font-family: var(--font-head); font-size: clamp(1.1rem, 3.5vw, 1.5rem); }
-.hero__tagline::before, .hero__tagline::after { content: ""; display: block; width: 56px; height: 1px; background: var(--gold); margin: 14px auto; }
 .hero__text { max-width: 560px; color: var(--cream-2); font-size: 1.02rem; }
 .hero__scroll { display: none; }
 @media (min-width: 820px) {
@@ -96,11 +96,10 @@ p { margin: 0; }
 .section--dark { background: var(--black); color: var(--cream); }
 .section--light { background: var(--cream); color: var(--black); }
 .section__title { font-size: clamp(1.8rem, 5vw, 2.6rem); text-align: center; margin-bottom: clamp(28px, 5vw, 52px); }
-.section__title::after { content: ""; display: block; width: 56px; height: 1px; background: var(--gold); margin: 16px auto 0; }
 
 /* ===== services ===== */
 .cards { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.card { background: var(--black-2); border: 1px solid var(--gold-line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: var(--hl-ease); }
+.card { background: var(--black-2); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: var(--hl-ease); }
 .card__img { aspect-ratio: 3 / 4; width: 100%; object-fit: cover; transition: var(--hl-ease); }
 .card__body { padding: 22px 22px 26px; display: grid; gap: 10px; flex: 1; align-content: start; }
 .card__title { font-size: 1.35rem; color: var(--gold); }
@@ -109,19 +108,18 @@ p { margin: 0; }
 .card__link:hover { text-decoration: underline; }
 
 /* ===== testimonials (screenshots) ===== */
-.section--divided { border-top: 1px solid var(--gold-line); }
+.section--divided { border-top: 0; }
 .testimonials__empty { text-align: center; color: var(--grey); }
 .testimonials__empty[hidden] { display: none; }
 .testimonials { columns: 2; column-gap: 12px; max-width: 1000px; margin-inline: auto; }
-.testimonial { display: block; width: 100%; break-inside: avoid; margin: 0 0 12px; padding: 0; border: 1px solid var(--gold-line); border-radius: 12px; overflow: hidden; background: var(--black-2); cursor: zoom-in; }
+.testimonial { display: block; width: 100%; break-inside: avoid; margin: 0 0 12px; padding: 0; border: 0; border-radius: 12px; overflow: hidden; background: var(--black-2); cursor: zoom-in; }
 .testimonial img { width: 100%; height: auto; display: block; }
-.testimonial:hover { border-color: var(--gold-soft); }
 .testimonial:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 @media (min-width: 760px) { .testimonials { columns: 4; column-gap: 16px; } .testimonial { margin-bottom: 16px; } }
 
 /* ===== about ===== */
 .about { display: grid; gap: 32px; align-items: center; grid-template-columns: 1fr; }
-.about__img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); max-width: 440px; justify-self: center; border: 1px solid var(--gold-soft); transition: var(--hl-ease); }
+.about__img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); max-width: 440px; justify-self: center; box-shadow: var(--shadow-photo); transition: var(--hl-ease); }
 .about__body { display: grid; gap: 18px; text-align: center; }
 .about .section__title { margin-bottom: 0; }
 .about__text { font-size: 1.05rem; max-width: 560px; margin-inline: auto; text-align: start; }
@@ -144,7 +142,7 @@ p { margin: 0; }
 .contact__list a:hover { text-decoration: underline; }
 
 /* ===== footer ===== */
-.footer { padding: 28px var(--pad); text-align: center; color: var(--grey); font-size: .9rem; border-top: 1px solid var(--gold-line); }
+.footer { padding: 28px var(--pad); text-align: center; color: var(--grey); font-size: .9rem; }
 
 /* ===== brand logo ===== */
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
@@ -155,8 +153,6 @@ p { margin: 0; }
 .gallery { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
 .gallery__item { position: relative; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 5; transition: var(--hl-ease); }
 .gallery__item img { width: 100%; height: 100%; object-fit: cover; transition: var(--hl-ease); }
-/* The ring has to be a layer of its own: an inset shadow would paint under the photo. */
-.gallery__item::after { content: ""; position: absolute; inset: 0; border-radius: inherit; border: 1px solid transparent; transition: border-color .35s ease; pointer-events: none; }
 .gallery__item:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 @media (min-width: 760px) { .gallery { grid-template-columns: repeat(5, 1fr); gap: 14px; } }
 
@@ -174,7 +170,7 @@ p { margin: 0; }
 /* ===== videos ===== */
 .videos { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 320px)); justify-content: center; max-width: 900px; margin-inline: auto; }
 .video { margin: 0; display: grid; gap: 10px; }
-.video__media, .video__placeholder { width: 100%; aspect-ratio: 9 / 16; border-radius: var(--radius); overflow: hidden; background: var(--black-2); border: 1px solid var(--gold-line); }
+.video__media, .video__placeholder { width: 100%; aspect-ratio: 9 / 16; border-radius: var(--radius); overflow: hidden; background: var(--black-2); }
 .video__media { object-fit: cover; display: block; }
 iframe.video__media { border: 0; }
 .video__placeholder { position: relative; display: grid; place-items: center; transition: var(--hl-ease); }
@@ -199,25 +195,23 @@ iframe.video__media { border: 0; }
    stay lifted and zoomed after you closed the lightbox. Keyboard focus gets the same
    treatment, declared outside the gate, because that has to work on any device. */
 @media (hover: hover) and (pointer: fine) {
-  .gallery__item:hover { transform: translateY(var(--hl-lift)); box-shadow: var(--hl-shadow); }
+  .gallery__item:hover { transform: translateY(var(--hl-lift)); }
   .gallery__item:hover img { transform: scale(var(--hl-zoom)); }
-  .gallery__item:hover::after { border-color: var(--gold-ring); }
 
-  .card:hover { transform: translateY(var(--hl-lift)); box-shadow: var(--hl-shadow); border-color: var(--gold-ring); }
+  .card:hover { transform: translateY(var(--hl-lift)); }
   .card:hover .card__img { transform: scale(var(--hl-zoom)); }
 
   /* Not clickable, so no lift and no ring — just enough life to answer the pointer.
      It has no clipping frame either, so the picture itself grows; keep that small. */
-  .about__img:hover { transform: scale(1.02); border-color: var(--gold-ring); }
+  .about__img:hover { transform: scale(1.02); }
 
-  .video__placeholder:hover { border-color: var(--gold-ring); }
   .video__placeholder:hover img { transform: scale(var(--hl-zoom)); opacity: .72; }
   .video__placeholder:hover .video__play { transform: scale(1.08); background: rgba(11, 11, 11, .5); }
 }
 
 /* Tab navigation lands on the gallery buttons; give them the same highlight the mouse
    gets, on top of the outline that marks focus itself. */
-.gallery__item:focus-visible { transform: translateY(var(--hl-lift)); box-shadow: var(--hl-shadow); }
+.gallery__item:focus-visible { transform: translateY(var(--hl-lift)); }
 .gallery__item:focus-visible img { transform: scale(var(--hl-zoom)); }
 
 /* ===== floating WhatsApp button ===== */

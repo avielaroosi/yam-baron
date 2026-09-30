@@ -96,6 +96,38 @@ try {
     need(low.length === 0, `${label}: text below 4.5:1 contrast:\n    ` + low.join("\n    "));
     await p.close();
   }
+
+  // --- no decorative chrome. Apple's tiles carry no borders, and the whole site
+  // carries exactly one shadow — under photography. So this rejects every border
+  // on these surfaces, and every shadow that is not the one approved photo shadow.
+  const chrome = await page.evaluate(() => {
+    const out = [];
+    const allowed = getComputedStyle(document.documentElement).getPropertyValue("--shadow-photo").trim();
+    const norm = (s) => s.replace(/\s+/g, " ").trim();
+    for (const el of document.querySelectorAll(".card, .gallery__item, .testimonial, .about__img, .video__media, .video__placeholder, .chapter__media")) {
+      const cs = getComputedStyle(el);
+      const name = el.className.toString().split(" ")[0];
+      // the computed shadow puts the colour first, so compare on the offsets/blur
+      if (cs.boxShadow !== "none" && !allowed.split(" ").every((t) => norm(cs.boxShadow).includes(t))) {
+        out.push(`${name} has a shadow that is not --shadow-photo: ${cs.boxShadow}`);
+      }
+      if (parseFloat(cs.borderTopWidth) > 0) out.push(`${name} has a border: ${cs.borderTopWidth} ${cs.borderTopColor}`);
+    }
+    // the gold rule under every section title, and the two around the hero tagline
+    for (const sel of [".section__title", ".hero__tagline"]) {
+      const el = document.querySelector(sel);
+      if (!el) continue;
+      for (const pseudo of ["::after", "::before"]) {
+        const c = getComputedStyle(el, pseudo).content;
+        if (c && c !== "none") out.push(`${sel}${pseudo} still draws a divider`);
+      }
+    }
+    if (parseFloat(getComputedStyle(document.querySelector(".section--divided") || document.body).borderTopWidth) > 0) {
+      out.push(".section--divided still draws a rule between sections");
+    }
+    return out;
+  });
+  need(chrome.length === 0, "decorative chrome remains:\n    " + chrome.join("\n    "));
 } finally {
   await browser.close();
   server.close();

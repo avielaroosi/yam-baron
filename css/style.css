@@ -59,7 +59,7 @@
   --hl-shadow: none; /* cards and tiles carry no shadow; --shadow-photo is the site's only one */
   --shadow-photo: 0 3px 30px rgba(0, 0, 0, .22);
   --hl-ease: transform var(--dur-ui) var(--ease), box-shadow var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease), opacity var(--dur-ui) var(--ease);
-  --wa: #25d366;
+  --gold-hover: #d8b976;
   /* One text family, the way Apple runs SF: hierarchy comes from weight, not
      from switching faces. Assistant is the Hebrew companion to Source Sans —
      the nearest thing to SF that actually ships Hebrew (Inter does not).
@@ -77,6 +77,7 @@
   --radius-sm: 4px;
   --video-min: 260px; --video-max: 380px; --video-solo: 460px;
   --tap: 44px;
+  --card-min: 200px; --card-w: 320px; /* proof cards: the clip and every screenshot share this */
 }
 
 /* ===== base ===== */
@@ -100,11 +101,11 @@ p { margin: 0; }
 /* ===== buttons ===== */
 .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5em; padding: 14px 28px; border-radius: 999px; font-family: var(--font-body); font-weight: 500; font-size: var(--step-body); letter-spacing: .02em; border: 1px solid transparent; transition: transform var(--dur-micro) var(--ease), background var(--dur-micro) var(--ease), color var(--dur-micro) var(--ease), border-color var(--dur-micro) var(--ease); }
 .btn:hover { transform: translateY(-2px); }
-.btn--wa { background: var(--wa); color: #062b16; }
-.btn--wa:hover { background: #2ee07a; }
+.btn--wa { background: var(--gold); color: var(--ink-0); }
+.btn--wa:hover { background: var(--gold-hover); }
 .btn--big { padding: 18px 40px; font-size: 1.1rem; }
 .btn--gold { background: var(--gold); color: var(--ink-0); border-color: var(--gold); }
-.btn--gold:hover { background: #d8b976; border-color: #d8b976; }
+.btn--gold:hover { background: var(--gold-hover); border-color: var(--gold-hover); }
 
 /* ===== hero =====
    One structure for every screen: the still photograph paints first (it is
@@ -133,8 +134,8 @@ p { margin: 0; }
 .section--light { background: var(--paper-0); color: var(--ink-0); }
 /* Separation is the background change, so two dark sections in a row need two
    different darks. Same for two light ones. */
-.section--ink-1 { background: var(--ink-1); color: var(--text-on-ink); }
-.section--paper-1 { background: var(--paper-1); color: var(--text-on-paper); }
+.section--ink-1 { background: var(--ink-1); color: var(--text-on-ink); --fg: var(--text-on-ink); --fg-2: var(--text-on-ink-2); --action: var(--gold); }
+.section--paper-1 { background: var(--paper-1); color: var(--text-on-paper); --fg: var(--text-on-paper); --fg-2: var(--text-on-paper-2); --action: var(--gold-on-paper); }
 .section__title { font-size: var(--step-h2); line-height: 1.08; text-align: center; margin-bottom: clamp(28px, 5vw, 52px); }
 
 /* ===== services as chapters =====
@@ -145,9 +146,9 @@ p { margin: 0; }
 .chapter__media { border-radius: var(--radius); overflow: hidden; }
 .chapter__media img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; }
 .chapter__body { display: grid; gap: var(--sp-3); align-content: center; }
-.chapter__title { font-size: var(--step-h2); line-height: 1.08; color: var(--text-on-ink); }
-.chapter__text { color: var(--text-on-ink-2); max-width: var(--measure); }
-.chapter__link { color: var(--gold); font-weight: 500; justify-self: start; min-height: var(--tap); display: inline-flex; align-items: center; }
+.chapter__title { font-size: var(--step-h2); line-height: 1.08; color: var(--fg); }
+.chapter__text { color: var(--fg-2); max-width: var(--measure); }
+.chapter__link { color: var(--action); font-weight: 500; justify-self: start; min-height: var(--tap); display: inline-flex; align-items: center; }
 .chapter__link:hover { text-decoration: underline; }
 @media (min-width: 820px) {
   .chapter { grid-template-columns: 1fr 1fr; gap: var(--sp-7); }
@@ -155,22 +156,32 @@ p { margin: 0; }
 }
 
 /* ===== testimonials (screenshots) ===== */
-/* One proof section: the real before/after clip beside the client screenshots.
-   Desktop puts the clip on the start side and lets the wall fill the rest. */
-.proof { display: grid; gap: var(--sp-5); }
-.proof .videos { max-width: none; }
-@media (min-width: 820px) {
-  .proof { grid-template-columns: minmax(0, var(--video-max)) 1fr; align-items: start; gap: var(--sp-6); }
-  .proof .videos { grid-template-columns: 1fr; justify-content: stretch; }
-  .proof .testimonials { columns: 3; }
-}
 .testimonials__empty { text-align: center; color: var(--text-on-ink-2); }
 .testimonials__empty[hidden] { display: none; }
 .testimonials { columns: 2; column-gap: 12px; max-width: 1000px; margin-inline: auto; }
 .testimonial { display: block; width: 100%; break-inside: avoid; margin: 0 0 12px; padding: 0; border: 0; border-radius: 12px; overflow: hidden; background: var(--ink-1); cursor: zoom-in; }
 .testimonial img { width: 100%; height: auto; display: block; }
 .testimonial:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
-@media (min-width: 760px) { .testimonials { columns: 4; column-gap: 16px; } .testimonial { margin-bottom: 16px; } }
+/* ===== proof =====
+   The clip and the client screenshots are the same kind of thing — evidence — so
+   they get the same card: 9:16, one row, one height. On the desktop the row is a
+   grid that shows everything; on the phone it is a strip you swipe. No masonry,
+   no ragged edge, nothing taller than its neighbour. */
+.proof { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--card-min), 1fr)); gap: var(--sp-3); }
+.proof__wall, .proof .testimonials { display: contents; }
+.proof .videos { display: block; max-width: none; }
+.proof .video { margin: 0; position: relative; }
+.proof .video__title { position: absolute; inset-inline: var(--sp-2); bottom: var(--sp-2); text-align: center; color: var(--text-on-ink); text-shadow: 0 1px 8px rgba(0, 0, 0, .6); pointer-events: none; }
+.proof .testimonial { aspect-ratio: 9 / 16; margin: 0; border-radius: var(--radius); overflow: hidden; background: var(--ink-1); }
+.proof .testimonial img { width: 100%; height: 100%; object-fit: contain; }
+.proof .testimonials__empty { grid-column: 1 / -1; }
+@media (max-width: 819px) {
+  .proof { display: flex; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding-bottom: var(--sp-2); scrollbar-width: none; }
+  .proof::-webkit-scrollbar { display: none; }
+  /* #videos-grid keeps a real box (the pause-on-scroll check scrolls it); in the strip it is one card wide */
+  .proof .videos, .proof .testimonial { flex: 0 0 min(72vw, var(--card-w)); scroll-snap-align: start; }
+  .proof .testimonials__empty { flex: 0 0 auto; align-self: center; }
+}
 
 /* ===== about ===== */
 .about { display: grid; gap: 32px; align-items: center; grid-template-columns: 1fr; }
@@ -189,27 +200,25 @@ p { margin: 0; }
 }
 
 /* ===== contact =====
-   Two columns, like "about": the invitation on the start side, the map on the end.
-   No frame and no shadow — a map is not a photograph. Everything stacks on a phone. */
-.contact { display: grid; gap: var(--sp-6); align-items: start; }
-.contact__stack { display: grid; gap: var(--sp-3); justify-items: start; }
-.contact__stack .btn { width: 100%; }
+   One axis. Heading, one gold action, the phone as a large tap target, the address,
+   two quiet links — all centred — and the map as a wide grey band beneath, the way
+   a closing tile on apple.com carries one idea and one action. No columns to
+   mis-align, nothing taller than its neighbour. */
+.contact { display: grid; gap: var(--sp-6); justify-items: center; text-align: center; }
+.contact__stack { display: grid; gap: var(--sp-3); justify-items: center; }
 /* digits keep their order inside RTL text, and a phone number is a tap target, not a caption */
-.contact__tel { font-size: var(--step-lead); font-weight: 500; color: var(--gold); direction: ltr; unicode-bidi: isolate; min-height: var(--tap); display: inline-flex; align-items: center; }
+.contact__tel { font-size: var(--step-lead); font-weight: 500; color: var(--action); direction: ltr; unicode-bidi: isolate; min-height: var(--tap); display: inline-flex; align-items: center; }
 .contact__tel:hover { text-decoration: underline; }
-.contact__address { color: var(--text-on-ink-2); font-size: var(--step-body); }
-.contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); }
-.contact__secondary a { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--gold); font-size: var(--step-body); min-height: 44px; }
+.contact__address { color: var(--fg-2); font-size: var(--step-body); }
+.contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: center; }
+.contact__secondary a { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--action); font-size: var(--step-body); min-height: var(--tap); }
 .contact__secondary a:hover { text-decoration: underline; }
 .contact__secondary a:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); border-radius: var(--radius-sm); }
-.contact__map { aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden; background: var(--ink-0); }
-/* desaturated so the map sits inside the ink/gold palette instead of shouting over it */
+.contact__map { width: 100%; aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden; background: var(--paper-1); }
+/* desaturated so the map sits inside the palette instead of shouting over it */
 .contact__map iframe { width: 100%; height: 100%; border: 0; display: block; filter: grayscale(1) contrast(1.05); }
-#contact .section__title { text-align: center; }
 @media (min-width: 820px) {
-  .contact { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--sp-7); }
-  .contact__stack .btn { width: auto; }
-  #contact .section__title { text-align: start; }
+  .contact__map { aspect-ratio: 21 / 9; }
 }
 
 /* ===== footer ===== */
@@ -259,7 +268,7 @@ iframe.video__media { border: 0; }
 .video__player.is-playing .video__play { display: none; }
 .video__play::after { content: ""; border-style: solid; border-width: 11px 0 11px 18px; border-color: transparent transparent transparent var(--gold); margin-left: 4px; }
 .video__soon { position: absolute; bottom: 16px; color: var(--paper-0); font-size: .9rem; letter-spacing: .05em; }
-.video__title { text-align: center; color: var(--text-on-ink-2); font-size: var(--step-small); }
+.video__title { text-align: center; color: var(--fg-2); font-size: var(--step-small); }
 
 /* ===== pointing at an image =====
    The frame lifts and the photo grows inside it, so the picture reads as pushed forward
@@ -290,7 +299,7 @@ iframe.video__media { border: 0; }
 .gallery__item:focus-visible img { transform: scale(var(--hl-zoom)); }
 
 /* ===== floating WhatsApp button ===== */
-.wa-fab { position: fixed; left: 18px; bottom: 18px; z-index: 150; width: 58px; height: 58px; border-radius: 50%; background: var(--wa); color: #062b16; display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); opacity: 0; visibility: hidden; transform: translateY(16px) scale(.9); pointer-events: none; transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s; }
+.wa-fab { position: fixed; left: 18px; bottom: 18px; z-index: 150; width: 58px; height: 58px; border-radius: 50%; background: var(--gold); color: var(--ink-0); display: grid; place-items: center; box-shadow: 0 8px 24px rgba(0, 0, 0, .35); opacity: 0; visibility: hidden; transform: translateY(16px) scale(.9); pointer-events: none; transition: opacity .3s ease, transform .3s ease, visibility 0s linear .3s; }
 .wa-fab.is-visible { opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition-delay: 0s; }
 .wa-fab.is-visible:hover { transform: translateY(-2px); }
 

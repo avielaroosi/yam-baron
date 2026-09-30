@@ -88,15 +88,20 @@ try {
   // `body { overflow-x: hidden }` makes a scrollWidth check always pass, so measure the boxes.
   // The deliberately off-screen bits pass on their own: .skip is offset vertically only, the
   // hidden lightbox has width 0, and .sr-only is a 1px box inside the viewport.
-  need(await mobile.evaluate(() => [...document.querySelectorAll("body *")].every((n) => {
+  // A box inside a deliberate horizontal scroller (overflow-x: auto/scroll — the proof
+  // strip) may sit outside the viewport by design; the page itself must still not scroll
+  // sideways, which the scrollWidth line below guards on its own.
+  const inScroller = (n) => { for (let a = n.parentElement; a; a = a.parentElement) { const o = getComputedStyle(a).overflowX; if (o === "auto" || o === "scroll") return true; } return false; };
+  need(await mobile.evaluate((fn) => [...document.querySelectorAll("body *")].every((n) => {
     const r = n.getBoundingClientRect();
-    return r.width === 0 || r.right <= window.innerWidth + 1;
-  })), "mobile: an element extends past the right edge");
+    return r.width === 0 || r.right <= window.innerWidth + 1 || eval(fn)(n);
+  }), inScroller.toString()), "mobile: an element extends past the right edge");
+  need(await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "mobile: the page must not scroll sideways");
   // RTL mirror of the same idea: overflowing content in an RTL document escapes on the left.
-  need(await mobile.evaluate(() => [...document.querySelectorAll("body *")].every((n) => {
+  need(await mobile.evaluate((fn) => [...document.querySelectorAll("body *")].every((n) => {
     const r = n.getBoundingClientRect();
-    return r.width === 0 || r.left >= -1;
-  })), "mobile: an element extends past the left edge");
+    return r.width === 0 || r.left >= -1 || eval(fn)(n);
+  }), inScroller.toString()), "mobile: an element extends past the left edge");
   need(await mobile.evaluate(() => [...document.images].every((i) => i.getAttribute("alt") !== null)), "every <img> needs an alt attribute");
   need((await mobile.$$('a[href="#"]')).length === 0, "no link may be left with href='#' (JS wiring)");
 

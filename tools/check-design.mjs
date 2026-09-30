@@ -294,6 +294,34 @@ try {
     return raw.endsWith("ms") ? parseFloat(raw) : parseFloat(raw) * 1000;
   });
   need(tFlipMs + flipMs <= introMs, `the flight lands at ${tFlipMs + flipMs}ms but the black lifts at ${introMs}ms — the hero logo would show under the flying one`);
+
+  // --- one text family, and no weight downloaded that nothing uses.
+  // A weight used in CSS but absent from the <link> makes the browser fake it
+  // (faux bold); a weight in the <link> that no rule uses is a download for nothing.
+  await page.evaluate(() => document.fonts.ready);
+  const fonts = await page.evaluate(() => {
+    const out = [];
+    const fam = (el) => getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "").trim();
+    // .card__title stands in for the brief's ".chapter__title": task 10 (services
+    // become full-width chapters) never landed on this branch's line — d48b3fc is
+    // not an ancestor of this HEAD — so the real second-level heading class here is
+    // still .card__title (an h3, same role .section__title plays for h2).
+    for (const [sel, want] of [["body", "Assistant"], [".section__title", "Assistant"], [".card__title", "Assistant"], [".wordmark", "Playfair Display"]]) {
+      const el = document.querySelector(sel);
+      if (!el) { out.push(`${sel} missing`); continue; }
+      const got = fam(el);
+      if (got !== want) out.push(`${sel} renders ${got}, want ${want}`);
+      if (!document.fonts.check(`${getComputedStyle(el).fontWeight} 16px "${want}"`)) out.push(`${sel}: ${want} ${getComputedStyle(el).fontWeight} is not loaded — the browser is faking it`);
+    }
+    const link = [...document.querySelectorAll('link[href*="fonts.googleapis.com"]')].map((l) => l.href).join(" ");
+    for (const dead of ["Frank+Ruhl", "Heebo"]) if (link.includes(dead)) out.push(`the font link still loads ${dead}`);
+    const loaded = {};
+    for (const m of link.matchAll(/family=([^:&]+):wght@([\d;]+)/g)) loaded[decodeURIComponent(m[1]).replace(/\+/g, " ")] = m[2].split(";");
+    const used = new Set([...document.querySelectorAll("body *")].filter((e) => e.getClientRects().length).map((e) => `${fam(e)}|${getComputedStyle(e).fontWeight}`));
+    for (const [f, ws] of Object.entries(loaded)) for (const w of ws) if (!used.has(`${f}|${w}`)) out.push(`${f} ${w} is downloaded but nothing renders it`);
+    return out;
+  });
+  need(fonts.length === 0, "fonts:\n    " + fonts.join("\n    "));
 } finally {
   await browser.close();
   server.close();

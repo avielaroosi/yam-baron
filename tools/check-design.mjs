@@ -180,7 +180,27 @@ try {
   });
   need(type.length === 0, "type scale:\n    " + type.join("\n    "));
   // [slot:task6] — the task's own assertions replace this line
-  // [slot:task8] — the task's own assertions replace this line
+  // --- ambient video must never be the only thing standing between the viewer
+  // and a black rectangle: poster always set, autoplay refused under reduced motion
+  const video = await page.evaluate(() => {
+    const out = [];
+    for (const v of document.querySelectorAll("video.is-ambient")) {
+      if (!v.getAttribute("poster")) out.push(`${v.className} has no poster`);
+      if (!v.muted) out.push(`${v.className} is not muted`);
+      if (!v.hasAttribute("playsinline")) out.push(`${v.className} is missing playsinline`);
+      if (v.hasAttribute("autoplay")) out.push(`${v.className} uses the autoplay attribute; the script must decide`);
+    }
+    return out;
+  });
+  need(video.length === 0, "ambient video:\n    " + video.join("\n    "));
+
+  // the same page with reduced motion on must not start any video
+  const rm = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
+  await rm.goto(base, { waitUntil: "load" });
+  await rm.waitForTimeout(1200);
+  const playing = await rm.evaluate(() => [...document.querySelectorAll("video.is-ambient")].filter((v) => !v.paused).map((v) => v.className));
+  need(playing.length === 0, `reduced motion must not autoplay: ${playing.join(", ")}`);
+  await rm.close();
   // [slot:task9] — the task's own assertions replace this line
   // [slot:task10] — the task's own assertions replace this line
   // [slot:task11] — the task's own assertions replace this line

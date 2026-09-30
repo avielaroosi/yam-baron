@@ -279,6 +279,27 @@
     }
   }
 
+  // ---- ambient video: decorative loops behind the hero and the service chapters.
+  // The poster carries the frame on its own, so a browser that refuses to autoplay
+  // (iOS low power mode) and a visitor who asked for less motion both land on a
+  // still image rather than a black rectangle. Never uses the autoplay attribute:
+  // the decision is made here so prefers-reduced-motion can veto it.
+  const calmer = matchMedia("(prefers-reduced-motion: reduce)");
+
+  function mountAmbientVideo(el) {
+    if (calmer.matches) return;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) { el.play().catch(() => {}); } else { el.pause(); }
+      }
+    }, { threshold: 0.1 });
+    io.observe(el);
+  }
+
+  function initAmbientVideo() {
+    document.querySelectorAll("video.is-ambient").forEach(mountAmbientVideo);
+  }
+
   // ---- floating WhatsApp button: hidden while the hero is on screen
   function initFab() {
     const fab = $("wa-fab");
@@ -370,5 +391,6 @@
   safe("footer", renderFooter);
   safe("fab", initFab);
   safe("reveal", initReveal);
+  safe("ambient", initAmbientVideo);
   safe("promo", initPromo);
 })();

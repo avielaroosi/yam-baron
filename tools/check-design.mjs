@@ -302,11 +302,7 @@ try {
   const fonts = await page.evaluate(() => {
     const out = [];
     const fam = (el) => getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "").trim();
-    // .card__title stands in for the brief's ".chapter__title": task 10 (services
-    // become full-width chapters) never landed on this branch's line — d48b3fc is
-    // not an ancestor of this HEAD — so the real second-level heading class here is
-    // still .card__title (an h3, same role .section__title plays for h2).
-    for (const [sel, want] of [["body", "Assistant"], [".section__title", "Assistant"], [".card__title", "Assistant"], [".wordmark", "Playfair Display"]]) {
+    for (const [sel, want] of [["body", "Assistant"], [".section__title", "Assistant"], [".chapter__title", "Assistant"], [".wordmark", "Playfair Display"]]) {
       const el = document.querySelector(sel);
       if (!el) { out.push(`${sel} missing`); continue; }
       const got = fam(el);

@@ -115,15 +115,22 @@ p { margin: 0; }
 .section--light { background: var(--paper-0); color: var(--ink-0); }
 .section__title { font-size: var(--step-h2); line-height: 1.08; text-align: center; margin-bottom: clamp(28px, 5vw, 52px); }
 
-/* ===== services ===== */
-.cards { display: grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.card { background: var(--ink-1); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; transition: var(--hl-ease); }
-.card__img { aspect-ratio: 3 / 4; width: 100%; object-fit: cover; transition: var(--hl-ease); }
-.card__body { padding: 22px 22px 26px; display: grid; gap: 10px; flex: 1; align-content: start; }
-.card__title { font-size: var(--step-h3); line-height: 1.2; color: var(--text-on-ink); }
-.card__desc { color: var(--text-on-ink-2); font-size: var(--step-body); }
-.card__link { margin-top: auto; padding-top: 8px; color: var(--gold); font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-.card__link:hover { text-decoration: underline; }
+/* ===== services as chapters =====
+   No card, no frame, no shadow: a photograph and a paragraph, alternating sides.
+   The body is a grid so the text can grow without the column clipping it. */
+.cards { display: grid; gap: var(--sp-8); }
+.chapter { display: grid; gap: var(--sp-5); align-items: center; }
+.chapter__media { border-radius: var(--radius); overflow: hidden; }
+.chapter__media img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; display: block; }
+.chapter__body { display: grid; gap: var(--sp-3); align-content: center; }
+.chapter__title { font-size: var(--step-h2); line-height: 1.08; color: var(--text-on-ink); }
+.chapter__text { color: var(--text-on-ink-2); max-width: var(--measure); }
+.chapter__link { color: var(--gold); font-weight: 500; justify-self: start; }
+.chapter__link:hover { text-decoration: underline; }
+@media (min-width: 820px) {
+  .chapter { grid-template-columns: 1fr 1fr; gap: var(--sp-7); }
+  .chapter--flip .chapter__media { order: 2; }
+}
 
 /* ===== testimonials (screenshots) ===== */
 .section--divided { border-top: 0; }

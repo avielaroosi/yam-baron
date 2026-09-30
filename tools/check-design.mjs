@@ -183,7 +183,27 @@ try {
     return out;
   });
   need(type.length === 0, "type scale:\n    " + type.join("\n    "));
-  // [slot:task6] — the task's own assertions replace this line
+  // --- separation is a background change, so two touching sections must differ
+  const adjacency = await page.evaluate(() => {
+    const out = [];
+    const secs = [...document.querySelectorAll("main > section, header.hero, footer")].filter((s) => s.getClientRects().length);
+    for (let i = 1; i < secs.length; i++) {
+      const a = getComputedStyle(secs[i - 1]).backgroundColor;
+      const b = getComputedStyle(secs[i]).backgroundColor;
+      // a section whose own background is transparent sits on an image; skip it
+      if (a === "rgba(0, 0, 0, 0)" || b === "rgba(0, 0, 0, 0)") continue;
+      if (a === b) out.push(`${secs[i - 1].id || "hero"} and ${secs[i].id || "footer"} share ${a} — no visible separation`);
+    }
+    return out;
+  });
+  need(adjacency.length === 0, "adjacent sections:\n    " + adjacency.join("\n    "));
+
+  // --- section rhythm
+  const pad = await page.evaluate(() => {
+    const s = document.querySelector("#services");
+    return s ? [parseFloat(getComputedStyle(s).paddingTop), parseFloat(getComputedStyle(s).paddingBottom)] : [0, 0];
+  });
+  need(pad[0] >= 96 && pad[1] >= 96, `section padding at 1440 wide is ${pad.join("/")}px, want >= 96 each`);
   // --- ambient video must never be the only thing standing between the viewer
   // and a black rectangle: poster always set, autoplay refused under reduced motion
   const video = await page.evaluate(() => {

@@ -60,9 +60,14 @@
   --shadow-photo: 0 3px 30px rgba(0, 0, 0, .22);
   --hl-ease: transform var(--dur-ui) var(--ease), box-shadow var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease), opacity var(--dur-ui) var(--ease);
   --wa: #25d366;
+  /* One text family, the way Apple runs SF: hierarchy comes from weight, not
+     from switching faces. Assistant is the Hebrew companion to Source Sans —
+     the nearest thing to SF that actually ships Hebrew (Inter does not).
+     Playfair is the logo's voice and appears only in the wordmark. */
   --font-mark: "Playfair Display", Georgia, "Times New Roman", serif;
-  --font-head: "Frank Ruhl Libre", "Times New Roman", serif;
-  --font-body: "Heebo", "Helvetica Neue", Arial, sans-serif;
+  --font-head: "Assistant", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Assistant", "Helvetica Neue", Arial, sans-serif;
+  --track-h3: -.01em;
   --container: 1240px;
   --pad: clamp(16px, 5vw, 40px);
   --radius: 18px;
@@ -79,7 +84,8 @@ html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 body { margin: 0; background: var(--ink-0); color: var(--paper-0); font-family: var(--font-body); font-weight: 400; font-size: var(--step-body); line-height: 1.5; overflow-x: hidden; }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
-h1, h2, h3 { font-family: var(--font-head); font-weight: 500; line-height: 1.1; letter-spacing: var(--track-display); margin: 0; }
+h1, h2, h3 { font-family: var(--font-head); font-weight: 600; line-height: 1.1; letter-spacing: var(--track-display); margin: 0; }
+h3 { letter-spacing: var(--track-h3); }
 p { margin: 0; }
 .skip { position: absolute; top: -48px; right: 8px; background: var(--gold); color: var(--ink-0); padding: 8px 12px; z-index: 100; border-radius: 6px; }
 .skip:focus { top: 8px; }
@@ -107,7 +113,7 @@ p { margin: 0; }
 .hero__bg { width: 100%; height: auto; display: block; }
 .hero__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 10, 11, .25) 0%, rgba(10, 10, 11, 0) 25%, rgba(10, 10, 11, 0) 60%, var(--ink-0) 100%); }
 .hero__inner { position: relative; max-width: 720px; margin-inline: auto; display: grid; gap: 18px; justify-items: center; padding: 0 var(--pad) 56px; margin-top: -22vw; }
-.hero__tagline { font-family: var(--font-head); font-size: var(--step-lead); letter-spacing: var(--track-display); }
+.hero__tagline { font-family: var(--font-head); font-weight: 600; font-size: var(--step-lead); letter-spacing: var(--track-display); }
 .hero__text { max-width: 560px; color: var(--text-on-ink-2); font-size: var(--step-body); }
 .hero__scroll { display: none; }
 .hero__video { display: none; }
@@ -344,11 +350,11 @@ html.intro-running .hero__logo { visibility: hidden; }
 .promo__visual--logo::before { content: ""; position: absolute; inset: 12px; border: 1px solid var(--gold-soft); border-radius: 12px; pointer-events: none; }
 .promo__visual--logo .promo__img { width: min(68%, 240px); height: auto; display: block; filter: drop-shadow(0 8px 26px rgba(0, 0, 0, .6)); }
 .promo__body { padding: 22px 22px 20px; text-align: center; display: grid; gap: 10px; justify-items: center; }
-.promo__eyebrow { font-family: var(--font-head); font-size: 1.15rem; line-height: 1.3; }
+.promo__eyebrow { font-family: var(--font-head); font-weight: 600; font-size: 1.15rem; line-height: 1.3; }
 .promo__big { display: flex; align-items: baseline; justify-content: center; gap: 12px; line-height: .95; }
 .promo__big-num { font-family: var(--font-mark); font-weight: 600; font-size: 4.4rem; color: var(--gold-on-paper); letter-spacing: -.02em; direction: ltr; unicode-bidi: isolate; }
-.promo__big-label { font-family: var(--font-head); font-size: 1.7rem; }
-.promo__subtitle { font-family: var(--font-head); font-size: 1.15rem; margin-top: -2px; }
+.promo__big-label { font-family: var(--font-head); font-weight: 600; font-size: 1.7rem; }
+.promo__subtitle { font-family: var(--font-head); font-weight: 600; font-size: 1.15rem; margin-top: -2px; }
 .promo__text { color: var(--text-on-paper-2); font-size: .98rem; max-width: 320px; }
 .promo__text p { margin: 0 0 8px; }
 .promo__text p:last-child { margin-bottom: 0; }
@@ -414,6 +420,6 @@ html.intro-running .hero__logo { visibility: hidden; }
 /* the popup reuses the promo card (.promo__*); only the gift-specific lines differ */
 .promo--gift .gift__eyebrow { margin: 0; color: var(--gold-on-paper); letter-spacing: .14em; font-size: .85rem; font-weight: 500; }
 .promo--gift .gift__title { font-size: 1.5rem; line-height: 1.25; }
-.promo--gift .gift__closing { margin: 0; font-family: var(--font-head); color: var(--gold-on-paper); font-size: 1.1rem; }
+.promo--gift .gift__closing { margin: 0; font-family: var(--font-head); font-weight: 600; color: var(--gold-on-paper); font-size: 1.1rem; }
 .promo--gift .promo__text { max-width: none; }
 .promo--gift .promo__visual--photo .promo__img { object-position: 50% 30%; }

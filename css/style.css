@@ -1,9 +1,25 @@
 /* ===== tokens ===== */
 :root {
-  --black: #0b0b0b;
-  --black-2: #151515;
-  --cream: #f3ede4;
-  --cream-2: #e9e1d4;
+  /* ===== palette =====
+     Two golds on purpose: #c9a961 on the cream ground measures 1.93:1, which is
+     unreadable. Anything that says "tap here" on a light section uses the darker
+     one; the bright gold stays for dark grounds and for the fill of a solid
+     button (dark text on gold = 8.8:1). tools/check-design.mjs enforces it. */
+  --ink-0: #0a0a0b;
+  --ink-1: #121213;
+  --paper-0: #f4efe7;
+  --paper-1: #ece5d9;
+  --gold-on-paper: #7d6229;
+  --text-on-ink: #f5f2ed;
+  --text-on-ink-2: #a8a49d;
+  --text-on-paper: #1a1815;
+  --text-on-paper-2: #5c564d;
+
+  /* aliases kept until the sweep in task 7 */
+  --black: var(--ink-0);
+  --black-2: var(--ink-1);
+  --cream: var(--paper-0);
+  --cream-2: var(--paper-1);
   --gold: #c9a961;
   --gold-soft: rgba(201, 169, 97, .35);
   --gold-line: rgba(201, 169, 97, .18);
@@ -15,7 +31,7 @@
   --hl-zoom: 1.06;
   --hl-shadow: 0 14px 30px rgba(0, 0, 0, .5);
   --hl-ease: transform .35s cubic-bezier(.2, .7, .3, 1), box-shadow .35s ease, border-color .35s ease, opacity .35s ease;
-  --grey: #a89f91;
+  --grey: var(--text-on-ink-2);
   --wa: #25d366;
   --font-mark: "Playfair Display", Georgia, "Times New Roman", serif;
   --font-head: "Frank Ruhl Libre", "Times New Roman", serif;
@@ -294,16 +310,16 @@ html.intro-running .hero__logo { visibility: hidden; }
 .promo__body { padding: 22px 22px 20px; text-align: center; display: grid; gap: 10px; justify-items: center; }
 .promo__eyebrow { font-family: var(--font-head); font-size: 1.15rem; line-height: 1.3; }
 .promo__big { display: flex; align-items: baseline; justify-content: center; gap: 12px; line-height: .95; }
-.promo__big-num { font-family: var(--font-mark); font-weight: 600; font-size: 4.4rem; color: var(--gold); letter-spacing: -.02em; direction: ltr; unicode-bidi: isolate; }
+.promo__big-num { font-family: var(--font-mark); font-weight: 600; font-size: 4.4rem; color: var(--gold-on-paper); letter-spacing: -.02em; direction: ltr; unicode-bidi: isolate; }
 .promo__big-label { font-family: var(--font-head); font-size: 1.7rem; }
 .promo__subtitle { font-family: var(--font-head); font-size: 1.15rem; margin-top: -2px; }
-.promo__text { color: #4a443c; font-size: .98rem; max-width: 320px; }
+.promo__text { color: var(--text-on-paper-2); font-size: .98rem; max-width: 320px; }
 .promo__text p { margin: 0 0 8px; }
 .promo__text p:last-child { margin-bottom: 0; }
 .promo__highlight { border: 1px solid var(--gold); border-radius: 999px; padding: 8px 16px; font-weight: 500; font-size: .95rem; color: var(--black); }
 .promo__highlight[hidden], .promo__subtitle[hidden] { display: none; }
 .promo__cta { width: 100%; }
-.promo__fine { color: var(--grey); font-size: .8rem; }
+.promo__fine { color: var(--text-on-paper-2); font-size: .8rem; }
 @media (min-width: 640px) {
   .promo__card { width: min(100%, 720px); display: grid; grid-template-columns: 1fr 1fr; }
   .promo__visual { min-height: 440px; }

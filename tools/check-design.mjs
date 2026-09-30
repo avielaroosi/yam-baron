@@ -179,6 +179,12 @@ try {
     return out;
   });
   need(type.length === 0, "type scale:\n    " + type.join("\n    "));
+  // [slot:task6] — the task's own assertions replace this line
+  // [slot:task8] — the task's own assertions replace this line
+  // [slot:task9] — the task's own assertions replace this line
+  // [slot:task10] — the task's own assertions replace this line
+  // [slot:task11] — the task's own assertions replace this line
+  // [slot:task12] — the task's own assertions replace this line
 } finally {
   await browser.close();
   server.close();

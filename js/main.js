@@ -28,6 +28,13 @@
   function renderHero() {
     const img = $("hero-img");
     img.src = S.hero.image; img.alt = S.hero.alt;
+    // The loops are 2-4MB each; a phone gets the still photograph instead.
+    const heroVideo = document.getElementById("hero-video");
+    if (heroVideo && matchMedia("(min-width: 820px)").matches) {
+      heroVideo.poster = "assets/img/hero-video-poster.jpg";
+      heroVideo.src = "assets/video/hero-wide.mp4";
+      heroVideo.preload = "metadata";
+    }
     const logo = $("hero-logo");
     logo.src = S.logo.hero; // alt stays "" on purpose: decorative, #hero-name carries the name
     $("hero-sub").textContent = S.sub;

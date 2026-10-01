@@ -19,7 +19,18 @@ const server = http.createServer((req, res) => {
   const f = path.join(root, p);
   const inRoot = f === root || f.startsWith(root + path.sep); // plain startsWith would also accept a sibling "…/yam-baron-old"
   if (!inRoot || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end(); return; }
-  res.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" });
+  const type = MIME[path.extname(f)] || "application/octet-stream", size = fs.statSync(f).size;
+  // byte ranges: without them a browser cannot seek inside a clip, and the loop check below has to
+  const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || "");
+  if (range && (range[1] || range[2])) {
+    const start = range[1] ? Number(range[1]) : Math.max(0, size - Number(range[2]));
+    const end = range[1] && range[2] ? Math.min(Number(range[2]), size - 1) : size - 1;
+    if (start > end || start >= size) { res.writeHead(416, { "content-range": `bytes */${size}` }); res.end(); return; }
+    res.writeHead(206, { "content-type": type, "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${size}`, "content-length": end - start + 1 });
+    fs.createReadStream(f, { start, end }).pipe(res);
+    return;
+  }
+  res.writeHead(200, { "content-type": type, "accept-ranges": "bytes", "content-length": size });
   fs.createReadStream(f).pipe(res);
 });
 await new Promise((r) => server.listen(0, "127.0.0.1", r));
@@ -27,6 +38,12 @@ const base = `http://127.0.0.1:${server.address().port}/`;
 
 const problems = [];
 const need = (cond, msg) => { if (!cond) problems.push(msg); };
+const notes = []; // things this run could not check, said out loud rather than passed in silence
+// How far the hero's still may be from its clip's first frame, in 0-255 levels, averaged over
+// the worst cell of a 6x8 grid. A still taken from that frame measures 1-3 (01.10: 1.3 and
+// 1.8 from Chrome's decoder, 2.5 and 3.0 from ffmpeg); a frame from anywhere else in the
+// clip, or another photograph, is 20 and up.
+const HERO_STILL_TOLERANCE = 4;
 
 const browser = await chromium.launch();
 try {
@@ -297,7 +314,117 @@ try {
   await saver.goto(base, { waitUntil: "load" });
   await saver.waitForTimeout(1200);
   need(savedAsked.length === 0, `with saveData on, no video may load; requested: ${savedAsked.join(", ")}`);
+  const savedStill = await saver.evaluate(() => ({ got: document.getElementById("hero-img").currentSrc, want: new URL(window.SITE.hero.tall.still, document.baseURI).href }));
+  need(savedStill.got === savedStill.want, `with saveData on, the hero shows the clip's still and nothing else: got ${savedStill.got.split("/").pop()}, want ${savedStill.want.split("/").pop()}`);
   await saver.close();
+
+  // --- the hero is one picture, never two. Under the clip sits a still, and it is the
+  // clip's own first frame. The browser paints the still first and the clip a moment later,
+  // so any other photograph there shows through on every load before the clip covers it
+  // (owner, 01.10: "is the previous picture still under this one? I see it jump").
+  const heroLayers = async (viewport) => {
+    const pg = await browser.newPage({ viewport });
+    const fetched = [];
+    pg.on("request", (r) => { const m = /\/assets\/img\/(hero[^/?]*)/.exec(r.url()); if (m) fetched.push(m[1]); });
+    await pg.goto(base, { waitUntil: "load" });
+    await pg.waitForTimeout(1200);
+    const got = await pg.evaluate(() => {
+      const img = document.getElementById("hero-img"), v = document.getElementById("hero-video");
+      const a = img.getBoundingClientRect(), b = v.getBoundingClientRect(), ci = getComputedStyle(img), cv = getComputedStyle(v);
+      const want = window.SITE.hero[matchMedia("(min-width: 820px)").matches ? "wide" : "tall"];
+      const abs = (u) => new URL(u, document.baseURI).href;
+      return {
+        still: img.currentSrc || img.src, poster: v.poster, clip: v.currentSrc || v.src, wantStill: abs(want.still), wantClip: abs(want.video),
+        sameBox: ["left", "top", "width", "height"].every((k) => Math.abs(a[k] - b[k]) < 0.5),
+        fit: [ci.objectFit, cv.objectFit], pos: [ci.objectPosition, cv.objectPosition],
+        preloaded: [...document.querySelectorAll('link[rel="preload"][as="image"]')].filter((l) => !l.media || matchMedia(l.media).matches).map((l) => l.href),
+      };
+    });
+    await pg.close();
+    const out = [], file = (u) => (u || "").split("/").pop() || "nothing";
+    if (got.still !== got.wantStill) out.push(`the still under the clip is ${file(got.still)}, want ${file(got.wantStill)}`);
+    if (got.poster !== got.still) out.push(`the clip's poster (${file(got.poster)}) and the still under it (${file(got.still)}) must be one file`);
+    if (got.clip !== got.wantClip) out.push(`the clip is ${file(got.clip)}, want ${file(got.wantClip)}`);
+    if (!got.sameBox) out.push("the still and the clip must fill exactly the same box");
+    if (got.fit[0] !== got.fit[1] || got.pos[0] !== got.pos[1]) out.push(`the still and the clip must be cropped alike (object-fit ${got.fit.join(" / ")}, object-position ${got.pos.join(" / ")})`);
+    const strays = [...new Set(fetched)].filter((f) => f !== file(got.wantStill));
+    if (strays.length) out.push(`the hero fetched a picture it never shows: ${strays.join(", ")}`);
+    if (!got.preloaded.includes(got.wantStill)) out.push(`index.html must preload this screen's still (${file(got.wantStill)}); it preloads ${got.preloaded.map(file).join(", ") || "nothing"}`);
+    return out;
+  };
+  for (const [who, viewport] of [["desktop", { width: 1440, height: 900 }], ["phone", { width: 390, height: 844 }]]) {
+    const faults = await heroLayers(viewport);
+    need(faults.length === 0, `hero layers (${who}):\n    ` + faults.join("\n    "));
+  }
+
+  // --- before the script runs, the hero's two <img> have no picture yet, and a browser
+  // draws an <img> like that as an empty outlined frame. They stay out of sight until the
+  // script hands them their pictures, so the first paint is a plain dark hero.
+  const bare = await browser.newPage({ viewport: { width: 1440, height: 900 }, javaScriptEnabled: false });
+  await bare.goto(base, { waitUntil: "load" });
+  const unfilled = await bare.evaluate(() => ["hero-img", "hero-logo"].filter((id) => { const el = document.getElementById(id); return !el.hasAttribute("src") && getComputedStyle(el).visibility !== "hidden"; }));
+  need(unfilled.length === 0, `before the script runs, an <img> with no picture must not show its empty frame: ${unfilled.join(", ")}`);
+  await bare.close();
+
+  // --- and the two things only a real decoder can say (Playwright's own Chromium has no
+  // H.264, so this part runs in the installed Chrome): the still really is the clip's first
+  // frame, and the clip's last frame runs into its first — a loop that snaps back to its
+  // start every few seconds is the same jump, on a timer. Measured cell by cell, because a
+  // band of light popping in at the top of the frame barely moves the average of the whole.
+  // The loop is judged against the clip's own motion: the step across the seam (last frame
+  // to first) must look like the steps on either side of it (the two frames before, the two
+  // after). On 01.10 the old clips measured 131 and 29 across the seam against neighbours
+  // of about 8; the rebuilt ones 2.4 and 8.1.
+  let realChrome = null;
+  try { realChrome = await chromium.launch({ channel: "chrome" }); }
+  catch (e) { notes.push("Chrome is not installed, so the hero clips' frames were NOT compared with their stills or checked for a seamless loop"); }
+  if (realChrome) {
+    try {
+      for (const [who, viewport] of [["desktop", { width: 1440, height: 900 }], ["phone", { width: 390, height: 844 }]]) {
+        const pg = await realChrome.newPage({ viewport });
+        await pg.goto(base, { waitUntil: "load" });
+        const m = await pg.evaluate(async () => {
+          const v = document.getElementById("hero-video"), img = document.getElementById("hero-img");
+          const once = (ev, ms = 10000) => new Promise((res, rej) => { const t = setTimeout(() => rej(new Error(`no "${ev}" within ${ms}ms (readyState ${v.readyState}, error ${v.error && v.error.code})`)), ms); v.addEventListener(ev, () => { clearTimeout(t); res(); }, { once: true }); });
+          try {
+            v.preload = "auto";
+            if (v.readyState < 2) await once("loadeddata");
+            const park = async (t) => { v.pause(); const done = once("seeked"); v.currentTime = t; await done; };
+            // native size: scaled down, a picture and a video frame go through different
+            // samplers, and on fine hair that alone reads as several levels of difference
+            const W = v.videoWidth, H = v.videoHeight, COLS = 6, ROWS = 8;
+            const c = document.createElement("canvas"); c.width = W; c.height = H;
+            const g = c.getContext("2d", { willReadFrequently: true });
+            const shot = (src) => { g.drawImage(src, 0, 0, W, H); return g.getImageData(0, 0, W, H).data; };
+            // the largest average difference found in any one cell of the grid, in 0-255 levels
+            const worst = (a, b) => {
+              let max = 0;
+              for (let r = 0; r < ROWS; r++) for (let q = 0; q < COLS; q++) {
+                const x0 = Math.floor(q * W / COLS), x1 = Math.floor((q + 1) * W / COLS), y0 = Math.floor(r * H / ROWS), y1 = Math.floor((r + 1) * H / ROWS);
+                let sum = 0, n = 0;
+                for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = (y * W + x) * 4; sum += Math.abs(a[i] - b[i]) + Math.abs(a[i + 1] - b[i + 1]) + Math.abs(a[i + 2] - b[i + 2]); n += 3; }
+                max = Math.max(max, sum / n);
+              }
+              return +max.toFixed(1);
+            };
+            await img.decode();
+            const still = shot(img);
+            const dt = 1 / 24, at = async (t) => { await park(t); return shot(v); }; // the ambient clips are 24 frames a second; half a frame in lands on the frame itself
+            const first = await at(dt / 2), second = await at(dt * 1.5);
+            const last = await at(v.duration - dt / 2), beforeLast = await at(v.duration - dt * 1.5);
+            return { stillVsFirst: worst(still, first), seam: worst(last, first), beside: Math.max(worst(beforeLast, last), worst(first, second)),
+                     shape: [img.naturalWidth / img.naturalHeight, v.videoWidth / v.videoHeight], clip: (v.currentSrc || "").split("/").pop() };
+          } catch (e) { return { error: String(e.message || e) }; }
+        });
+        await pg.close();
+        if (m.error) { need(false, `hero clip (${who}): could not be read in Chrome: ${m.error}`); continue; }
+        need(Math.abs(m.shape[0] - m.shape[1]) < 0.01, `hero clip (${who}): the still and ${m.clip} have different shapes (${m.shape.map((x) => x.toFixed(3)).join(" vs ")}), so they cannot be cropped alike`);
+        need(m.stillVsFirst <= HERO_STILL_TOLERANCE, `hero clip (${who}): the still under ${m.clip} is not its first frame (worst cell differs by ${m.stillVsFirst} levels, limit ${HERO_STILL_TOLERANCE}) — take it again: node video-poster.mjs <clip> <still> 0`);
+        const seamLimit = +(2 * m.beside + 2).toFixed(1);
+        need(m.seam <= seamLimit, `hero clip (${who}): ${m.clip} does not loop — from its last frame to its first the worst cell moves ${m.seam} levels, while the frames beside the seam move ${m.beside} (limit ${seamLimit}), so the picture jumps every time it restarts — rebuild it with tools/make-loop.sh`);
+      }
+    } finally { await realChrome.close(); }
+  }
   // --- chapters must survive a visitor who doubled their text size
   const big = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await big.goto(base, { waitUntil: "load" });
@@ -456,4 +583,4 @@ try {
 }
 
 if (problems.length) { console.error("check-design: FAIL\n- " + problems.join("\n- ")); process.exit(1); }
-console.log("check-design: OK");
+console.log("check-design: OK" + (notes.length ? "\n  NOTE: " + notes.join("\n  NOTE: ") : ""));

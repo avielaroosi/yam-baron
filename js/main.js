@@ -26,16 +26,20 @@
 
   // ---- hero
   function renderHero() {
-    const img = $("hero-img");
-    img.src = S.hero.image; img.alt = S.hero.alt;
-    // The phone gets the tall clip, the desktop the wide one. Someone who turned on
-    // data saver gets the poster and nothing else; reduced motion is honoured by
+    // One picture in two layers: a still, and above it the clip that still was taken from.
+    // The browser paints the still first and the clip a moment later, and because the still
+    // is the clip's own first frame, nothing on screen changes when that happens. (It used
+    // to be a different photograph, and it showed through on every load.)
+    // The phone gets the tall pair, the desktop the wide one. Someone who turned on data
+    // saver gets the still and nothing else; reduced motion is honoured by
     // mountAmbientVideo, which simply never plays.
+    const shot = window.matchMedia("(min-width: 820px)").matches ? S.hero.wide : S.hero.tall;
+    const img = $("hero-img");
+    img.src = shot.still; img.alt = S.hero.alt;
     const heroVideo = document.getElementById("hero-video");
     if (heroVideo && !(navigator.connection && navigator.connection.saveData)) {
-      const wide = window.matchMedia("(min-width: 820px)").matches;
-      heroVideo.poster = wide ? "assets/img/hero-video-poster.jpg" : "assets/img/hero-video-poster-tall.jpg";
-      heroVideo.src = wide ? "assets/video/hero-wide.mp4" : "assets/video/hero-tall.mp4";
+      heroVideo.poster = shot.still;
+      heroVideo.src = shot.video;
       heroVideo.preload = "metadata";
     }
     const logo = $("hero-logo");

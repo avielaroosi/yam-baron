@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- נתיבים כפולים: אם משנים hero/logo ב-js/content.js צריך לעדכן גם את שתי השורות האלה -->
-  <link rel="preload" as="image" href="assets/img/hero.jpg" fetchpriority="high">
+  <!-- נתיבים כפולים: אם משנים hero.wide.still / hero.tall.still / logo.hero ב-js/content.js צריך לעדכן גם את השורות האלה.
+       כל מסך טוען מראש רק את התמונה שלו (media), והיא הפריים הראשון של הקליפ שמתנגן מעליה. -->
+  <link rel="preload" as="image" href="assets/img/hero-video-poster.jpg" media="(min-width: 820px)" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/img/hero-video-poster-tall.jpg" media="not all and (min-width: 820px)" fetchpriority="high">
   <link rel="preload" as="image" href="assets/brand/logo-full-light.svg" fetchpriority="high">
 
   <!-- שער אנימציית הפתיחה. inline וסינכרוני בכוונה: הוא חייב לצבוע את השחור לפני
@@ -49,8 +51,9 @@
   <header class="hero" id="top">
     <div class="hero__media">
       <!-- DOM order is the paint order here (both absolutely positioned, neither carries a
-           z-index): the still photo must come first so the video — preloading behind it —
-           ends up stacked above it once it has a frame to show. -->
+           z-index): the still comes first and the clip is stacked above it. The still is the
+           clip's own first frame (hero in js/content.js), so the picture does not change
+           when the clip takes over. -->
       <img class="hero__bg" id="hero-img" fetchpriority="high" alt="">
       <video class="hero__video is-ambient" id="hero-video" muted loop playsinline preload="none"></video>
     </div>

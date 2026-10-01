@@ -22,7 +22,8 @@ for (const k of ["name", "sub", "tagline", "heroText", "whatsapp", "whatsappDefa
 need(/^\d{11,13}$/.test(S?.whatsapp || ""), "SITE.whatsapp must be digits only, international format, no '+'");
 need(/^\d{11,13}$/.test(S?.phone || ""), "SITE.phone must be digits only, international format, no '+' (used for the tel: link)");
 need(!/^@/.test(S?.instagram || ""), "SITE.instagram must be the handle without '@'");
-need(S?.hero?.image && S?.hero?.alt, "SITE.hero needs {image, alt}");
+need(S?.hero?.alt, "SITE.hero needs alt (what the hero picture shows)");
+for (const k of ["wide", "tall"]) need(S?.hero?.[k]?.video && S?.hero?.[k]?.still, `SITE.hero.${k} needs {video, still} — the clip, and the still that is its first frame`);
 need(Array.isArray(S?.services) && S.services.length >= 3 && S.services.length <= 4, "SITE.services must have 3 or 4 items");
 for (const s of S?.services || []) {
   for (const k of ["id", "title", "desc", "image", "whatsappText"]) need(s[k], `service "${s.id || "?"}" missing ${k}`);
@@ -64,7 +65,7 @@ if (S?.gift) {
   need(!/[,\u2013\u2014]/.test([S.gift.title, ...gtext, S.gift.closing, S.gift.cta].join(" ")), "gift page copy must contain no commas or dashes (owner request)");
 }
 const files = [
-  S?.hero?.image,
+  S?.hero?.wide?.video, S?.hero?.wide?.still, S?.hero?.tall?.video, S?.hero?.tall?.still,
   ...(S?.services || []).map((s) => s.image),
   ...(S?.gallery || []).map((g) => g.src),
   ...(S?.testimonials || []).map((t) => t.src),

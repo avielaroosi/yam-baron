@@ -112,13 +112,16 @@ p { margin: 0; }
 .btn--gold:hover { background: var(--gold-hover); border-color: var(--gold-hover); }
 
 /* ===== hero =====
-   One structure for every screen: the still photograph paints first (it is
-   preloaded), the clip's poster and then the clip itself sit above it, the scrim
-   above those, the logo on top. The phone gets the tall clip, the desktop the wide. */
+   One picture in two layers, on every screen: a still paints first (it is preloaded),
+   and the clip it was taken from plays above it. The two fill the same box with the
+   same crop, so the hand-over from one to the other moves nothing. The scrim sits
+   above both and the logo on top. The phone gets the tall pair, the desktop the wide. */
 .hero { position: relative; background: var(--ink-0); text-align: center; isolation: isolate; display: block; min-height: 100svh; }
 .hero__media { position: absolute; inset: 0; height: 100%; line-height: 0; }
-.hero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
-.hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.hero__bg, .hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
+/* Until the script hands them their pictures, the hero's two images have none, and a
+   browser draws an image like that as an empty outlined frame. Keep it out of the first paint. */
+.hero__bg:not([src]), .hero__logo:not([src]) { visibility: hidden; }
 /* The shade deepens by the middle of the screen, where the paragraph and the button sit: the
    band of light in the clip travels the whole height, and behind grey text it would wash a line
    out as it passes. Above the middle it stays light, so the band reads where the logo is. */

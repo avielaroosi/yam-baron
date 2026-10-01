@@ -15,9 +15,20 @@ window.SITE = {
   phoneDisplay: "054-392-2677",
   address: "נחל גלים 15, כפר יונה",
 
-  // שימו לב: הנתיבים של hero.image ושל logo.hero מופיעים גם בשתי שורות
-  // <link rel="preload"> ב-index.html. אם משנים כאן נתיב — חובה לעדכן גם שם.
-  hero: { image: "assets/img/hero.jpg", alt: "ים בראון מסרקת כלה בסטודיו" },
+  // הפתיח: קליפ שקט בלופ (video), ומתחתיו תמונה סטטית (still) שהדפדפן מצייר לפניו.
+  // wide = מחשב (מ-820px ומעלה), tall = נייד.
+  // שני כללים, ו-check-design בודק את שניהם:
+  //   1. still הוא הפריים הראשון של אותו video בדיוק. כל תמונה אחרת מבצבצת לרגע בכל
+  //      טעינה, לפני שהקליפ מכסה אותה (כך "קפצה" התמונה הישנה, 01.10).
+  //   2. הקליפ נגמר בפריים שבו הוא מתחיל. אחרת התמונה קופצת בכל סיבוב של הלופ.
+  // איך מכינים זוג כזה: README, "סרטוני רקע".
+  // שימו לב: שני הנתיבים של still מופיעים גם בשורות <link rel="preload"> ב-index.html.
+  // אם משנים כאן נתיב — חובה לעדכן גם שם.
+  hero: {
+    alt: "שיער ארוך, חלק ומבריק, במבט מאחור", // נוסח 01.10 יחד עם התמונה — תיאור בלבד, אפשר לשנות כאן
+    wide: { video: "assets/video/hero-wide.mp4", still: "assets/img/hero-video-poster.jpg" },
+    tall: { video: "assets/video/hero-tall.mp4", still: "assets/img/hero-video-poster-tall.jpg" },
+  },
 
   // לוגו: hero = לוגו מלא בגרסה לרקע כהה; mark = המונוגרמה בלבד (פוטר, אייקון)
   // הנתיב של logo.hero מופיע גם בשורת <link rel="preload"> ב-index.html — לעדכן בשני המקומות.

@@ -92,12 +92,26 @@ const hasAudioTrack = (buf) => {
 };
 const videoDir = path.join(root, "assets/video");
 const clips = fs.existsSync(videoDir) ? fs.readdirSync(videoDir).filter((f) => /\.(mp4|mov|m4v)$/i.test(f)) : [];
+// Every clip must be H.264. The AI clips arrive as 10-bit HEVC, which plays on a Mac and an
+// iPhone and nowhere else reliably — Firefox has no HEVC at all, and many Android phones
+// cannot decode 10-bit — so a visitor there would get the poster and never the clip. An MP4
+// names each track's codec in the first entry of its `stsd` box.
+const videoCodec = (buf) => {
+  for (let i = buf.indexOf("stsd"); i !== -1; i = buf.indexOf("stsd", i + 4)) {
+    const fourcc = buf.toString("latin1", i + 16, i + 20);
+    if (["avc1", "avc3", "hvc1", "hev1", "av01", "vp09"].includes(fourcc)) return fourcc;
+  }
+  return "unknown";
+};
 for (const f of clips) {
-  need(!hasAudioTrack(fs.readFileSync(path.join(videoDir, f))), `assets/video/${f} carries an audio track — every clip on this site is silent; strip it with: ffmpeg -i in.mp4 -c:v copy -an out.mp4`);
+  const buf = fs.readFileSync(path.join(videoDir, f));
+  need(!hasAudioTrack(buf), `assets/video/${f} carries an audio track — every clip on this site is silent; strip it with: ffmpeg -i in.mp4 -c:v copy -an out.mp4`);
+  const codec = videoCodec(buf);
+  need(codec === "avc1" || codec === "avc3", `assets/video/${f} is ${codec}, not H.264 — it will not play in Firefox or on many Android phones; re-encode with: ffmpeg -i in.mp4 -c:v libx264 -pix_fmt yuv420p -crf 23 -movflags +faststart -an out.mp4`);
 }
 
 if (errors.length) {
   console.error("check-content: FAIL\n- " + errors.join("\n- "));
   process.exit(1);
 }
-console.log(`check-content: OK (${files.length} asset files verified; ${clips.length} video files, none with an audio track)`);
+console.log(`check-content: OK (${files.length} asset files verified; ${clips.length} video files, all H.264, none with an audio track)`);

@@ -119,8 +119,10 @@ p { margin: 0; }
 .hero__media { position: absolute; inset: 0; height: 100%; line-height: 0; }
 .hero__bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
 .hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-/* darker at the foot on the phone, where the tagline and text sit */
-.hero__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 10, 11, .35) 0%, rgba(10, 10, 11, .1) 35%, rgba(10, 10, 11, .9) 100%); }
+/* The shade deepens by the middle of the screen, where the paragraph and the button sit: the
+   band of light in the clip travels the whole height, and behind grey text it would wash a line
+   out as it passes. Above the middle it stays light, so the band reads where the logo is. */
+.hero__media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 10, 11, .35) 0%, rgba(10, 10, 11, .1) 30%, rgba(10, 10, 11, .62) 52%, rgba(10, 10, 11, .9) 100%); }
 .hero__inner { position: relative; z-index: 1; max-width: 720px; margin-inline: auto; min-height: 100svh; display: grid; gap: var(--sp-2); justify-items: center; align-content: center; padding: var(--section-y) var(--pad) var(--sp-7); }
 .hero__tagline { font-family: var(--font-head); font-size: var(--step-lead); letter-spacing: var(--track-display); }
 .hero__text { max-width: 560px; color: var(--text-on-ink-2); font-size: var(--step-body); }

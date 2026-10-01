@@ -25,6 +25,7 @@
   --step-h3: clamp(1.375rem, 3vw, 1.75rem);
   --step-lead: clamp(1.125rem, 2.2vw, 1.5rem);
   --step-body: 1.0625rem;
+  --step-title-sm: clamp(1.75rem, 3vw, 2.25rem); /* a heading inside a tile */
   --step-small: .9375rem;
   --track-display: -.015em;
   --measure: 680px;
@@ -77,6 +78,7 @@
   --radius-sm: 4px;
   --reel-w: clamp(220px, 21vw, 300px); --reel-w-phone: min(72vw, var(--card-w)); /* video rail cards */
   --tap: 44px;
+  --tile-max: 880px; --map-min: 320px; /* the contact tile */
   --tile-w: clamp(200px, 22vw, 300px); --tile-w-phone: min(62vw, 260px); /* gallery tiles */
   --shot-ratio: 900 / 931; /* the testimonial screenshots' own shape */
   --card-min: 200px; --card-w: 320px; /* proof cards: the clip and every screenshot share this */
@@ -201,25 +203,34 @@ p { margin: 0; }
 }
 
 /* ===== contact =====
-   One axis. Heading, one gold action, the phone as a large tap target, the address,
-   two quiet links — all centred — and the map as a wide grey band beneath, the way
-   a closing tile on apple.com carries one idea and one action. No columns to
-   mis-align, nothing taller than its neighbour. */
-.contact { display: grid; gap: var(--sp-6); justify-items: center; text-align: center; }
-.contact__stack { display: grid; gap: var(--sp-3); justify-items: center; }
+   One small tile, two halves: what to do and where to find her on the start side, the
+   map on the other, both exactly the same height. The tile is the lighter cream on the
+   darker one — no frame, no shadow — and it is small on purpose: the page ends on a
+   card, not on a billboard. On a phone the halves stack, information first.
+   tools/check-design.mjs holds it to that: a height ceiling, and the two halves aligned. */
+#contact { padding-block: var(--sp-6); }
+.contact { display: grid; max-width: var(--tile-max); margin-inline: auto; border-radius: var(--radius); overflow: hidden; background: var(--paper-0); }
+.contact__stack { display: grid; gap: var(--sp-1); justify-items: start; align-content: center; padding: var(--sp-4); text-align: start; }
+.contact__title { font-size: var(--step-title-sm); text-align: start; margin: 0 0 var(--sp-1); }
 /* digits keep their order inside RTL text, and a phone number is a tap target, not a caption */
 .contact__tel { font-size: var(--step-lead); font-weight: 500; color: var(--action); direction: ltr; unicode-bidi: isolate; min-height: var(--tap); display: inline-flex; align-items: center; }
 .contact__tel:hover { text-decoration: underline; }
 .contact__address { color: var(--fg-2); font-size: var(--step-body); }
-.contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: center; }
+/* on a phone the button runs edge to edge inside the tile; beside the map it keeps its own width */
+.contact__stack .btn { margin-block: var(--sp-3) var(--sp-1); justify-self: stretch; }
+.contact__secondary { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
 .contact__secondary a { display: inline-flex; align-items: center; gap: var(--sp-1); color: var(--action); font-size: var(--step-body); min-height: var(--tap); }
 .contact__secondary a:hover { text-decoration: underline; }
 .contact__secondary a:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); border-radius: var(--radius-sm); }
-.contact__map { width: 100%; aspect-ratio: 4 / 3; border-radius: var(--radius); overflow: hidden; background: var(--paper-1); }
+.contact__map { aspect-ratio: 16 / 9; background: var(--paper-1); }
 /* desaturated so the map sits inside the palette instead of shouting over it */
 .contact__map iframe { width: 100%; height: 100%; border: 0; display: block; filter: grayscale(1) contrast(1.05); }
 @media (min-width: 820px) {
-  .contact__map { aspect-ratio: 21 / 9; }
+  .contact { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .contact__stack { padding: var(--sp-6) var(--sp-5); }
+  .contact__stack .btn { justify-self: start; }
+  /* the map takes its height from the information beside it, never the other way round */
+  .contact__map { aspect-ratio: auto; min-height: var(--map-min); }
 }
 
 /* ===== footer ===== */

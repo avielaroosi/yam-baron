@@ -418,6 +418,38 @@ try {
     return out;
   });
   need(shorter.length === 0, "sections:\n    " + shorter.join("\n    "));
+
+  // --- contact: one small tile, two halves of exactly the same height. The owner, 01.10: "it
+  // looks big and out of proportion — make this whole part smaller"; and before that, of the
+  // two-column version: "not aligned in any way". So size and alignment are both pinned here.
+  const tileFaults = () => {
+    const out = [];
+    const sec = document.querySelector("#contact"), tile = sec && sec.querySelector(".contact"), stack = sec && sec.querySelector(".contact__stack"), map = sec && sec.querySelector(".contact__map");
+    if (!tile || !stack || !map) return ["#contact needs .contact holding .contact__stack and .contact__map"];
+    const wide = innerWidth >= 820;
+    const s = sec.getBoundingClientRect(), t = tile.getBoundingClientRect(), a = stack.getBoundingClientRect(), b = map.getBoundingClientRect();
+    const limit = wide ? 640 : 780;
+    if (s.height > limit) out.push(`the section is ${Math.round(s.height)}px tall at ${innerWidth} wide, want <= ${limit}`);
+    if (t.width > 961) out.push(`the tile is ${Math.round(t.width)}px wide, want <= 960`);
+    if (Math.abs((t.left + t.right) / 2 - document.documentElement.clientWidth / 2) > 1) out.push("the tile must sit on the page's centre line");
+    if (!stack.querySelector("h2")) out.push("the heading belongs inside the tile, with what it heads");
+    if (wide) {
+      if (Math.abs(a.top - b.top) > 1 || Math.abs(a.height - b.height) > 1) out.push(`the two halves must share a top and a height (info ${Math.round(a.top)}/${Math.round(a.height)}, map ${Math.round(b.top)}/${Math.round(b.height)})`);
+      if (Math.abs(a.width - b.width) > 1) out.push(`the two halves must be the same width (info ${Math.round(a.width)}, map ${Math.round(b.width)})`);
+    } else {
+      if (b.top < a.bottom - 1) out.push("on a phone the map sits under the information, not beside it");
+      if (Math.abs(a.width - t.width) > 1 || Math.abs(b.width - t.width) > 1) out.push("on a phone both halves run the full width of the tile");
+    }
+    return out;
+  };
+  const contactWide = await page.evaluate(tileFaults);
+  need(contactWide.length === 0, "contact (1440):\n    " + contactWide.join("\n    "));
+  const cp = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await cp.goto(base, { waitUntil: "load" });
+  await cp.waitForTimeout(400);
+  const contactPhone = await cp.evaluate(tileFaults);
+  need(contactPhone.length === 0, "contact (390):\n    " + contactPhone.join("\n    "));
+  await cp.close();
 } finally {
   await browser.close();
   server.close();

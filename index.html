@@ -76,8 +76,9 @@
     <section class="section section--paper-1 reveal" id="gallery">
       <div class="container">
         <h2 class="section__title">עבודות</h2>
-        <div class="gallery" id="gallery-grid"></div>
       </div>
+      <!-- outside the container on purpose: the two rows run from one edge of the screen to the other -->
+      <div class="gallery" id="gallery-grid"></div>
     </section>
 
     <section class="section section--dark reveal" id="testimonials">
@@ -185,5 +186,10 @@
   <script src="js/main.js"></script>
   <!-- אחרי main.js: הפתיחה נוחתת על לוגו ההירו, וצריך ש-renderHero כבר יציב לו src -->
   <script src="js/intro.js"></script>
+  <!-- The motion layer: GSAP + ScrollTrigger, then the choreography. Delete these three
+       lines and the page is a static page — every reveal, drift and loop lives here. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+  <script src="js/motion.js"></script>
 </body>
 </html>

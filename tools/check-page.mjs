@@ -91,7 +91,7 @@ try {
   // A box inside a deliberate horizontal scroller (overflow-x: auto/scroll — the proof
   // strip) may sit outside the viewport by design; the page itself must still not scroll
   // sideways, which the scrollWidth line below guards on its own.
-  const inScroller = (n) => { for (let a = n.parentElement; a; a = a.parentElement) { const o = getComputedStyle(a).overflowX; if (o === "auto" || o === "scroll") return true; } return false; };
+  const inScroller = (n) => { for (let a = n.parentElement; a; a = a.parentElement) { const o = getComputedStyle(a).overflowX; if (o === "auto" || o === "scroll" || o === "hidden" || o === "clip") return true; } return false; };
   need(await mobile.evaluate((fn) => [...document.querySelectorAll("body *")].every((n) => {
     const r = n.getBoundingClientRect();
     return r.width === 0 || r.right <= window.innerWidth + 1 || eval(fn)(n);
@@ -393,8 +393,30 @@ try {
       await page.waitForTimeout(900);
     };
     const moved = (t) => !!t && t !== "none" && t !== "matrix(1, 0, 0, 1, 0, 0)";
+    // The rows drift, so "the first tile" may be anywhere, including off screen. Rest the
+    // row the way a real pointer does — by entering it — then point at whichever tile shows
+    // the most of itself; a ghost copy carries the same hover rules as the tile it mirrors.
+    const aim = async (page) => {
+      await page.hover(".gallery__row");
+      await page.waitForTimeout(900);
+      const at = await page.evaluate(() => {
+        document.querySelectorAll("[data-probe-tile]").forEach((n) => n.removeAttribute("data-probe-tile"));
+        let best = null, most = 0;
+        for (const n of document.querySelectorAll(".gallery__item, .gallery__ghost")) {
+          const r = n.getBoundingClientRect();
+          if (r.top < 0 || r.bottom > innerHeight) continue;
+          const l = Math.max(r.left, 0), rt = Math.min(r.right, innerWidth);
+          if (rt - l > most) { most = rt - l; best = { n, x: (l + rt) / 2, y: r.top + r.height / 2 }; }
+        }
+        if (!best) return null;
+        best.n.setAttribute("data-probe-tile", "");
+        return { x: best.x, y: best.y };
+      });
+      if (at) await page.mouse.move(at.x, at.y);
+      return !!at;
+    };
     const styles = (page) => page.evaluate(() => {
-      const tile = document.querySelector(".gallery__item");
+      const tile = document.querySelector("[data-probe-tile]") || document.querySelector(".gallery__item");
       return {
         held: tile.matches(":hover"),
         tile: getComputedStyle(tile).transform,
@@ -406,11 +428,13 @@ try {
     });
 
     const mouse = await browser.newPage({ viewport: { width: 1280, height: 900 }, locale: "he-IL" });
+    // these fixtures now outlast the promo's delay — keep it shut, or its overlay takes the pointer
+    await mouse.addInitScript(() => { try { localStorage.setItem("yb-promo-used", String(Date.now())); } catch (e) {} });
     await mouse.goto(base, { waitUntil: "load" });
     await mouse.keyboard.press("Escape"); // past the opening animation
     await mouse.waitForTimeout(400);
     await settle(mouse, "gallery");
-    await mouse.hover(".gallery__item");
+    need(await aim(mouse), "hover: no gallery tile is on screen to point at");
     await mouse.waitForTimeout(600);
     const on = await styles(mouse);
     need(on.held, "hover: the cursor slipped off the tile, so the rest of this block proves nothing");
@@ -427,6 +451,7 @@ try {
     await mouse.close();
 
     const touch = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", hasTouch: true, isMobile: true });
+    await touch.addInitScript(() => { try { localStorage.setItem("yb-promo-used", String(Date.now())); } catch (e) {} });
     await touch.goto(base, { waitUntil: "load" });
     await touch.keyboard.press("Escape");
     await touch.waitForTimeout(400);
@@ -435,16 +460,17 @@ try {
     // Headless Chromium does NOT reproduce the sticky :hover that real iOS Safari leaves
     // behind after a tap, so tapping here would prove nothing. Test the gate itself
     // instead: send a hover to a coarse pointer and require that nothing responds.
-    await touch.hover(".gallery__item");
+    need(await aim(touch), "hover: no gallery tile is on screen to point at");
     await touch.waitForTimeout(600);
     const stuck = await styles(touch);
     need(!moved(stuck.tile) && !moved(stuck.img), "hover: a coarse pointer must never get the highlight — on a real phone it would stick after a tap");
     await touch.close();
 
     const calm = await browser.newPage({ viewport: { width: 1280, height: 900 }, locale: "he-IL", reducedMotion: "reduce" });
+    await calm.addInitScript(() => { try { localStorage.setItem("yb-promo-used", String(Date.now())); } catch (e) {} });
     await calm.goto(base, { waitUntil: "load" });
     await settle(calm, "gallery");
-    await calm.hover(".gallery__item");
+    need(await aim(calm), "hover: no gallery tile is on screen to point at");
     await calm.waitForTimeout(400);
     const quiet = await styles(calm);
     need(!moved(quiet.tile) && !moved(quiet.img), "hover: reduced motion must drop the lift and the zoom");
@@ -573,6 +599,61 @@ try {
     need((await off.$$("#gift")).length === 0 || await off.isHidden("#gift"), "home: without SITE.gift ?gift must not open anything");
     need(offProblems.length === 0, "home: a missing SITE.gift must not log errors: " + offProblems.join("; "));
     await off.close();
+  }
+
+  // --- gallery loop (js/motion.js): two rows that travel, stay full, and are never bent.
+  // The owner's words after the first version (01.10): "the scrolling is really slow, and when
+  // I scroll they bend" — so a floor on the speed and a ban on anything but travel, both here.
+  {
+    const g = await browser.newPage({ viewport: { width: 1440, height: 900 }, locale: "he-IL" });
+    await g.addInitScript(() => { try { localStorage.setItem("yb-promo-used", String(Date.now())); sessionStorage.setItem("yb-intro", "seen"); } catch (e) {} });
+    await g.goto(base, { waitUntil: "load" });
+    need(await g.evaluate(() => !!window.ScrollTrigger && document.documentElement.classList.contains("is-motion")), "motion layer did not start (is the GSAP CDN reachable?)");
+    await g.evaluate(() => { const grid = document.getElementById("gallery-grid"); window.scrollTo({ top: grid.getBoundingClientRect().top + window.scrollY - 420, behavior: "instant" }); });
+    await g.mouse.move(4, 4); // parked in a corner: a pointer over a row rests it
+    await g.waitForTimeout(1500);
+    const look = () => g.evaluate(() => [...document.querySelectorAll(".gallery__row")].map((row) => {
+      const track = row.querySelector(".gallery__track"), m = new DOMMatrix(getComputedStyle(track).transform), rr = row.getBoundingClientRect();
+      const gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+      const tiles = [...track.children].map((n) => n.getBoundingClientRect()).sort((a, b) => a.left - b.left);
+      let full = tiles.length > 0 && tiles[0].left <= rr.left + 1 && tiles[tiles.length - 1].right >= rr.right - 1;
+      for (let i = 1; i < tiles.length; i++) if (tiles[i].left - tiles[i - 1].right > gap + 1) full = false;
+      const period = [...track.querySelectorAll(".gallery__item")].reduce((s, n) => s + n.getBoundingClientRect().width + gap, 0);
+      return { x: m.e, straight: m.a === 1 && m.b === 0 && m.c === 0 && m.d === 1, full, period, rowWidth: rr.width,
+        ghostsHidden: [...track.querySelectorAll(".gallery__ghost")].every((n) => n.getAttribute("aria-hidden") === "true" && n.tabIndex === -1) };
+    }));
+    // a looping position jumps by one period when it wraps; undo that before comparing
+    const travel = (a, b) => a.map((r, i) => { let d = b[i].x - r.x; if (d > r.period / 2) d -= r.period; if (d < -r.period / 2) d += r.period; return d; });
+    const a = await look(); await g.waitForTimeout(1000); const b = await look();
+    const rest = travel(a, b);
+    need(b.length === 2 && b.every((r) => r.rowWidth <= 1441), "gallery: two rows, each no wider than the screen");
+    need(rest.every((d) => Math.abs(d) >= 50), `gallery: each row must travel at least 50px a second at rest, got ${rest.map((d) => Math.round(d)).join(" / ")}`);
+    need(rest.length === 2 && Math.sign(rest[0]) === -Math.sign(rest[1]), "gallery: the two rows must run opposite ways");
+    need(b.every((r) => r.full), "gallery: a row shows an empty band — the loop is not seamless");
+    need(b.every((r) => r.ghostsHidden), "gallery: ghost tiles must be hidden from assistive tech and out of the tab order");
+    need((await g.$$("#gallery-grid .gallery__item")).length === S.gallery.length, "gallery: the real tiles are still exactly the photographs in content.js");
+    // scrolling hard speeds the rows up and must not bend them
+    let straight = b.every((r) => r.straight), full = true;
+    const s0 = await look();
+    for (let i = 0; i < 8; i++) { await g.mouse.wheel(0, 40); await g.waitForTimeout(50); const s = await look(); if (!s.every((r) => r.straight)) straight = false; if (!s.every((r) => r.full)) full = false; }
+    const s1 = await look();
+    need(straight, "gallery: the tiles must only travel — no skew, rotation or scale on a row, least of all while scrolling");
+    need(full, "gallery: a row showed an empty band while the page was scrolling");
+    need(travel(s0, s1).every((d, i) => Math.abs(d) > Math.abs(rest[i]) * 0.4 * 1.5), "gallery: scrolling the page must speed the rows up");
+    // a drag moves the row and is not a click
+    await g.waitForTimeout(1200);
+    const mid = await g.evaluate(() => { const r = document.querySelector(".gallery__row").getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await g.mouse.move(mid.x, mid.y); await g.waitForTimeout(900);
+    const d0 = await look();
+    await g.mouse.down(); for (let i = 1; i <= 8; i++) { await g.mouse.move(mid.x + i * 20, mid.y); await g.waitForTimeout(16); }
+    const d1 = await look(); await g.mouse.up(); await g.waitForTimeout(300);
+    need(Math.abs(travel(d0, d1)[0] - 160) < 12, "gallery: a dragged row must follow the pointer");
+    need(await g.isHidden("#lightbox"), "gallery: dragging a row must not open the lightbox");
+    // a resize half-way down the page must leave every scroll trigger where its element is
+    await g.setViewportSize({ width: 1300, height: 900 }); await g.waitForTimeout(800);
+    const off = await g.evaluate(() => { const map = document.querySelector(".contact__map"), st = ScrollTrigger.getAll().find((s) => s.trigger === map); return st ? Math.abs(st.start - (map.getBoundingClientRect().top + window.scrollY - window.innerHeight * 0.85)) : 0; });
+    need(off < 5, `motion: after a resize made mid-page a scroll trigger sits ${Math.round(off)}px from its element`);
+    await g.close();
   }
 
   // --- screenshots (full page also forces lazy images to load)

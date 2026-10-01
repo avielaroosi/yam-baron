@@ -77,6 +77,7 @@
   --radius-sm: 4px;
   --video-min: 260px; --video-max: 380px; --video-solo: 460px;
   --tap: 44px;
+  --tile-w: clamp(200px, 22vw, 300px); --tile-w-phone: min(62vw, 260px); /* gallery tiles */
   --card-min: 200px; --card-w: 320px; /* proof cards: the clip and every screenshot share this */
 }
 
@@ -229,12 +230,32 @@ p { margin: 0; }
 .hero__logo { width: min(66vw, 400px); height: auto; aspect-ratio: 800 / 622; filter: drop-shadow(0 6px 24px rgba(0, 0, 0, .45)); }
 .footer__logo { width: 44px; height: auto; margin: 0 auto 10px; opacity: .9; }
 
-/* ===== gallery ===== */
-.gallery { display: grid; gap: var(--sp-3); grid-template-columns: repeat(2, 1fr); }
-.gallery__item { position: relative; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 12px; overflow: hidden; aspect-ratio: 4 / 5; transition: var(--hl-ease); }
-.gallery__item img { width: 100%; height: 100%; object-fit: cover; transition: var(--hl-ease); }
+/* ===== gallery: two rows that drift =====
+   Ten photographs as two rows running from one edge of the screen to the other, in
+   opposite directions: a steady drift at rest, geared to the page scroll — faster when
+   it is scrolled hard, turning round when it turns round — resting under a pointer, and
+   draggable. The tiles only travel; they are never rotated or skewed. js/motion.js
+   drives it and clones the tiles the loop needs. With the motion layer off (no
+   JavaScript, or a visitor who asked for less motion) each row is a plain strip that
+   scrolls sideways by hand, starting at the page gutter. */
+/* A block, not a grid: a clipped row is not a scroll container, so as a grid item its
+   automatic minimum width would be its whole track and the row would grow to fit it. */
+.gallery { display: block; }
+.gallery__row { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.gallery__row + .gallery__row { margin-top: var(--sp-1); }
+.gallery__row::-webkit-scrollbar { display: none; }
+/* clip, not hidden: a clipped box cannot be scrolled, so keyboard focus landing on a tile
+   cannot shove the row sideways underneath the transform that positions it */
+.is-motion .gallery__row { overflow: hidden; overflow: clip; touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
+.gallery__row.is-dragging, .gallery__row.is-dragging .gallery__item, .gallery__row.is-dragging .gallery__ghost { cursor: grabbing; }
+/* the block padding is room for the hover lift and the focus ring, which the row would clip */
+.gallery__track { display: flex; gap: var(--sp-3); width: max-content; padding-block: var(--sp-1); will-change: transform; }
+html:not(.is-motion) .gallery__track { padding-inline: var(--pad); }
+.gallery__item, .gallery__ghost { position: relative; flex: 0 0 auto; width: var(--tile-w); aspect-ratio: 4 / 5; padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: var(--radius); overflow: hidden; transition: var(--hl-ease); }
+/* the tile is the target, never the photograph: a press on the image would start a native image drag */
+.gallery__item img, .gallery__ghost img { width: 100%; height: 100%; object-fit: cover; display: block; transition: var(--hl-ease); pointer-events: none; -webkit-user-drag: none; }
 .gallery__item:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
-@media (min-width: 760px) { .gallery { grid-template-columns: repeat(5, 1fr); gap: var(--sp-3); } }
+@media (max-width: 819px) { .gallery__row + .gallery__row { margin-top: 0; } .gallery__track { gap: var(--sp-2); } .gallery__item, .gallery__ghost { width: var(--tile-w-phone); } }
 
 /* ===== lightbox ===== */
 .lightbox { position: fixed; inset: 0; z-index: 200; overscroll-behavior: contain; background: rgba(10, 10, 11, .94); display: grid; place-items: center; padding: 56px 16px; }
@@ -279,8 +300,8 @@ iframe.video__media { border: 0; }
    stay lifted and zoomed after you closed the lightbox. Keyboard focus gets the same
    treatment, declared outside the gate, because that has to work on any device. */
 @media (hover: hover) and (pointer: fine) {
-  .gallery__item:hover { transform: translateY(var(--hl-lift)); }
-  .gallery__item:hover img { transform: scale(var(--hl-zoom)); }
+  .gallery__item:hover, .gallery__ghost:hover { transform: translateY(var(--hl-lift)); }
+  .gallery__item:hover img, .gallery__ghost:hover img { transform: scale(var(--hl-zoom)); }
 
   .card:hover { transform: translateY(var(--hl-lift)); }
   .card:hover .card__img { transform: scale(var(--hl-zoom)); }

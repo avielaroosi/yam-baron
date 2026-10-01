@@ -150,14 +150,24 @@
   let lbOpenedEl = null;
   let lbScrollY = 0;
   const lbFocusable = () => [$("lightbox-close"), $("lightbox-prev"), $("lightbox-next")];
+  // Two rows of photographs. With the motion layer on, each row becomes a loop that
+  // drifts (js/motion.js clones the tiles it needs); without it, a row is a strip that
+  // scrolls sideways by hand. Either way these ten buttons are the gallery.
   function renderGallery() {
     const grid = $("gallery-grid");
-    S.gallery.forEach((g, i) => {
-      const btn = el("button", { class: "gallery__item", type: "button", "aria-label": g.alt, "data-index": String(i) }, [
-        el("img", { loading: "lazy", src: g.src, alt: g.alt }),
-      ]);
-      btn.addEventListener("click", () => openLightbox(S.gallery, i, btn));
-      grid.append(btn);
+    const half = Math.ceil(S.gallery.length / 2);
+    [S.gallery.slice(0, half), S.gallery.slice(half)].forEach((items) => {
+      if (!items.length) return;
+      const track = el("div", { class: "gallery__track" });
+      for (const g of items) {
+        const i = S.gallery.indexOf(g);
+        const btn = el("button", { class: "gallery__item", type: "button", "aria-label": g.alt, "data-index": String(i) }, [
+          el("img", { loading: "lazy", src: g.src, alt: g.alt }),
+        ]);
+        btn.addEventListener("click", () => openLightbox(S.gallery, i, btn));
+        track.append(btn);
+      }
+      grid.append(el("div", { class: "gallery__row" }, [track]));
     });
   }
   function showLightbox(i) {

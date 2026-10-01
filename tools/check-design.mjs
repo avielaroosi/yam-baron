@@ -91,6 +91,10 @@ try {
   for (const [label, url, dialog] of [["home", base, null], ["gift card", base + "?gift", "#gift"], ["promo", base + "?promo", "#promo"]]) {
     const p = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await p.goto(url, { waitUntil: "load" });
+    // Scroll-triggered reveals leave below-the-fold text at opacity 0 until it is reached,
+    // and the walk skips opacity 0 — so walk the page first, then measure.
+    await p.evaluate(async () => { const h = document.documentElement; for (let y = 0; y < h.scrollHeight; y += Math.max(300, innerHeight * 0.8)) { scrollTo({ top: y, behavior: "instant" }); await new Promise((r) => setTimeout(r, 40)); } scrollTo({ top: 0, behavior: "instant" }); });
+    await p.waitForTimeout(900);
     // A fixed wait raced the dialog's fade: sampled before opacity crossed .5 the
     // walk skipped every element inside and passed vacuously; sampled after, it
     // failed. Wait for the dialog to be open and fully opaque, deterministically.
@@ -297,6 +301,10 @@ try {
   // --- chapters must survive a visitor who doubled their text size
   const big = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await big.goto(base, { waitUntil: "load" });
+  // settle the scroll-triggered reveals first: a pending reveal holds the body's children
+  // translated 24px down, which reads as clipping to this metric though nothing is clipped
+  await big.evaluate(async () => { const h = document.documentElement; for (let y = 0; y < h.scrollHeight; y += Math.max(300, innerHeight * 0.8)) { scrollTo({ top: y, behavior: "instant" }); await new Promise((r) => setTimeout(r, 40)); } scrollTo({ top: 0, behavior: "instant" }); });
+  await big.waitForTimeout(900);
   await big.addStyleTag({ content: "html { font-size: 32px !important; }" });
   await big.waitForTimeout(300);
   const clipped = await big.evaluate(() => {

@@ -26,6 +26,7 @@
   --step-lead: clamp(1.125rem, 2.2vw, 1.5rem);
   --step-body: 1.0625rem;
   --step-title-sm: clamp(1.75rem, 3vw, 2.25rem); /* a heading inside a tile */
+  --step-h2-col: clamp(2rem, 3.8vw, 3rem); /* a section heading that shares its row with a photograph */
   --step-small: .9375rem;
   --track-display: -.015em;
   --measure: 680px;
@@ -189,20 +190,26 @@ p { margin: 0; }
   .proof .testimonial { flex: 0 0 min(72vw, var(--card-w)); scroll-snap-align: start; }
   .proof .testimonials__empty { flex: 0 0 auto; align-self: center; }
 }
-}
 
-/* ===== about ===== */
-.about { display: grid; gap: 32px; align-items: center; grid-template-columns: 1fr; }
+/* ===== about =====
+   The same figure as a service chapter, on the same spacing: a photograph, and the
+   words that belong to it a clear step away. Stacked and centred on a phone and a
+   tablet. Side by side only from 1000px: below that the words' column is too narrow —
+   at 820 the heading broke in two and the five paragraphs ran 150px past the photograph. */
+.about { display: grid; gap: var(--sp-5); align-items: center; grid-template-columns: 1fr; }
 .about__img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius); max-width: 440px; justify-self: center; box-shadow: var(--shadow-photo); transition: var(--hl-ease); }
-.about__body { display: grid; gap: 18px; text-align: center; }
-.about .section__title { margin-bottom: 0; }
+.about__body { display: grid; gap: var(--sp-3); text-align: center; }
+/* The heading is one sentence and reads as one: it shrinks to stay on a single line on
+   the narrowest phone, and a longer one that has to break does so in even lines rather
+   than leaving its last word (or the heart) alone. */
+.about .section__title { margin-bottom: 0; font-size: min(var(--step-h2), 8.2vw); text-wrap: balance; }
 .about__text { font-size: var(--step-body); max-width: var(--measure); margin-inline: auto; text-align: start; }
-.about__text p { margin: 0 0 14px; }
+.about__text p { margin: 0 0 var(--sp-2); }
 .about__text p:last-child { margin-bottom: 0; }
-@media (min-width: 820px) {
-  .about { grid-template-columns: 5fr 7fr; gap: 56px; }
+@media (min-width: 1000px) {
+  .about { grid-template-columns: 5fr 7fr; gap: var(--sp-6); }
   .about__body { text-align: start; }
-  .about .section__title { text-align: start; }
+  .about .section__title { font-size: var(--step-h2-col); text-align: start; }
   .about .section__title::after { margin-inline: 0; }
   .about__text { margin-inline: 0; }
 }

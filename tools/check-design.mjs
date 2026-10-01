@@ -45,6 +45,24 @@ const notes = []; // things this run could not check, said out loud rather than 
 // clip, or another photograph, is 20 and up.
 const HERO_STILL_TOLERANCE = 4;
 
+// --- the one check made on the CSS source rather than on computed styles: its braces.
+// A closing brace with nothing open is not an error a browser reports. It swallows the
+// rule that follows — silently — and nothing computed says which rule went missing. On
+// 01.10 one stray brace after the proof block threw away the whole layout of the "about"
+// section, and the heading ended up glued under the photograph for half a day.
+{
+  const css = fs.readFileSync(path.join(root, "css/style.css"), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, (c) => c.replace(/[^\n]/g, " "))        // comments out, line numbers kept
+    .replace(/"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'/g, (q) => " ".repeat(q.length)); // and strings
+  let depth = 0, line = 1;
+  for (const ch of css) {
+    if (ch === "\n") line++;
+    else if (ch === "{") depth++;
+    else if (ch === "}" && --depth < 0) { need(false, `css/style.css line ${line}: a closing brace with nothing open — the browser throws away the rule that follows it`); depth = 0; }
+  }
+  need(depth === 0, `css/style.css: ${depth} block(s) never closed — everything after the last one is thrown away`);
+}
+
 const browser = await chromium.launch();
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
@@ -576,6 +594,56 @@ try {
   await cp.waitForTimeout(400);
   const contactPhone = await cp.evaluate(tileFaults);
   need(contactPhone.length === 0, "contact (390):\n    " + contactPhone.join("\n    "));
+
+  // --- "about": the photograph and the words are two things with air between them. From
+  // 1000px they stand side by side, centred on each other; below that the heading sits
+  // under the photograph, centred, a clear step away from it (owner, 01.10: "the sentence
+  // under the picture is really tight and out of proportion" — it was touching it). And
+  // the heading reads as one sentence at every width: on one line, or broken evenly,
+  // never with its last word — or the heart — alone on a line of its own.
+  const aboutFaults = () => {
+    const sec = document.getElementById("about"), box = sec.querySelector(".about"), img = sec.querySelector(".about__img");
+    const body = sec.querySelector(".about__body"), title = sec.querySelector("#about-title"), text = sec.querySelector(".about__text");
+    for (const el of box.children) { el.style.transition = "none"; el.style.transform = "none"; } // the resting layout, not a reveal in mid-flight
+    const r = (el) => el.getBoundingClientRect(), i = r(img), b = r(body), t = r(title), x = r(text);
+    const wide = matchMedia("(min-width: 1000px)").matches, out = [];
+    if (getComputedStyle(box).display !== "grid") out.push(`.about must lay out as a grid, it is "${getComputedStyle(box).display}" — its rule is not reaching the browser`);
+    if (wide) {
+      if (b.top >= i.bottom - 1) out.push("on a desktop the words stand beside the photograph, not under it");
+      const apart = Math.max(b.left - i.right, i.left - b.right);
+      if (apart < 40) out.push(`the photograph and the words are ${Math.round(apart)}px apart, want 40 or more`);
+      if (Math.abs((i.top + i.bottom) / 2 - (b.top + b.bottom) / 2) > 2) out.push("the photograph and the words must be centred on each other");
+    } else {
+      const under = t.top - i.bottom;
+      if (under < 24) out.push(`the heading sits ${Math.round(under)}px under the photograph, want 24 or more`);
+      if (Math.abs((t.left + t.right) / 2 - (i.left + i.right) / 2) > 2) out.push("on a phone the heading is centred under the photograph");
+    }
+    const lead = x.top - t.bottom;
+    if (lead < 12) out.push(`the first paragraph sits ${Math.round(lead)}px under the heading, want 12 or more`);
+    // what stands on the heading's last line
+    const cs = getComputedStyle(title), lineH = parseFloat(cs.lineHeight);
+    if (Math.round(t.height / lineH) > 1) {
+      const node = title.firstChild; let top = null, last = "";
+      for (let k = 0; k < node.length; k++) {
+        const one = document.createRange(); one.setStart(node, k); one.setEnd(node, k + 1);
+        const rc = one.getClientRects()[0]; if (!rc) continue;
+        if (top === null || Math.abs(rc.top - top) > lineH / 2) { top = rc.top; last = ""; }
+        last += node.data[k];
+      }
+      if (last.trim().split(/\s+/).length < 2) out.push(`the heading leaves "${last.trim()}" alone on its last line`);
+    }
+    if (!String(cs.textWrapStyle || cs.textWrap).includes("balance")) out.push("a heading that has to break must break into even lines (text-wrap: balance)");
+    return out;
+  };
+  const aboutWide = await page.evaluate(aboutFaults);
+  need(aboutWide.length === 0, "about (1440):\n    " + aboutWide.join("\n    "));
+  // the narrowest phone, a phone, a tablet upright (stacked), a tablet on its side (side by side)
+  for (const width of [320, 390, 820, 1024]) {
+    await cp.setViewportSize({ width, height: 844 });
+    await cp.evaluate(() => document.fonts.ready);
+    const faults = await cp.evaluate(aboutFaults);
+    need(faults.length === 0, `about (${width}):\n    ` + faults.join("\n    "));
+  }
   await cp.close();
 } finally {
   await browser.close();

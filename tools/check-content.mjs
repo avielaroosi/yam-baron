@@ -111,6 +111,26 @@ for (const f of clips) {
   need(codec === "avc1" || codec === "avc3", `assets/video/${f} is ${codec}, not H.264 — it will not play in Firefox or on many Android phones; re-encode with: ffmpeg -i in.mp4 -c:v libx264 -pix_fmt yuv420p -crf 23 -movflags +faststart -an out.mp4`);
 }
 
+// The site's own address is written in four places that cannot read content.js: the CNAME
+// file GitHub Pages takes the domain from, and three tags in index.html that link previews
+// and search engines read without running a script. They must all name the same host, and
+// the picture a shared link shows must be a file that exists.
+{
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const cnameFile = path.join(root, "CNAME");
+  const host = fs.existsSync(cnameFile) ? fs.readFileSync(cnameFile, "utf8").trim() : "";
+  need(/^[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host), `CNAME must hold the site's domain and nothing else, got "${host}"`);
+  const home = `https://${host}/`;
+  const read = (re, what) => { const m = re.exec(html); need(m, `index.html: ${what} is missing`); return m ? m[1] : ""; };
+  const canonical = read(/<link rel="canonical" href="([^"]*)">/, 'link rel="canonical"');
+  const ogUrl = read(/<meta property="og:url" content="([^"]*)">/, "og:url");
+  const ogImage = read(/<meta property="og:image" content="([^"]*)">/, "og:image");
+  need(canonical === home, `index.html: canonical is ${canonical}, but CNAME says ${home}`);
+  need(ogUrl === home, `index.html: og:url is ${ogUrl}, but CNAME says ${home}`);
+  need(ogImage.startsWith(home), `index.html: og:image must be an address on ${home}, got ${ogImage}`);
+  if (ogImage.startsWith(home)) need(fs.existsSync(path.join(root, ogImage.slice(home.length))), `index.html: og:image points at a file that is not there: ${ogImage.slice(home.length)}`);
+}
+
 if (errors.length) {
   console.error("check-content: FAIL\n- " + errors.join("\n- "));
   process.exit(1);

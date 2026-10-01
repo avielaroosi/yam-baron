@@ -187,6 +187,7 @@ node check-page.mjs      # פותח את הדף בדפדפן סמוי, בודק 
 
 האתר **באוויר** ומתארח ב-GitHub Pages מהענף `main`, בכתובת https://avielaroosi.github.io/yam-baron/ .
 כל `git push` לענף `main` מעדכן את האתר החי תוך כדקה — אין שלב פרסום נוסף.
+**רק האתר מתפרסם:** `_config.yml` מוציא מהפרסום את `README.md`, `docs/` ו-`tools/`. הם נשארים במאגר בלבד.
 
 ## חיבור דומיין (כשיהיה)
 

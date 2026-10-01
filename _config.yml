@@ -1,0 +1,7 @@
+# GitHub Pages builds this repository with Jekyll and publishes what it finds. Only the
+# site itself goes out: the working documents, the check tools and the README stay in
+# the repository. (Before 01.10 they were all reachable on the live site.)
+exclude:
+  - README.md
+  - docs
+  - tools

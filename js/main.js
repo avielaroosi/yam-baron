@@ -272,7 +272,12 @@
         // poster + the gold play ring until the visitor taps; native controls appear only while playing
         // The poster waits in data-poster until the rail is near the viewport (see the end of this function):
         // a poster cannot be lazy-loaded natively, and seven of them are 400KB the first screen does not need.
-        const video = el("video", { class: "video__media", src: v.src, "data-poster": v.poster, playsinline: true, preload: "none" });
+        const video = el("video", { class: "video__media", src: v.src, "data-poster": v.poster, playsinline: true, muted: true, preload: "none" });
+        // No clip on this site makes a sound (owner, 01.10). The files carry no audio track —
+        // tools/check-content.mjs refuses one that does — and this holds the line in the player
+        // as well: it starts muted, and it will not be unmuted.
+        video.muted = true;
+        video.addEventListener("volumechange", () => { if (!video.muted) video.muted = true; });
         const play = el("button", { class: "video__play video__play--btn", type: "button", "aria-label": "נגן: " + v.title });
         media = el("div", { class: "video__player" }, [video, play]);
         const showRing = () => { media.classList.remove("is-playing"); video.controls = false; if (nowPlaying === stop) nowPlaying = null; };
@@ -297,7 +302,7 @@
         console.warn("video: unrecognized YouTube URL", v.src);
         media = placeholderFrame(v);
       } else if (v.type === "youtube") {
-        media = el("iframe", { class: "video__media", src: `https://www.youtube-nocookie.com/embed/${id}`, title: v.title, loading: "lazy", allow: "accelerometer; encrypted-media; picture-in-picture", allowfullscreen: true });
+        media = el("iframe", { class: "video__media", src: `https://www.youtube-nocookie.com/embed/${id}?mute=1`, title: v.title, loading: "lazy", allow: "accelerometer; encrypted-media; picture-in-picture", allowfullscreen: true });
       } else if (v.type === "instagram") {
         needInstagram = true;
         media = el("blockquote", { class: "instagram-media video__media", "data-instgrm-permalink": v.src, "data-instgrm-version": "14" }, [

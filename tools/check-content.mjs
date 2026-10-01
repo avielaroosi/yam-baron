@@ -80,8 +80,24 @@ for (const f of files) {
   need(fs.existsSync(path.join(root, f)), `file missing on disk: ${f}`);
 }
 
+// No video on this site makes a sound (owner, 01.10: "very important — no audio at all").
+// So no video file may even carry an audio track. An MP4 declares what each track is in an
+// `hdlr` box, and `soun` there means sound. Every file in assets/video is checked, used or
+// not: an unused file is still published.
+const hasAudioTrack = (buf) => {
+  for (let i = buf.indexOf("hdlr"); i !== -1; i = buf.indexOf("hdlr", i + 4)) {
+    if (buf.toString("latin1", i + 12, i + 16) === "soun") return true;
+  }
+  return false;
+};
+const videoDir = path.join(root, "assets/video");
+const clips = fs.existsSync(videoDir) ? fs.readdirSync(videoDir).filter((f) => /\.(mp4|mov|m4v)$/i.test(f)) : [];
+for (const f of clips) {
+  need(!hasAudioTrack(fs.readFileSync(path.join(videoDir, f))), `assets/video/${f} carries an audio track — every clip on this site is silent; strip it with: ffmpeg -i in.mp4 -c:v copy -an out.mp4`);
+}
+
 if (errors.length) {
   console.error("check-content: FAIL\n- " + errors.join("\n- "));
   process.exit(1);
 }
-console.log(`check-content: OK (${files.length} asset files verified)`);
+console.log(`check-content: OK (${files.length} asset files verified; ${clips.length} video files, none with an audio track)`);

@@ -112,6 +112,7 @@ window.SITE = {
     // yam-02 = הסרטון המעודכן (30.09). yam-01 נשאר בתיקייה עוד יום בגלל המטמון, ואז אפשר למחוק.
     { type: "file", src: "assets/video/yam-02.mp4", poster: "assets/img/video-yam-02.jpg", title: "החלקה: לפני ואחרי" },
     // נוספו 01.10 (שישה סרטונים מהטלפון של ים, הומרו ל-720p). הכיתובים תיאוריים — אפשר לשנות כאן.
+    // כל הסרטונים באתר בלי קול (בקשת הבעלים): הקבצים עצמם בלי רצועת קול, והבדיקה נכשלת אם עולה קובץ עם קול.
     { type: "file", src: "assets/video/yam-03.mp4", poster: "assets/img/video-yam-03.jpg", title: "גלים רכים על שיער ארוך" },
     { type: "file", src: "assets/video/yam-06.mp4", poster: "assets/img/video-yam-06.jpg", title: "קוקו גבוה עם גלים" },
     { type: "file", src: "assets/video/yam-04.mp4", poster: "assets/img/video-yam-04.jpg", title: "החלקה: התוצאה" },

@@ -187,6 +187,9 @@ try {
   need((await mobile.$$eval("#videos-grid .video", (v) => v.map((x) => x.dataset.type).join(","))) === S.videos.map((v) => v.type).join(","), "videos: data-type per item");
   need((await mobile.$$("#videos-grid .video__placeholder .video__play")).length === S.videos.filter((v) => v.type === "placeholder").length, "videos: placeholder items show a play mark");
   need((await mobile.$$("#videos-grid figcaption")).length === S.videos.length, "videos: every item has a caption");
+  // --- videos: silence. The owner, 01.10: "very important — I don't want any audio at all."
+  need(await mobile.evaluate(() => { const v = [...document.querySelectorAll("video")]; return v.length > 0 && v.every((x) => x.muted && x.hasAttribute("muted")); }), "videos: every <video> on the page must be muted — no video on this site makes a sound");
+  need(await mobile.evaluate(async () => { const v = document.querySelector("#videos-grid video"); if (!v) return true; v.muted = false; v.volume = 1; await new Promise((r) => setTimeout(r, 80)); return v.muted; }), "videos: a clip must refuse to be unmuted");
 
   // --- videos: scrolling away from a playing video pauses it (owner request 30.09). Headless Chromium cannot decode the
   // file, so the "playing" state is set by hand and pause() is stubbed to count calls; the wiring is what is under test.
@@ -262,7 +265,7 @@ try {
     });
     await fx.route("**/youtube-nocookie.com/**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<html></html>" }));
     await fx.goto(base, { waitUntil: "load" });
-    need((await fx.getAttribute("#videos-grid .video:nth-child(1) iframe", "src")) === "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ", "videos: youtube branch builds nocookie embed url");
+    need((await fx.getAttribute("#videos-grid .video:nth-child(1) iframe", "src")) === "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?mute=1", "videos: youtube branch builds a nocookie embed url that starts muted");
     need((await fx.getAttribute("#videos-grid .video:nth-child(1) iframe", "loading")) === "lazy", "videos: youtube iframe is lazy");
     need((await fx.getAttribute("#videos-grid .video:nth-child(2) video", "preload")) === "none", "videos: file branch preload=none");
     need(await fx.$eval("#videos-grid .video:nth-child(2) video", (v) => !v.hasAttribute("controls") && v.hasAttribute("playsinline")), "videos: file branch starts without native controls (gold ring instead) and has playsinline");

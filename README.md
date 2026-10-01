@@ -51,11 +51,17 @@ python3 tools/trace-logo.py
 - `{ type: "instagram", src: "https://www.instagram.com/reel/XXXX/", title: "..." }` — קישור לריל/פוסט.
 - `{ type: "placeholder", poster: "assets/img/x.jpg", title: "..." }` — מסגרת זמנית עד שיגיע סרטון.
 
+**אין קול באתר — בכלל** (בקשה מפורשת של הבעלים, 01.10). כל קובץ וידאו עולה **בלי רצועת קול**, לא רק מושתק:
+`node tools/check-content.mjs` נכשל אם קובץ כלשהו ב-`assets/video/` מכיל רצועת קול, והנגן עצמו מושתק ומסרב
+לביטול ההשתקה. להסיר קול מקובץ קיים בלי לקודד מחדש: `ffmpeg -i in.mp4 -c:v copy -an out.mp4`.
+שימו לב: את זה אפשר להבטיח רק לסוג `file`. הטמעה של יוטיוב מתחילה מושתקת אבל הגולשת יכולה להפעיל בה קול,
+ובהטמעה של אינסטגרם אין לנו שליטה — אם "בלי קול" חשוב, להעלות קובץ.
+
 הסרטונים מוצגים במקטע "סרטונים" כ**מסילה**: כרטיסים אנכיים זה לצד זה מקצה המסך לקצהו. בטלפון מחליקים
 באצבע; במחשב גוללים, גוררים בעכבר או לוחצים על החצים. **הסדר ברשימה הוא הסדר על המסך.** שום דבר לא
 מתנגן עד שלוחצים, ורק סרטון אחד מתנגן בכל רגע. הכיתוב (`title`) מופיע על הכרטיס, מעל התמונה.
 
-המרת סרטון מהטלפון (‎.mov‎, HEVC, עד 4K) לקובץ שמתאים לאתר: רוחב 720, H.264, ‎2–6MB לסרטון של 15–25 שניות. אין ffmpeg במחשב; הדרך שעבדה (30.09 ו-01.10): `python3 -m venv ffenv && ffenv/bin/pip install imageio-ffmpeg`, למצוא את הקובץ עם `ffenv/bin/python -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())"`, ואז `ffmpeg -i in.mov -vf scale=720:-2 -c:v libx264 -preset slow -crf 24 -pix_fmt yuv420p -movflags +faststart -c:a aac -b:a 96k out.mp4` (`-2` שומר על הפרופורציה של המקור). תמונת פוסטר מאותו כלי: `ffmpeg -ss 5 -i out.mp4 -frames:v 1 -q:v 4 poster.jpg` (‎5 = השנייה שממנה לוקחים את הפריים; לבחור פריים שבו העיניים פקוחות והשיער ברור). שם קובץ חדש לכל סרטון חדש.
+המרת סרטון מהטלפון (‎.mov‎, HEVC, עד 4K) לקובץ שמתאים לאתר: רוחב 720, H.264, ‎2–6MB לסרטון של 15–25 שניות. אין ffmpeg במחשב; הדרך שעבדה (30.09 ו-01.10): `python3 -m venv ffenv && ffenv/bin/pip install imageio-ffmpeg`, למצוא את הקובץ עם `ffenv/bin/python -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())"`, ואז `ffmpeg -i in.mov -vf scale=720:-2 -c:v libx264 -preset slow -crf 24 -pix_fmt yuv420p -movflags +faststart -an out.mp4` (`-2` שומר על הפרופורציה של המקור; `-an` מסיר את הקול). תמונת פוסטר מאותו כלי: `ffmpeg -ss 5 -i out.mp4 -frames:v 1 -q:v 4 poster.jpg` (‎5 = השנייה שממנה לוקחים את הפריים; לבחור פריים שבו העיניים פקוחות והשיער ברור). שם קובץ חדש לכל סרטון חדש.
 
 **סרטוני רקע (אווירה):** חמישה קליפים קצרים ב-`assets/video/` בשמות `hero-*` ו-`chapter-*`.
 הם **קישוט בלבד** — מושתקים, בלופ, בלי קול ובלי כיתוב — ולכן לכל אחד יש תמונת פוסטר שמחזיקה

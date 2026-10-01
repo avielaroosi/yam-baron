@@ -57,7 +57,9 @@
     S.services.forEach((s, i) => {
       grid.append(el("article", { class: "chapter" + (i % 2 ? " chapter--flip" : ""), id: "service-" + s.id }, [
         el("div", { class: "chapter__media" }, [
-          el("img", { loading: "lazy", src: s.image, alt: s.title }),
+          // The first photograph sits right under the hero: it is fetched with the page, so
+          // it is already there when the visitor scrolls down to it. The rest wait their turn.
+          el("img", { loading: i === 0 ? "eager" : "lazy", src: s.image, alt: s.title }),
         ]),
         el("div", { class: "chapter__body" }, [
           el("h3", { class: "chapter__title", text: s.title }),

@@ -263,6 +263,8 @@ try {
   await rm.waitForTimeout(1200);
   const playing = await rm.evaluate(() => [...document.querySelectorAll("video.is-ambient")].filter((v) => !v.paused).map((v) => v.className));
   need(playing.length === 0, `reduced motion must not autoplay: ${playing.join(", ")}`);
+  const stillShot = await rm.evaluate(() => { const shot = document.querySelector(".hero__shot"); return shot ? getComputedStyle(shot).animationName : "missing"; });
+  need(stillShot === "none", `reduced motion must not zoom the hero either (animation: ${stillShot})`);
   await rm.close();
   // --- the hero video must still exist in the markup (desktop uses it)
   const heroOnDesktop = await page.evaluate(() => !!document.querySelector("#hero-video"));
@@ -356,6 +358,14 @@ try {
         sameBox: ["left", "top", "width", "height"].every((k) => Math.abs(a[k] - b[k]) < 0.5),
         fit: [ci.objectFit, cv.objectFit], pos: [ci.objectPosition, cv.objectPosition],
         preloaded: [...document.querySelectorAll('link[rel="preload"][as="image"]')].filter((l) => !l.media || matchMedia(l.media).matches).map((l) => l.href),
+        // the camera's move: one element carries both layers, so they can never part
+        shot: (() => {
+          const shot = document.querySelector(".hero__shot");
+          if (!shot) return null;
+          const cs = getComputedStyle(shot), t = cs.transform === "none" ? 1 : new DOMMatrixReadOnly(cs.transform).a;
+          return { holdsBoth: shot.contains(img) && shot.contains(v), animation: cs.animationName, repeats: cs.animationIterationCount, direction: cs.animationDirection, scale: t,
+                   clipped: ["hidden", "clip"].includes(getComputedStyle(shot.parentElement).overflowX), scrimAbove: getComputedStyle(shot.parentElement, "::after").position === "absolute" };
+        })(),
       };
     });
     await pg.close();
@@ -368,12 +378,64 @@ try {
     const strays = [...new Set(fetched)].filter((f) => f !== file(got.wantStill));
     if (strays.length) out.push(`the hero fetched a picture it never shows: ${strays.join(", ")}`);
     if (!got.preloaded.includes(got.wantStill)) out.push(`index.html must preload this screen's still (${file(got.wantStill)}); it preloads ${got.preloaded.map(file).join(", ") || "nothing"}`);
+    // The clips are locked off so that they can loop; the slow push-in on the hair is the
+    // page's own (owner, 01.10: "it took away the zoom on the hair we made for the opening,
+    // on the phone too"). In and back out, for ever, so it never has to jump back.
+    const shot = got.shot;
+    if (!shot) out.push("the hero's two layers must sit in .hero__shot, the element that carries the camera's move");
+    else {
+      if (!shot.holdsBoth) out.push(".hero__shot must hold both the still and the clip, or the zoom parts them");
+      if (shot.animation !== "hero-zoom") out.push(`the hero must zoom slowly on the hair (animation: ${shot.animation})`);
+      if (shot.repeats !== "infinite" || shot.direction !== "alternate") out.push(`the zoom goes in and back out without end, so it never snaps back (iterations ${shot.repeats}, direction ${shot.direction})`);
+      if (!(shot.scale > 1.002)) out.push(`1.2s after load the zoom should be under way (scale ${shot.scale})`);
+      if (!shot.clipped) out.push("the zoomed picture must be clipped to the hero");
+    }
     return out;
   };
   for (const [who, viewport] of [["desktop", { width: 1440, height: 900 }], ["phone", { width: 390, height: 844 }]]) {
     const faults = await heroLayers(viewport);
     need(faults.length === 0, `hero layers (${who}):\n    ` + faults.join("\n    "));
   }
+
+  // --- leaving the hero on a phone (owner, 01.10: "the scroll down from the header gets stuck
+  // and is not seamless as the text disappears"). Filmed: the section under the hero was
+  // hidden whole until an observer noticed it, so it came on screen as a dark gap — 199px of
+  // it — and faded in over the next 600ms, in the middle of the scroll, with the list of
+  // chapters and each chapter hidden again inside it and the hero's words still fading.
+  // So: a section's ground is always there; only its content arrives. On a screen driven
+  // by a finger the page scrolls on the graphics thread and a script hears of it late, so
+  // scroll-linked motion is eased there and never pushes a thing against the scroll.
+  const touchCtx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const tp = await touchCtx.newPage();
+  await tp.goto(base, { waitUntil: "load" });
+  await tp.waitForTimeout(900);
+  const leaving = await tp.evaluate(async () => {
+    const out = [];
+    for (const sec of document.querySelectorAll("main > section")) {
+      const cs = getComputedStyle(sec);
+      if (cs.display === "none") continue;
+      if (cs.opacity !== "1" || cs.transform !== "none") out.push(`#${sec.id} is hidden as a whole until it is reached (opacity ${cs.opacity}, transform ${cs.transform === "none" ? "none" : "moved"})`);
+    }
+    if (!document.documentElement.classList.contains("is-motion")) out.push("the motion layer did not start on a touch screen");
+    else for (const el of document.querySelectorAll(".cards, .chapter")) {
+      if (getComputedStyle(el).opacity !== "1") { out.push(`.${el.className.split(" ")[0]} is hidden as a whole, on top of the motion layer bringing its parts in`); break; }
+    }
+    const first = document.querySelector("#services-grid .chapter img");
+    if (!first || first.loading === "lazy") out.push("the first photograph under the hero must load with the page, not lazily: it has to be there when the visitor arrives");
+    const linked = ScrollTrigger.getAll().filter((t) => t.vars.scrub !== undefined && t.vars.scrub !== false);
+    if (!linked.length) out.push("found no scroll-linked motion to check");
+    if (linked.some((t) => !(typeof t.vars.scrub === "number" && t.vars.scrub > 0))) out.push("on a touch screen scroll-linked motion must be eased (a number of seconds), not locked to the scroll frame by frame");
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo(0, 320);
+    await new Promise((r) => setTimeout(r, 1300));
+    const inner = getComputedStyle(document.querySelector(".hero__inner"));
+    if (!(parseFloat(inner.opacity) < 0.9)) out.push(`320px into the scroll the hero's words should be fading (opacity ${inner.opacity})`);
+    const moved = inner.transform === "none" ? 0 : new DOMMatrixReadOnly(inner.transform).m42;
+    if (Math.abs(moved) > 0.5) out.push(`on a touch screen the hero's words must only fade, not be pushed against the scroll (moved ${Math.round(moved)}px)`);
+    return out;
+  });
+  need(leaving.length === 0, "leaving the hero on a phone:\n    " + leaving.join("\n    "));
+  await touchCtx.close();
 
   // --- before the script runs, the hero's two <img> have no picture yet, and a browser
   // draws an <img> like that as an empty outlined frame. They stay out of sight until the

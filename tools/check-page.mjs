@@ -117,7 +117,8 @@ try {
   need((await mobile.getAttribute('link[rel="icon"]', "href")) === "assets/favicon.png", "favicon must be assets/favicon.png");
   need(await mobile.evaluate(() => !document.getElementById("hero-logo").hasAttribute("loading")), "hero: logo must not be lazy-loaded");
   need((await mobile.getAttribute("#footer-logo", "loading")) === "lazy", "footer: monogram must be lazy-loaded");
-  need(await mobile.evaluate(() => [...document.querySelectorAll("main img, footer img")].every((i) => i.getAttribute("loading") === "lazy")), "every image below the hero must be lazy-loaded");
+  // one exception: the first photograph under the hero, which must be there when the visitor scrolls to it
+  need(await mobile.evaluate(() => { const first = document.querySelector("#services-grid .chapter img"); return [...document.querySelectorAll("main img, footer img")].every((i) => i === first ? i.getAttribute("loading") === "eager" : i.getAttribute("loading") === "lazy"); }), "every image below the hero must be lazy-loaded, except the first service photograph");
 
   // --- WhatsApp links
   wa = await mobile.$$eval('a[href^="https://wa.me/"]', (as) => as.map((a) => a.href));

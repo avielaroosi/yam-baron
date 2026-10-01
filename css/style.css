@@ -27,6 +27,9 @@
   --step-body: 1.0625rem;
   --step-title-sm: clamp(1.75rem, 3vw, 2.25rem); /* a heading inside a tile */
   --step-h2-col: clamp(2rem, 3.8vw, 3rem); /* a section heading that shares its row with a photograph */
+  /* The hero's camera move: how far it pushes in on the hair, how long one way takes, and
+     the point it closes in on (the hair, which sits right of centre in the wide clip). */
+  --hero-zoom: 1.35; --hero-zoom-time: 7s; --hero-zoom-origin: 50% 40%;
   --step-small: .9375rem;
   --track-display: -.015em;
   --measure: 680px;
@@ -118,7 +121,17 @@ p { margin: 0; }
    same crop, so the hand-over from one to the other moves nothing. The scrim sits
    above both and the logo on top. The phone gets the tall pair, the desktop the wide. */
 .hero { position: relative; background: var(--ink-0); text-align: center; isolation: isolate; display: block; min-height: 100svh; }
-.hero__media { position: absolute; inset: 0; height: 100%; line-height: 0; }
+.hero__media { position: absolute; inset: 0; height: 100%; line-height: 0; overflow: hidden; }
+/* The camera's move. The clips themselves are locked off, because a clip whose camera
+   travels snaps back to its start every time it loops. So the slow push-in on the hair is
+   made here instead, on the one element that holds both layers: in, and back out as
+   slowly, without end. It never has to jump back, and the still and the clip never part. */
+.hero__shot { position: absolute; inset: 0; transform-origin: var(--hero-zoom-origin); }
+@media (min-width: 820px) { .hero__shot { --hero-zoom: 1.24; --hero-zoom-time: 9s; --hero-zoom-origin: 58% 45%; } }
+@media (prefers-reduced-motion: no-preference) {
+  .hero__shot { animation: hero-zoom var(--hero-zoom-time) ease-in-out infinite alternate; will-change: transform; }
+}
+@keyframes hero-zoom { from { transform: scale(1); } to { transform: scale(var(--hero-zoom)); } }
 .hero__bg, .hero__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; }
 /* Until the script hands them their pictures, the hero's two images have none, and a
    browser draws an image like that as an empty outlined frame. Keep it out of the first paint. */
@@ -477,19 +490,23 @@ html.intro-running .hero__logo { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .promo, .promo__card { transition: none; } }
 
 /* ===== reveal on scroll =====
-   The section fades and rises as one; its direct children follow in a short
-   stagger, so the eye is led down the section instead of being handed all of it
-   at once. Reduced motion collapses both to nothing. */
-.js .reveal { opacity: 0; transform: translateY(18px); transition: opacity var(--dur-scene) var(--ease), transform var(--dur-scene) var(--ease); }
-.reveal.is-in { opacity: 1; transform: none; }
+   What arrives is a section's content, never the section. Its ground is there before
+   the visitor reaches it, and its direct children rise into place in a short stagger,
+   so the eye is led down the section instead of being handed all of it at once.
+   (The section itself used to fade in too. On a cream page over a dark body that
+   showed as a dark gap under the hero which cleared late, in the middle of the scroll.)
+   Reduced motion collapses it to nothing. */
 .js .reveal .container > *, .js .reveal .chapter { opacity: 0; transform: translateY(var(--stagger-rise)); transition: opacity var(--dur-scene) var(--ease), transform var(--dur-scene) var(--ease); }
 .reveal.is-in .container > *, .reveal.is-in .chapter { opacity: 1; transform: none; }
 .reveal.is-in .container > *:nth-child(2), .reveal.is-in .chapter:nth-child(2) { transition-delay: var(--stagger-step); }
 .reveal.is-in .container > *:nth-child(3), .reveal.is-in .chapter:nth-child(3) { transition-delay: calc(var(--stagger-step) * 2); }
 .reveal.is-in .container > *:nth-child(n+4), .reveal.is-in .chapter:nth-child(n+4) { transition-delay: calc(var(--stagger-step) * 3); }
+/* With the motion layer running, the chapters are its own to bring in: the photograph is
+   unveiled and the words follow one by one. Hiding the whole list and each whole chapter
+   as well stacked three fades on the same content, and made it late. */
+.is-motion .reveal .cards, .is-motion .reveal .chapter { opacity: 1; transform: none; transition: none; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .js .reveal { opacity: 1; transform: none; transition: none; }
   .js .reveal .container > *, .js .reveal .chapter { opacity: 1; transform: none; transition: none; }
   .btn, .card, .gallery__item img, .wa-fab { transition: none; }
   /* One switch for the whole image highlight: the gold ring still answers the pointer,

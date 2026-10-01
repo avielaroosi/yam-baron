@@ -32,11 +32,20 @@
     const settle = () => { html.style.scrollBehavior = "auto"; void getComputedStyle(html).scrollBehavior; };
     ScrollTrigger.addEventListener("refreshInit", settle);
 
-    // ---- hero: the content drifts up and thins out as the canvas scrolls away
+    // A screen driven by a finger scrolls on the graphics thread, and a script only hears
+    // where the page is afterwards. Anything a script ties to the scroll position trails
+    // it there, and reads as the scroll catching. So on such a screen scroll-linked motion
+    // is eased — it glides to where the scroll is instead of chasing it frame by frame —
+    // and it never pushes a thing against the scroll; it only fades it. With a mouse or a
+    // trackpad it stays locked to the scroll, as before.
+    const touch = ScrollTrigger.isTouch === 1;
+    const scrub = touch ? 0.4 : true;
+
+    // ---- hero: the words thin out as the canvas scrolls away (and drift up, with a mouse)
     const heroInner = document.querySelector(".hero__inner");
     if (heroInner) {
-      gsap.to(heroInner, { yPercent: -18, opacity: 0, ease: "none",
-        scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom 35%", scrub: true } });
+      gsap.to(heroInner, { ...(touch ? {} : { yPercent: -18 }), opacity: 0, ease: "none",
+        scrollTrigger: { trigger: ".hero", start: "top top", end: "bottom 35%", scrub } });
     }
 
     // ---- chapters: the photograph is unveiled from its own side, then drifts a little
@@ -54,7 +63,7 @@
       if (img) {
         // scaled so the frame stays full while the photograph travels inside it
         gsap.fromTo(img, { yPercent: -4, scale: 1.1 }, { yPercent: 4, scale: 1.1, ease: "none",
-          scrollTrigger: { trigger: ch, start: "top bottom", end: "bottom top", scrub: true } });
+          scrollTrigger: { trigger: ch, start: "top bottom", end: "bottom top", scrub } });
       }
       if (body) {
         gsap.from(body.children, { y: 24, opacity: 0, duration: 0.7, stagger: 0.1, ease: "power2.out",

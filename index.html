@@ -53,9 +53,12 @@
       <!-- DOM order is the paint order here (both absolutely positioned, neither carries a
            z-index): the still comes first and the clip is stacked above it. The still is the
            clip's own first frame (hero in js/content.js), so the picture does not change
-           when the clip takes over. -->
-      <img class="hero__bg" id="hero-img" fetchpriority="high" alt="">
-      <video class="hero__video is-ambient" id="hero-video" muted loop playsinline preload="none"></video>
+           when the clip takes over. .hero__shot carries the slow zoom, so the two layers
+           move as one. -->
+      <div class="hero__shot">
+        <img class="hero__bg" id="hero-img" fetchpriority="high" alt="">
+        <video class="hero__video is-ambient" id="hero-video" muted loop playsinline preload="none"></video>
+      </div>
     </div>
     <div class="hero__inner">
       <img class="hero__logo" id="hero-logo" fetchpriority="high" alt="">

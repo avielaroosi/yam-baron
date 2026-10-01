@@ -80,7 +80,7 @@ try {
       if (el.closest(".sr-only, .skip")) continue;
       // text sitting on a photograph has no measurable background; its legibility
       // comes from the scrim gradient, which this walk cannot see
-      if (el.closest(".gift-band, .hero__inner")) continue;
+      if (el.closest('.gift-band, .hero__inner, .video[data-type="file"]')) continue;
       const floor = floorFor(cs);
       const r = ratio(rgb(cs.color), bgOf(el));
       if (r < floor) out.push(`${el.tagName.toLowerCase()}.${(el.className || "").toString().split(" ")[0]} "${el.textContent.trim().slice(0, 24)}" = ${r.toFixed(2)}:1 (needs ${floor})`);
@@ -142,7 +142,7 @@ try {
   // a call to action of its meaning.
   const strayGold = await page.evaluate(() => {
     const GOLD = ["rgb(201, 169, 97)", "rgb(125, 98, 41)"];
-    const ACTION = ".btn, .card__link, .chapter__link, .contact__tel, .contact__secondary a, .wa-fab, .skip, .hero__scroll, .lightbox__close, .lightbox__nav, .video__play, .promo__close, .gift-band__eyebrow, .promo__highlight, .promo__big-num, .gift__eyebrow, .gift__closing";
+    const ACTION = ".btn, .card__link, .chapter__link, .contact__tel, .contact__secondary a, .wa-fab, .skip, .hero__scroll, .lightbox__close, .lightbox__nav, .rail__nav, .video__play, .promo__close, .gift-band__eyebrow, .promo__highlight, .promo__big-num, .gift__eyebrow, .gift__closing";
     const out = [];
     for (const el of document.querySelectorAll("body *")) {
       if (!el.getClientRects().length) continue;
@@ -384,17 +384,22 @@ try {
   });
   need(fonts.length === 0, "fonts:\n    " + fonts.join("\n    "));
 
-  // --- one proof section: the single clip and the testimonials share a heading,
-  // the map is back under the address, and the WhatsApp glyph is the current one
+  // --- the clips have a rail of their own again (seven of them now — the one clip used to
+  // share the testimonials row), the map is back under the address, and the WhatsApp glyph is current
   const shorter = await page.evaluate(() => {
     const out = [];
-    if (document.querySelector("#videos")) out.push("#videos section still exists — the clip belongs inside #testimonials");
+    const v = document.querySelector("#videos");
+    if (!v) out.push("#videos section missing");
+    else {
+      if (!v.querySelector("#videos-rail #videos-grid")) out.push("#videos-grid must live inside the rail in #videos");
+      if (v.querySelector(".section__title")?.textContent.trim() !== "סרטונים") out.push("the videos section keeps the heading סרטונים");
+    }
     const t = document.querySelector("#testimonials");
     if (!t) out.push("#testimonials missing");
     else {
-      if (!t.querySelector("#videos-grid")) out.push("#videos-grid must live inside #testimonials");
+      if (t.querySelector("#videos-grid")) out.push("#videos-grid no longer belongs inside #testimonials");
       if (!t.querySelector("#testimonials-grid")) out.push("#testimonials-grid must live inside #testimonials");
-      if (t.querySelector(".section__title")?.textContent.trim() !== "המלצות") out.push("the merged section keeps the heading המלצות");
+      if (t.querySelector(".section__title")?.textContent.trim() !== "המלצות") out.push("the testimonials section keeps the heading המלצות");
     }
     const map = document.querySelector("#contact-map");
     if (!map) out.push("#contact-map iframe missing");
@@ -412,7 +417,7 @@ try {
     }
     return out;
   });
-  need(shorter.length === 0, "shorter page:\n    " + shorter.join("\n    "));
+  need(shorter.length === 0, "sections:\n    " + shorter.join("\n    "));
 } finally {
   await browser.close();
   server.close();

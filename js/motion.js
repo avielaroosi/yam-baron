@@ -62,8 +62,13 @@
       }
     });
 
-    // ---- proof: the cards arrive one after another, slightly smaller, and settle
-    const cards = document.querySelectorAll(".proof .videos, .proof .testimonial");
+    // ---- the video rail and the proof row: the cards arrive one after another and settle
+    const reels = document.querySelectorAll(".videos .video");
+    if (reels.length) {
+      gsap.from(reels, { y: 28, opacity: 0, duration: 0.7, stagger: 0.07, ease: "power2.out",
+        scrollTrigger: { trigger: ".videos", start: "top 82%", once: true } });
+    }
+    const cards = document.querySelectorAll(".proof .testimonial");
     if (cards.length) {
       gsap.from(cards, { y: 28, scale: 0.94, opacity: 0, duration: 0.7, stagger: 0.08, ease: "power2.out",
         scrollTrigger: { trigger: ".proof", start: "top 80%", once: true } });

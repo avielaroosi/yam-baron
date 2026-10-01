@@ -6,9 +6,9 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": [
         "-c",
-        "exec python3 -m http.server \"${PORT:-8130}\" --bind 127.0.0.1"
+        "exec python3 tools/serve.py \"${PORT:-8140}\" 127.0.0.1"
       ],
-      "port": 8130,
+      "port": 8140,
       "autoPort": true
     },
     {
@@ -16,9 +16,9 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": [
         "-c",
-        "exec python3 -m http.server \"${PORT:-8131}\" --bind 0.0.0.0"
+        "exec python3 tools/serve.py \"${PORT:-8141}\" 0.0.0.0"
       ],
-      "port": 8131,
+      "port": 8141,
       "autoPort": true
     }
   ]

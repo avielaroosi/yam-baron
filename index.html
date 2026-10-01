@@ -81,11 +81,22 @@
       <div class="gallery" id="gallery-grid"></div>
     </section>
 
+    <section class="section section--light reveal" id="videos">
+      <div class="container">
+        <h2 class="section__title">סרטונים</h2>
+      </div>
+      <!-- outside the container on purpose: the rail runs from one edge of the screen to the other -->
+      <div class="rail" id="videos-rail">
+        <button class="rail__nav rail__nav--prev" id="videos-prev" type="button" aria-label="הסרטונים הקודמים" disabled>›</button>
+        <div class="videos" id="videos-grid"></div>
+        <button class="rail__nav rail__nav--next" id="videos-next" type="button" aria-label="הסרטונים הבאים" disabled>‹</button>
+      </div>
+    </section>
+
     <section class="section section--dark reveal" id="testimonials">
       <div class="container">
         <h2 class="section__title">המלצות</h2>
         <div class="proof">
-          <div class="videos" id="videos-grid"></div>
           <div class="proof__wall">
             <p class="testimonials__empty" id="testimonials-empty">המלצות של לקוחות יעלו כאן בקרוב</p>
             <div class="testimonials" id="testimonials-grid"></div>

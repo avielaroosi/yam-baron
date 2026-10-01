@@ -205,6 +205,46 @@ try {
     need(await mobile.evaluate(() => { const p = document.querySelector('#videos-grid .video[data-type="file"] .video__player'); const v = p.querySelector("video"); return v.__pauses >= 1 && !p.classList.contains("is-playing") && !v.controls; }), "video: scrolling it off screen must pause it and bring the gold ring back");
   }
 
+  // --- videos: starting one clip stops the one that was playing. Wiring only — headless Chromium
+  // cannot decode the files, so play() and pause() are stubbed and the class is what is under test.
+  if (S.videos.filter((v) => v.type === "file").length > 1) {
+    need(await mobile.evaluate(() => {
+      const players = [...document.querySelectorAll('#videos-grid .video[data-type="file"] .video__player')].slice(0, 2);
+      const vids = players.map((p) => p.querySelector("video"));
+      vids.forEach((v) => { v.__pauses = 0; v.play = () => Promise.resolve(); v.pause = () => { v.__pauses++; }; });
+      players[0].querySelector(".video__play").click();
+      players[1].querySelector(".video__play").click();
+      const ok = !players[0].classList.contains("is-playing") && vids[0].__pauses >= 1 && players[1].classList.contains("is-playing");
+      vids[1].dispatchEvent(new Event("ended")); // put the ring back so later checks and the screenshots see the resting rail
+      return ok && !players[1].classList.contains("is-playing");
+    }), "videos: starting a second clip must stop the first, and a clip that ends must show its ring again");
+  }
+  // --- videos: posters are held back until the rail is near, then every clip has one
+  need(await mobile.evaluate(() => [...document.querySelectorAll('#videos-grid .video[data-type="file"] video')].every((v) => v.getAttribute("poster") && !v.hasAttribute("data-poster"))), "videos: once the rail has been reached every clip must show its poster");
+  {
+    const top = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });
+    await top.addInitScript(() => { try { localStorage.setItem("yb-promo-used", String(Date.now())); } catch (e) {} });
+    const early = [];
+    top.on("request", (r) => { if (/video-yam-/.test(r.url())) early.push(r.url().split("/").pop()); });
+    await top.goto(base, { waitUntil: "load" });
+    await top.waitForTimeout(600);
+    need(early.length === 0, `videos: no poster may load before the rail is near — the first screen asked for ${early.join(", ")}`);
+    await top.close();
+  }
+  // --- videos: the rail on a desktop — more clips than screen, arrows that page it and know where the ends are
+  if (S.videos.length > 4) {
+    await desktop.evaluate(() => document.getElementById("videos").scrollIntoView({ block: "center" }));
+    await desktop.waitForTimeout(300);
+    need(await desktop.evaluate(() => document.getElementById("videos-rail").classList.contains("is-scrollable")), "videos: with this many clips the rail must overflow, and say so");
+    need(await desktop.evaluate(() => document.getElementById("videos-prev").disabled && !document.getElementById("videos-next").disabled), "videos: at the start only the forward arrow is live");
+    need(await desktop.evaluate(() => { const r = document.querySelector("#videos-grid .video").getBoundingClientRect(); return r.right <= window.innerWidth && r.left >= 0 && Math.abs(r.height / r.width - 16 / 9) < 0.02; }), "videos: the first clip stands fully on screen as a 9:16 card");
+    await desktop.click("#videos-next");
+    await desktop.waitForTimeout(400);
+    need(await desktop.evaluate(() => Math.abs(document.getElementById("videos-grid").scrollLeft) > 100 && !document.getElementById("videos-prev").disabled), "videos: the forward arrow must move the rail and wake the back arrow");
+    need(await desktop.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), "videos: the rail must scroll inside itself, never the page");
+    await desktop.evaluate(() => { document.getElementById("videos-grid").scrollLeft = 0; });
+  }
+
   // --- videos: non-placeholder branches on a fixture page (Task 4 fix)
   {
     const fx = await browser.newPage({ viewport: { width: 390, height: 844 }, locale: "he-IL", reducedMotion: "reduce" });

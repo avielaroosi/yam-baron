@@ -259,19 +259,27 @@
       el("span", { class: "video__soon", text: "סרטון בקרוב" }),
     ]);
   }
+  let nowPlaying = null; // only one clip plays at a time: starting another stops this one
   function renderVideos() {
     const grid = $("videos-grid");
+    const section = grid.closest("section");
+    if (section && !S.videos.length) { section.hidden = true; return; }
     let needInstagram = false;
     for (const v of S.videos) {
       let media;
       const id = v.type === "youtube" ? youtubeId(v.src) : null;
       if (v.type === "file") {
         // poster + the gold play ring until the visitor taps; native controls appear only while playing
-        const video = el("video", { class: "video__media", src: v.src, poster: v.poster, playsinline: true, preload: "none" });
+        // The poster waits in data-poster until the rail is near the viewport (see the end of this function):
+        // a poster cannot be lazy-loaded natively, and seven of them are 400KB the first screen does not need.
+        const video = el("video", { class: "video__media", src: v.src, "data-poster": v.poster, playsinline: true, preload: "none" });
         const play = el("button", { class: "video__play video__play--btn", type: "button", "aria-label": "נגן: " + v.title });
         media = el("div", { class: "video__player" }, [video, play]);
-        const showRing = () => { media.classList.remove("is-playing"); video.controls = false; };
+        const showRing = () => { media.classList.remove("is-playing"); video.controls = false; if (nowPlaying === stop) nowPlaying = null; };
+        const stop = () => { video.pause(); showRing(); };
         play.addEventListener("click", () => {
+          if (nowPlaying && nowPlaying !== stop) nowPlaying();
+          nowPlaying = stop;
           media.classList.add("is-playing");
           video.controls = true;
           const p = video.play();
@@ -282,7 +290,7 @@
         // scrolling away pauses it (owner: a video must not keep playing off screen); the ring returns, a tap resumes where it stopped
         if ("IntersectionObserver" in window) {
           new IntersectionObserver((entries) => {
-            for (const e of entries) if (!e.isIntersecting && media.classList.contains("is-playing")) { video.pause(); showRing(); }
+            for (const e of entries) if (!e.isIntersecting && media.classList.contains("is-playing")) stop();
           }, { threshold: 0.35 }).observe(video);
         }
       } else if (v.type === "youtube" && !id) {
@@ -303,6 +311,63 @@
     if (needInstagram && !document.querySelector('script[src*="instagram.com/embed.js"]')) {
       document.body.append(el("script", { src: "https://www.instagram.com/embed.js", async: true }));
     }
+    // posters arrive when the rail comes within reach of the viewport
+    const waiting = grid.querySelectorAll("video[data-poster]");
+    const showPosters = () => waiting.forEach((vid) => { vid.poster = vid.dataset.poster; vid.removeAttribute("data-poster"); });
+    if (waiting.length && "IntersectionObserver" in window) {
+      const io = new IntersectionObserver((entries) => { if (entries.some((e) => e.isIntersecting)) { showPosters(); io.disconnect(); } }, { rootMargin: "700px 0px" });
+      io.observe(grid);
+    } else showPosters();
+  }
+
+  // ---- the video rail: touch and trackpads scroll it natively; the arrows page it and a mouse can drag it
+  function initRail() {
+    const rail = $("videos-rail"), strip = $("videos-grid"), prev = $("videos-prev"), next = $("videos-next");
+    if (!rail || !strip) return;
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const rtl = getComputedStyle(strip).direction === "rtl";
+    // scrollLeft runs negative in an RTL strip; how far it has travelled is the same question either way
+    const sync = () => {
+      const max = strip.scrollWidth - strip.clientWidth, gone = Math.abs(strip.scrollLeft);
+      rail.classList.toggle("is-scrollable", max > 4);
+      if (prev) prev.disabled = gone < 4;
+      if (next) next.disabled = gone > max - 4;
+    };
+    const page = (forward) => strip.scrollBy({ left: (forward ? 1 : -1) * (rtl ? -1 : 1) * strip.clientWidth * 0.8, behavior: calm.matches ? "auto" : "smooth" });
+    if (prev) prev.addEventListener("click", () => page(false));
+    if (next) next.addEventListener("click", () => page(true));
+    strip.addEventListener("scroll", sync, { passive: true });
+    window.addEventListener("resize", sync);
+    window.addEventListener("load", sync);
+    sync();
+
+    // mouse drag. A drag is not a click: letting go over a play ring must not start the clip.
+    let drag = null, swallow = false;
+    strip.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button !== 0) return;
+      swallow = false;
+      drag = { id: e.pointerId, x: e.clientX, left: strip.scrollLeft, moved: false };
+    });
+    strip.addEventListener("pointermove", (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x;
+      if (!drag.moved) {
+        if (Math.abs(dx) < 6) return;
+        drag.moved = true;
+        strip.classList.add("is-dragging");
+        try { strip.setPointerCapture(e.pointerId); } catch (_) { /* the pointer is already gone */ }
+      }
+      strip.scrollLeft = drag.left - dx;
+    });
+    const release = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (drag.moved) swallow = true;
+      drag = null;
+      strip.classList.remove("is-dragging");
+    };
+    window.addEventListener("pointerup", release);
+    window.addEventListener("pointercancel", release);
+    strip.addEventListener("click", (e) => { if (!swallow) return; swallow = false; e.preventDefault(); e.stopPropagation(); }, true);
   }
 
   // ---- ambient video: decorative loops behind the hero and the service chapters.
@@ -418,6 +483,7 @@
   safe("gallery", renderGallery);
   safe("lightbox", initLightbox);
   safe("videos", renderVideos);
+  safe("rail", initRail);
   safe("testimonials", renderTestimonials);
   safe("gift", renderGift);
   safe("about", renderAbout);

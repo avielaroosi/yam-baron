@@ -75,9 +75,10 @@
   --focus-ring: 2px solid var(--gold);
   --focus-offset: 3px;
   --radius-sm: 4px;
-  --video-min: 260px; --video-max: 380px; --video-solo: 460px;
+  --reel-w: clamp(220px, 21vw, 300px); --reel-w-phone: min(72vw, var(--card-w)); /* video rail cards */
   --tap: 44px;
   --tile-w: clamp(200px, 22vw, 300px); --tile-w-phone: min(62vw, 260px); /* gallery tiles */
+  --shot-ratio: 900 / 931; /* the testimonial screenshots' own shape */
   --card-min: 200px; --card-w: 320px; /* proof cards: the clip and every screenshot share this */
 }
 
@@ -164,24 +165,23 @@ p { margin: 0; }
 .testimonial img { width: 100%; height: auto; display: block; }
 .testimonial:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 /* ===== proof =====
-   The clip and the client screenshots are the same kind of thing — evidence — so
-   they get the same card: 9:16, one row, one height. On the desktop the row is a
-   grid that shows everything; on the phone it is a strip you swipe. No masonry,
-   no ragged edge, nothing taller than its neighbour. */
+   Client screenshots as uniform cards, one row, one height — a grid on the desktop, a
+   strip to swipe on the phone. No masonry, no ragged edge. The card takes the
+   screenshots' own shape (they are all 900×931), so nothing is cropped and nothing is
+   padded; a screenshot of another shape would sit whole on a ground the colour of the
+   chat wallpaper. (The clip used to share this row, which is why the cards were once
+   9:16; with seven clips they have a rail of their own, above.) */
 .proof { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--card-min), 1fr)); gap: var(--sp-3); }
 .proof__wall, .proof .testimonials { display: contents; }
-.proof .videos { display: block; max-width: none; }
-.proof .video { margin: 0; position: relative; }
-.proof .video__title { position: absolute; inset-inline: var(--sp-2); bottom: var(--sp-2); text-align: center; color: var(--text-on-ink); text-shadow: 0 1px 8px rgba(0, 0, 0, .6); pointer-events: none; }
-.proof .testimonial { aspect-ratio: 9 / 16; margin: 0; border-radius: var(--radius); overflow: hidden; background: var(--ink-1); }
+.proof .testimonial { aspect-ratio: var(--shot-ratio); margin: 0; border-radius: var(--radius); overflow: hidden; background: var(--paper-0); }
 .proof .testimonial img { width: 100%; height: 100%; object-fit: contain; }
 .proof .testimonials__empty { grid-column: 1 / -1; }
 @media (max-width: 819px) {
   .proof { display: flex; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; padding-bottom: var(--sp-2); scrollbar-width: none; }
   .proof::-webkit-scrollbar { display: none; }
-  /* #videos-grid keeps a real box (the pause-on-scroll check scrolls it); in the strip it is one card wide */
-  .proof .videos, .proof .testimonial { flex: 0 0 min(72vw, var(--card-w)); scroll-snap-align: start; }
+  .proof .testimonial { flex: 0 0 min(72vw, var(--card-w)); scroll-snap-align: start; }
   .proof .testimonials__empty { flex: 0 0 auto; align-self: center; }
+}
 }
 
 /* ===== about ===== */
@@ -268,28 +268,48 @@ html:not(.is-motion) .gallery__track { padding-inline: var(--pad); }
 .lightbox__nav--next { left: 10px; }
 .lightbox__count { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); color: var(--text-on-ink-2); font-size: .9rem; direction: ltr; }
 
-/* ===== videos ===== */
-.videos { display: grid; gap: var(--sp-4); grid-template-columns: repeat(auto-fit, minmax(var(--video-min), var(--video-max))); justify-content: center; max-width: var(--container); margin-inline: auto; }
-@media (min-width: 820px) {
-  /* a single clip has no grid to sit in — let it stand at a confident size */
-  .videos:has(.video:only-child) { grid-template-columns: minmax(0, var(--video-solo)); }
-}
-.video { margin: 0; display: grid; gap: 10px; }
+/* ===== videos: a rail of reels =====
+   The clips stand side by side from one edge of the screen to the other, and the rail
+   scrolls sideways — a swipe, a trackpad, a mouse drag, or the two arrows — settling on
+   a card. Nothing plays until it is tapped, and only one plays at a time. */
+.rail { position: relative; }
+.videos { display: flex; gap: var(--sp-3); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scroll-padding-inline: var(--pad); padding: var(--sp-1) var(--pad); scrollbar-width: none; }
+.videos::-webkit-scrollbar { display: none; }
+.videos.is-dragging { scroll-snap-type: none; cursor: grabbing; -webkit-user-select: none; user-select: none; }
+.video { position: relative; flex: 0 0 var(--reel-w); margin: 0; scroll-snap-align: start; }
+/* auto margins centre a rail that does not fill the screen, and vanish when it overflows */
+.video:first-child { margin-inline-start: auto; }
+.video:last-child { margin-inline-end: auto; }
 .video__media, .video__placeholder { width: 100%; aspect-ratio: 9 / 16; border-radius: var(--radius); overflow: hidden; background: var(--ink-1); }
 .video__media { object-fit: cover; display: block; }
 iframe.video__media { border: 0; }
 .video__placeholder { position: relative; display: grid; place-items: center; transition: var(--hl-ease); }
 .video__placeholder img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .55; transition: var(--hl-ease); }
 .video__play { position: relative; width: 64px; height: 64px; border-radius: 50%; border: 1px solid var(--gold); display: grid; place-items: center; background: rgba(10, 10, 11, .35); transition: var(--hl-ease); }
-.video__player { position: relative; }
+.video__player { position: relative; border-radius: var(--radius); overflow: hidden; }
 .video__player .video__media { display: block; }
-.video__player .video__play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 0; cursor: pointer; font: inherit; }
+/* a floor of shade under the caption; it lifts while the clip plays so the controls are clear */
+.video__player::after { content: ""; position: absolute; inset: auto 0 0 0; height: 30%; background: linear-gradient(to top, rgba(10, 10, 11, .65), rgba(10, 10, 11, 0)); pointer-events: none; transition: opacity var(--dur-ui) var(--ease); }
+.video__player.is-playing::after { opacity: 0; }
+.video__player .video__play { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; padding: 0; cursor: pointer; font: inherit; }
 .video__player .video__play:hover { transform: translate(-50%, -50%) scale(1.08); background: rgba(10, 10, 11, .5); }
 .video__player .video__play:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
 .video__player.is-playing .video__play { display: none; }
 .video__play::after { content: ""; border-style: solid; border-width: 11px 0 11px 18px; border-color: transparent transparent transparent var(--gold); margin-left: 4px; }
 .video__soon { position: absolute; bottom: 16px; color: var(--paper-0); font-size: .9rem; letter-spacing: .05em; }
-.video__title { text-align: center; color: var(--fg-2); font-size: var(--step-small); }
+/* the caption lies on the clip's own poster, over the shade */
+.video__title { position: absolute; inset-inline: var(--sp-2); bottom: var(--sp-2); text-align: center; color: var(--text-on-ink); font-size: var(--step-small); text-shadow: 0 1px 8px rgba(0, 0, 0, .6); pointer-events: none; transition: opacity var(--dur-ui) var(--ease); }
+.video:has(.is-playing) .video__title { opacity: 0; }
+/* an embed or a placeholder already uses its bottom edge, so there the caption sits underneath */
+.video[data-type="youtube"] .video__title, .video[data-type="instagram"] .video__title, .video[data-type="placeholder"] .video__title { position: static; margin-top: var(--sp-1); color: var(--fg-2); text-shadow: none; }
+/* the arrows: only where there is a pointer to press them and more rail than screen */
+.rail__nav { display: none; position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: var(--tap); height: var(--tap); border-radius: 50%; border: 1px solid var(--gold-soft); background: rgba(10, 10, 11, .55); color: var(--paper-0); font-size: 1.6rem; line-height: 1; cursor: pointer; place-items: center; font-family: var(--font-body); transition: opacity var(--dur-ui) var(--ease); }
+.rail__nav--prev { inset-inline-start: var(--sp-2); }
+.rail__nav--next { inset-inline-end: var(--sp-2); }
+.rail__nav[disabled] { opacity: 0; pointer-events: none; }
+.rail__nav:focus-visible { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+@media (hover: hover) and (pointer: fine) { .rail.is-scrollable .rail__nav { display: grid; } }
+@media (max-width: 819px) { .videos { gap: var(--sp-2); scroll-snap-type: x mandatory; } .video { flex-basis: var(--reel-w-phone); } }
 
 /* ===== pointing at an image =====
    The frame lifts and the photo grows inside it, so the picture reads as pushed forward
